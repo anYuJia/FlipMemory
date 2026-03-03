@@ -110,12 +110,7 @@ const toggleBarSelection = (index: number) => {
 </script>
 
 <template>
-  <div class="page-container min-h-screen relative overflow-x-hidden">
-    <!-- 背景光晕 -->
-    <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.1] dark:opacity-[0.05]" style="background-color: var(--glow-primary);" />
-    </div>
-    
+  <div class="page-container relative">
     <div class="relative max-w-lg mx-auto px-6">
       <header class="pt-16 pb-6 safe-area-top transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="flex flex-col gap-1">

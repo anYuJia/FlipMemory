@@ -67,14 +67,7 @@ const handleRefresh = async () => await memoryStore.fetchRecentMemories()
 
 <template>
   <PullToRefresh @refresh="handleRefresh">
-  <div class="page-container min-h-screen relative overflow-x-hidden">
-    <!-- 背景光晕 - 时光流转动态色 -->
-    <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] transition-all duration-[2000ms]" :style="{ backgroundColor: 'var(--color-primary)', opacity: 'var(--glow-opacity, 0.12)' }" />
-      <div class="absolute top-1/3 -right-48 w-[400px] h-[400px] rounded-full blur-[100px] transition-all duration-[2000ms]" :style="{ backgroundColor: 'var(--color-accent)', opacity: 'var(--glow-opacity, 0.08)' }" />
-    </div>
-
-    <!-- 主内容区域 -->
+  <div class="page-container relative">
     <div class="relative max-w-lg mx-auto px-6">
       <!-- 顶部欢迎 -->
       <header class="pt-16 pb-8 safe-area-top transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
