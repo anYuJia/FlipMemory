@@ -40,12 +40,13 @@ const greetingIcon = computed(() => {
 })
 
 const currentDate = computed(() => {
-  return new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })
+  const locale = localStorage.getItem('locale') || 'zh-CN'
+  return new Date().toLocaleDateString(locale, { month: 'long', day: 'numeric', weekday: 'long' })
 })
 
-// 记忆数据
-const featuredMemories = computed(() => memoryStore.featuredMemories)
-const recentMemories = computed(() => memoryStore.recentMemories)
+// 记忆数据 - 修复引用错误
+const recentMemories = computed(() => memoryStore.recentMemories || [])
+const featuredMemories = computed(() => recentMemories.value.slice(0, 3)) // 暂时用最近的作为精选
 
 // 轮播配置
 const carouselCardWidth = computed(() => '280px')
@@ -54,7 +55,7 @@ const extendedMemories = computed(() => {
 })
 
 onMounted(async () => {
-  if (memoryStore.recentMemories.length === 0) {
+  if (!memoryStore.recentMemories || memoryStore.recentMemories.length === 0) {
     await memoryStore.fetchRecentMemories()
   }
   setTimeout(() => {
@@ -149,7 +150,7 @@ const handleRefresh = async () => {
         
         <div class="relative -mx-6">
           <div ref="carouselRef" class="flex gap-4 overflow-x-auto pb-6 px-6 snap-x snap-mandatory hide-scrollbar">
-            <div v-if="featuredMemories.length === 0" class="w-full snap-center">
+            <div v-if="featuredMemories.length === 0" class="w-full snap-center px-6">
               <div class="relative h-48 rounded-[2.5rem] flex flex-col items-center justify-center border-2 border-dashed border-black/5 dark:border-white/5 opacity-40 hover:opacity-60 transition-all">
                 <Heart class="w-8 h-8 mb-2 opacity-20" />
                 <span class="text-xs font-bold uppercase tracking-widest">{{ t('home.no_featured') }}</span>

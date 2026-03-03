@@ -23,9 +23,9 @@ const currentWeek = ref(1)
 const selectedBarIndex = ref<number | null>(null)
 
 const timeRanges = [
-  { key: 'week', label: t('common.all').replace('全部', '周') }, // 临时处理，后续在 locales 补全
-  { key: 'month', label: t('common.all').replace('全部', '月') },
-  { key: 'year', label: t('common.all').replace('全部', '年') },
+  { key: 'week', label: '周' },
+  { key: 'month', label: '月' },
+  { key: 'year', label: '年' },
   { key: 'all', label: t('common.all') }
 ]
 
@@ -43,8 +43,17 @@ const stats = ref({
 const fetchStats = async () => {
   isLoadingStats.value = true
   try {
-    const data = await memoryStore.fetchStats(activeRange.value, currentYear.value, currentMonth.value, currentWeek.value)
-    stats.value = data
+    const data = await memoryStore.getStats(activeRange.value, currentYear.value, currentMonth.value, currentWeek.value)
+    if (data) {
+      stats.value = {
+        totalMemories: data.totalMemories || 0,
+        totalPhotos: data.totalPhotos || 0,
+        consecutiveDays: data.consecutiveDays || 0,
+        periodCount: data.periodCount || 0,
+        moodDistribution: data.moodDistribution || [],
+        trend: data.trend || []
+      }
+    }
   } finally {
     isLoadingStats.value = false
   }
@@ -75,15 +84,20 @@ const goNext = () => {
 }
 
 const moodDistribution = computed(() => {
-  const total = stats.value.moodDistribution.reduce((acc, curr) => acc + curr.count, 0)
-  return stats.value.moodDistribution.map(m => ({
+  const dist = stats.value.moodDistribution || []
+  const total = dist.reduce((acc, curr) => acc + (curr.count || 0), 0)
+  return dist.map(m => ({
     ...m,
-    percentage: total > 0 ? Math.round((m.count / total) * 100) : 0
-  })).sort((a, b) => b.count - a.count)
+    percentage: total > 0 ? Math.round(((m.count || 0) / total) * 100) : 0
+  })).sort((a, b) => (b.count || 0) - (a.count || 0))
 })
 
-const trendData = computed(() => stats.value.trend)
-const maxTrendCount = computed(() => Math.max(...trendData.value.map(t => t.count), 1))
+const trendData = computed(() => stats.value.trend || [])
+const maxTrendCount = computed(() => {
+  const counts = trendData.value.map(t => t.count || 0)
+  return counts.length > 0 ? Math.max(...counts, 1) : 1
+})
+
 const timeLabel = computed(() => {
   if (activeRange.value === 'month') return `${currentYear.value} / ${currentMonth.value}`
   if (activeRange.value === 'year') return `${currentYear.value}`
@@ -128,14 +142,14 @@ const toggleBarSelection = (index: number) => {
         </div>
         
         <div v-if="activeRange !== 'all'" class="flex items-center justify-between mt-6 px-2">
-          <button @click="goPrev" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90">
+          <button @click="goPrev" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90 shadow-sm">
             <ChevronLeft class="w-4 h-4 opacity-40" style="color: var(--text-primary);" />
           </button>
           <div class="flex flex-col items-center">
             <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ activeRange }}</span>
             <span class="text-sm font-bold tracking-tight mt-0.5" style="color: var(--text-primary);">{{ timeLabel }}</span>
           </div>
-          <button @click="goNext" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90">
+          <button @click="goNext" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90 shadow-sm">
             <ChevronRight class="w-4 h-4 opacity-40" style="color: var(--text-primary);" />
           </button>
         </div>
@@ -145,7 +159,7 @@ const toggleBarSelection = (index: number) => {
       <section class="mb-8 transition-all duration-700 delay-200" :style="{ opacity: isLoaded ? 1 : 0 }">
         <SkeletonLoader v-if="isLoadingStats" type="stats" />
         <div v-else class="grid grid-cols-2 gap-4">
-          <div class="p-6 rounded-[2rem] bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-orange-500/10 dark:to-transparent border border-orange-200/50 dark:border-orange-500/20 shadow-sm flex flex-col justify-between relative overflow-hidden">
+          <div class="p-6 rounded-[2rem] bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-orange-500/10 dark:to-orange-950/20 border border-orange-200/50 dark:border-orange-500/20 shadow-sm flex flex-col justify-between relative overflow-hidden">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-400 rounded-full blur-[40px] opacity-20 dark:opacity-10"></div>
             <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 text-orange-800 dark:text-orange-300">{{ t('stats.total_memories') }}</span>
             <div class="mt-4 flex items-baseline gap-2">
@@ -173,6 +187,7 @@ const toggleBarSelection = (index: number) => {
       </section>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 pb-32 transition-all duration-700 delay-300" :style="{ opacity: isLoaded ? 1 : 0 }">
+        <!-- 情绪 -->
         <section>
           <div class="p-6 rounded-[2rem] card-static shadow-sm">
             <h3 class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 mb-6" style="color: var(--text-primary);">{{ t('stats.mood_dist') }}</h3>
@@ -193,6 +208,7 @@ const toggleBarSelection = (index: number) => {
           </div>
         </section>
         
+        <!-- 趋势 -->
         <section>
           <div class="p-6 rounded-[2rem] card-static shadow-sm h-full flex flex-col">
             <h3 class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 mb-6" style="color: var(--text-primary);">{{ t('stats.activity_trend') }}</h3>
@@ -202,7 +218,7 @@ const toggleBarSelection = (index: number) => {
                   :class="selectedBarIndex === index && item.count > 0 ? 'opacity-100' : 'opacity-0'">{{ item.count }}</div>
                 <div class="w-full rounded-t-xl transition-all duration-500"
                   :style="{ background: selectedBarIndex === index ? 'var(--color-primary)' : 'var(--text-muted)', height: item.count > 0 ? `${Math.max((item.count / maxTrendCount) * 100, 10)}%` : '4px', opacity: selectedBarIndex === index ? '1' : (item.count > 0 ? '0.6' : '0.2') }"></div>
-                <span class="text-[9px] font-bold tracking-widest uppercase mt-3" style="color: var(--text-primary);" :style="{ opacity: selectedBarIndex === index ? '1' : '0.4' }">{{ item.label }}</span>
+                <span class="text-[9px] font-black tracking-widest uppercase mt-3" style="color: var(--text-primary);" :style="{ opacity: selectedBarIndex === index ? '1' : '0.4' }">{{ item.label }}</span>
               </div>
             </div>
           </div>
