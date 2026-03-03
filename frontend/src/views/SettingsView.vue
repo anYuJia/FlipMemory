@@ -108,7 +108,7 @@ onMounted(() => {
         </button>
       </section>
       
-      <!-- 外观与语言 -->
+      <!-- 外观与语言分组 -->
       <section class="mb-6 transition-all duration-700 delay-200" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="rounded-[2rem] overflow-hidden card-static shadow-sm">
           <!-- 主题 -->
