@@ -3,71 +3,45 @@ import { onMounted, watch, computed } from 'vue'
 import { useMemoryStore } from '@/stores'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import CalendarCell from './CalendarCell.vue'
+import { useI18n } from 'vue-i18n'
 
 const memoryStore = useMemoryStore()
+const { t } = useI18n()
 
-const weekDays = ['日', '一', '二', '三', '四', '五', '六']
+const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-// 格式化当前月份显示
-const currentMonthDisplay = computed(() => {
-  const { year, month } = memoryStore.currentMonth
-  return `${year}年${month}月`
-})
-
-// 判断是否是当前月
 const isCurrentRealMonth = computed(() => {
   const now = new Date()
   return memoryStore.currentMonth.year === now.getFullYear() && 
          memoryStore.currentMonth.month === now.getMonth() + 1
 })
 
-// 生成日历网格
 const getCalendarGrid = () => {
   const { year, month } = memoryStore.currentMonth
-  const firstDay = new Date(year, month - 1, 1)
-  const lastDay = new Date(year, month, 0)
+  const firstDayOfMonth = new Date(year, month - 1, 1).getDay()
+  const daysInMonth = new Date(year, month, 0).getDate()
+  const daysInPrevMonth = new Date(year, month - 1, 0).getDate()
   
-  const daysInMonth = lastDay.getDate()
-  const startDayOfWeek = firstDay.getDay()
+  const grid = []
   
-  const grid: Array<{ date: string; isCurrentMonth: boolean; day: number }> = []
-  
-  // 上个月
-  const prevMonth = month === 1 ? 12 : month - 1
-  const prevYear = month === 1 ? year - 1 : year
-  const daysInPrevMonth = new Date(prevYear, prevMonth, 0).getDate()
-  
-  for (let i = startDayOfWeek - 1; i >= 0; i--) {
+  // 上个月的尾巴
+  for (let i = firstDayOfMonth - 1; i >= 0; i--) {
     const day = daysInPrevMonth - i
-    grid.push({
-      date: `${prevYear}-${String(prevMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-      isCurrentMonth: false,
-      day,
-    })
+    const date = `${month === 1 ? year - 1 : year}-${String(month === 1 ? 12 : month - 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    grid.push({ date, day, isCurrentMonth: false })
   }
   
-  // 当前月
-  for (let day = 1; day <= daysInMonth; day++) {
-    grid.push({
-      date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-      isCurrentMonth: true,
-      day,
-    })
+  // 本月
+  for (let i = 1; i <= daysInMonth; i++) {
+    const date = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`
+    grid.push({ date, day: i, isCurrentMonth: true })
   }
   
-  // 下个月
-  const nextMonth = month === 12 ? 1 : month + 1
-  const nextYear = month === 12 ? year + 1 : year
-  const remainingDays = 7 - (grid.length % 7)
-  
-  if (remainingDays < 7) {
-    for (let day = 1; day <= remainingDays; day++) {
-      grid.push({
-        date: `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-        isCurrentMonth: false,
-        day,
-      })
-    }
+  // 下个月的头
+  const remaining = 42 - grid.length
+  for (let i = 1; i <= remaining; i++) {
+    const date = `${month === 12 ? year + 1 : year}-${String(month === 12 ? 1 : month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`
+    grid.push({ date, day: i, isCurrentMonth: false })
   }
   
   return grid
@@ -78,18 +52,13 @@ const goToToday = () => {
   memoryStore.setCurrentMonth(now.getFullYear(), now.getMonth() + 1)
 }
 
-watch(
-  () => memoryStore.currentMonth,
-  ({ year, month }) => {
-    memoryStore.fetchCalendarData(year, month)
-  },
-  { immediate: true }
-)
-
-onMounted(() => {
-  const { year, month } = memoryStore.currentMonth
-  memoryStore.fetchCalendarData(year, month)
+onMounted(async () => {
+  await memoryStore.fetchMonthMemories()
 })
+
+watch(() => memoryStore.currentMonth, async () => {
+  await memoryStore.fetchMonthMemories()
+}, { deep: true })
 </script>
 
 <template>
@@ -98,9 +67,9 @@ onMounted(() => {
     <div class="flex items-center justify-between mb-8">
       <button 
         @click="memoryStore.prevMonth()"
-        class="w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-300 hover:bg-black/5 active:scale-90 border border-black/5"
+        class="w-11 h-11 rounded-2xl flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/5 active:scale-90 border border-black/5 dark:border-white/5 shadow-sm"
       >
-        <ChevronLeft class="w-4 h-4 opacity-30" />
+        <ChevronLeft class="w-4 h-4 opacity-30" style="color: var(--text-primary);" />
       </button>
       
       <div class="flex flex-col items-center gap-1">
@@ -108,30 +77,31 @@ onMounted(() => {
           {{ memoryStore.currentMonth.month }}月
         </h2>
         
-        <!-- 返回今天按钮 -->
         <button 
           v-if="!isCurrentRealMonth"
           @click="goToToday"
           class="text-[9px] font-black tracking-[0.2em] uppercase opacity-40 hover:opacity-100 transition-opacity"
+          style="color: var(--text-primary);"
         >
-          Back to Today
+          {{ t('calendar.back_to_today') }}
         </button>
       </div>
       
       <button 
         @click="memoryStore.nextMonth()"
-        class="w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-300 hover:bg-black/5 active:scale-90 border border-black/5"
+        class="w-11 h-11 rounded-2xl flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/5 active:scale-90 border border-black/5 dark:border-white/5 shadow-sm"
       >
-        <ChevronRight class="w-4 h-4 opacity-30" />
+        <ChevronRight class="w-4 h-4 opacity-30" style="color: var(--text-primary);" />
       </button>
     </div>
     
     <!-- 星期标题 -->
     <div class="grid grid-cols-7 mb-4">
       <div 
-        v-for="(day, index) in weekDays" 
+        v-for="day in weekDays" 
         :key="day"
         class="text-center text-[10px] font-black py-2 tracking-[0.2em] uppercase opacity-20"
+        style="color: var(--text-primary);"
       >
         {{ day }}
       </div>
