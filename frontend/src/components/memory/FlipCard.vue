@@ -121,24 +121,24 @@ const formatPhotoTime = (dateStr: string) => {
       </div>
 
       <!-- 背面：纸质感内容 -->
-      <div class="flip-card-back pill-card p-8 flex flex-col" style="background: #fdfbf7; background-image: radial-gradient(#e5e7eb 0.5px, transparent 0.5px); background-size: 20px 20px;">
+      <div class="flip-card-back pill-card p-8 flex flex-col" style="background-color: var(--bg-elevated); background-image: radial-gradient(var(--border-primary) 0.5px, transparent 0.5px); background-size: 20px 20px;">
         <header class="flex-shrink-0 mb-6">
           <div class="flex items-center justify-between mb-4">
-            <div class="px-3 py-1 rounded-full bg-black/5 text-[9px] font-black uppercase tracking-[0.2em] text-black/40">
+            <div class="px-3 py-1 rounded-full bg-black/5 dark:bg-white/5 text-[9px] font-black uppercase tracking-[0.2em] text-black/40 dark:text-white/40">
               {{ formattedDate.full }}
             </div>
-            <div class="p-2 rounded-full hover:bg-black/5 transition-colors">
-              <RotateCcw class="w-3.5 h-3.5 text-black/20" />
+            <div class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+              <RotateCcw class="w-3.5 h-3.5 text-black/20 dark:text-white/20" />
             </div>
           </div>
           <div class="flex items-center gap-3">
             <span v-if="memory.mood" class="text-2xl drop-shadow-md">{{ MoodEmoji[memory.mood] }}</span>
-            <div class="h-[1px] flex-1 bg-black/[0.03]"></div>
+            <div class="h-[1px] flex-1 bg-black/[0.03] dark:bg-white/[0.05]"></div>
           </div>
         </header>
 
         <section class="flex-1 overflow-y-auto hide-scrollbar min-h-0">
-          <p class="text-[15px] leading-[1.8] text-black/70 font-medium whitespace-pre-wrap antialiased tracking-tight">
+          <p class="text-[15px] leading-[1.8] font-medium whitespace-pre-wrap antialiased tracking-tight" style="color: var(--text-primary); opacity: 0.8;">
             {{ memory.content || '这一天，留下了无声的印记...' }}
           </p>
           
@@ -147,7 +147,8 @@ const formatPhotoTime = (dateStr: string) => {
             <div 
               v-for="tag in memory.tags" 
               :key="tag.id"
-              class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/[0.03] text-[9px] text-black/40 font-bold uppercase tracking-widest border border-black/[0.02]"
+              class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/[0.03] dark:bg-white/[0.05] text-[9px] font-bold uppercase tracking-widest border border-black/[0.02] dark:border-white/[0.02]"
+              style="color: var(--text-tertiary);"
             >
               <Tag class="w-2.5 h-2.5" />
               <span>{{ tag }}</span>
@@ -156,17 +157,17 @@ const formatPhotoTime = (dateStr: string) => {
         </section>
 
         <!-- 底部操作区域 -->
-        <div class="mt-8 pt-6 border-t border-black/[0.05] flex items-center gap-3">
+        <div class="mt-8 pt-6 border-t border-black/[0.05] dark:border-white/[0.05] flex items-center gap-3">
           <button 
             @click.stop="goToDetail"
-            class="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-black text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+            class="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-black dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Eye class="w-4 h-4" />
             <span>Open Memory</span>
           </button>
           <button 
             @click.stop="goToEdit"
-            class="w-14 h-14 flex items-center justify-center rounded-2xl bg-white border border-black/[0.05] text-black/20 transition-all hover:text-black hover:border-black/10 active:scale-95 shadow-sm"
+            class="w-14 h-14 flex items-center justify-center rounded-2xl bg-white dark:bg-white/10 border border-black/[0.05] dark:border-white/10 text-black/20 dark:text-white/20 transition-all hover:text-black dark:hover:text-white active:scale-95 shadow-sm"
           >
             <Edit3 class="w-5 h-5" />
           </button>

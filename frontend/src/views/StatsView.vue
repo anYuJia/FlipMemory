@@ -145,9 +145,9 @@ const toggleBarSelection = (index: number) => {
       <section class="mb-8 transition-all duration-700 delay-200" :style="{ opacity: isLoaded ? 1 : 0 }">
         <SkeletonLoader v-if="isLoadingStats" type="stats" />
         <div v-else class="grid grid-cols-2 gap-4">
-          <div class="p-6 rounded-[2rem] bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-orange-500/10 dark:to-transparent border border-orange-200/50 dark:border-orange-500/20 shadow-sm flex flex-col justify-between relative overflow-hidden">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-400 rounded-full blur-[40px] opacity-20"></div>
-            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 text-orange-800 dark:text-orange-300">Total Memories</span>
+          <div class="p-6 rounded-[2rem] bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-500/10 dark:to-orange-950/20 border border-orange-200/50 dark:border-orange-500/20 shadow-sm flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-400 rounded-full blur-[40px] opacity-20 dark:opacity-10"></div>
+            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 text-orange-800 dark:text-orange-400">Total Memories</span>
             <div class="mt-4 flex items-baseline gap-2">
               <span class="text-5xl font-black tracking-tighter text-orange-600 dark:text-orange-400">{{ stats.totalMemories }}</span>
               <span class="text-[10px] font-bold text-orange-600/50 dark:text-orange-400/50 uppercase">Entries</span>

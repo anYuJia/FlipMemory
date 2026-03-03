@@ -255,48 +255,49 @@ onDeactivated(() => {
         :style="{ opacity: isLoaded ? 1 : 0 }"
       >
         <div
-          class="relative overflow-hidden p-6 rounded-[2rem] card-static group"
+          class="relative overflow-hidden p-6 rounded-[2rem] card-static shadow-xl group"
         >
           <!-- 内部装饰光 -->
-          <div class="absolute -right-4 -top-4 w-24 h-24 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-700" style="background: var(--color-primary);"></div>
+          <div class="absolute -right-4 -top-4 w-24 h-24 rounded-full blur-2xl opacity-[0.08] group-hover:opacity-20 transition-opacity duration-700" style="background-color: var(--color-primary);"></div>
           
           <div class="relative flex items-center justify-between">
             <div class="flex flex-col">
-              <span class="text-[11px] font-bold tracking-widest uppercase opacity-40 mb-1">本月记录</span>
+              <span class="text-[11px] font-black tracking-widest uppercase opacity-40 mb-1" style="color: var(--text-primary);">本月记录</span>
               <div class="flex items-baseline gap-1">
-                <span class="text-4xl font-bold tracking-tighter">{{ memoryStore.memoriesThisMonth }}</span>
-                <span class="text-sm font-semibold opacity-40">条记忆</span>
+                <span class="text-4xl font-black tracking-tighter" style="color: var(--text-primary);">{{ memoryStore.memoriesThisMonth }}</span>
+                <span class="text-sm font-bold opacity-40" style="color: var(--text-primary);">条记忆</span>
               </div>
             </div>
 
             <div class="flex items-center gap-6">
               <div class="flex flex-col items-center">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center mb-1 bg-white/10 ring-1 ring-white/20">
-                  <Camera class="w-5 h-5 opacity-60" />
+                <div class="w-10 h-10 rounded-2xl flex items-center justify-center mb-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 shadow-sm">
+                  <Camera class="w-5 h-5 opacity-40" style="color: var(--text-primary);" />
                 </div>
-                <span class="text-[10px] font-bold opacity-40">12 张</span>
+                <span class="text-[10px] font-black opacity-30" style="color: var(--text-primary);">12 张</span>
               </div>
               <div class="flex flex-col items-center">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center mb-1 bg-white/10 ring-1 ring-white/20">
+                <div class="w-10 h-10 rounded-2xl flex items-center justify-center mb-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 shadow-sm">
                   <span class="text-xl">😊</span>
                 </div>
-                <span class="text-[10px] font-bold opacity-40">开心</span>
+                <span class="text-[10px] font-black opacity-30" style="color: var(--text-primary);">开心</span>
               </div>
             </div>
           </div>
           
           <!-- 底部动作条 -->
-          <div class="mt-5 pt-4 border-t border-white/5 flex justify-between items-center">
+          <div class="mt-5 pt-4 border-t border-black/[0.03] dark:border-white/[0.03] flex justify-between items-center">
             <div class="flex -space-x-2">
-              <div v-for="i in 3" :key="i" class="w-6 h-6 rounded-full border-2 border-white/20 overflow-hidden bg-slate-200">
+              <div v-for="i in 3" :key="i" class="w-6 h-6 rounded-full border-2 border-white/50 dark:border-white/10 overflow-hidden bg-slate-200 dark:bg-slate-800">
                 <div class="w-full h-full animate-shimmer"></div>
               </div>
             </div>
             <button
               @click="goToStats"
-              class="text-xs font-bold tracking-wide flex items-center gap-1 opacity-60 hover:opacity-100 transition-opacity"
+              class="text-[10px] font-black tracking-widest uppercase flex items-center gap-1.5 opacity-40 hover:opacity-100 transition-all"
+              style="color: var(--text-primary);"
             >
-              查看趋势 <ChevronRight class="w-3.5 h-3.5" />
+              Trends <ChevronRight class="w-3 h-3" />
             </button>
           </div>
         </div>
