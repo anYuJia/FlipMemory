@@ -9,10 +9,12 @@ import ErrorToast from './components/ErrorToast.vue'
 import GlobalConfirmDialog from './components/GlobalConfirmDialog.vue'
 import GlobalConflictDialog from './components/GlobalConflictDialog.vue'
 import { useUserStore, useOfflineStore } from './stores'
+import { useTimeTheme } from './composables/useTimeTheme'
 
 const userStore = useUserStore()
 const offlineStore = useOfflineStore()
 const route = useRoute()
+const { currentPhase } = useTimeTheme()
 
 const showNav = computed(() => route.name !== 'auth')
 

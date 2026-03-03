@@ -1,9 +1,9 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
-/* ===== 主题 CSS 变量 - 世界级设计系统 ===== */
+/* ===== 核心设计系统 - 动态时光轴 ===== */
 :root {
-  /* 基础背景 - 恢复燕麦色基调 */
+  /* 基础背景 (燕麦色基调) */
   --bg-primary: #F9F8F6;
   --bg-secondary: #F2F1EE;
   --bg-tertiary: #EBEAE6;
@@ -22,15 +22,15 @@
   --border-primary: rgba(0, 0, 0, 0.05);
   --hover-bg: rgba(0, 0, 0, 0.03);
   
-  /* 光影与渐变 */
-  --glow-primary: rgba(255, 140, 66, 0.25);
-  --glow-secondary: rgba(147, 112, 219, 0.15);
-  --gradient-accent: linear-gradient(135deg, #FF8C42 0%, #FF6B6B 100%);
+  /* 动态变量 (由 useTimeTheme 控制) */
   --color-primary: #FF8C42;
+  --color-accent: #F97316;
+  --glow-dynamic: rgba(255, 140, 66, 0.25);
+  --gradient-accent: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
 }
 
 .dark {
-  /* 极致黑紫色背景 */
+  /* 极致深邃背景 */
   --bg-primary: #08080C;
   --bg-secondary: #0F0F15;
   --bg-tertiary: #161620;
@@ -48,32 +48,27 @@
   --nav-bg: rgba(15, 15, 20, 0.85);
   --border-primary: rgba(255, 255, 255, 0.1);
   --hover-bg: rgba(255, 255, 255, 0.05);
-  
-  /* 暗色光影 */
-  --glow-primary: rgba(255, 140, 66, 0.08);
-  --glow-secondary: rgba(147, 112, 219, 0.06);
 }
 
-/* 全局重置 */
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.5s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
+  transition: background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s ease;
   font-family: 'Inter', 'Outfit', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* 通用页面容器 */
 .page-container {
   background-color: var(--bg-primary);
   min-height: 100vh;
+  transition: background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 玻璃拟态卡片 */
 .card-static {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   backdrop-filter: blur(32px) saturate(180%);
+  transition: background-color 0.8s ease, border-color 0.8s ease;
 }
 
 .text-gradient {
@@ -81,28 +76,16 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  transition: all 0.8s ease;
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
+/* 动效系统 */
 .animate-slide-up {
-  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
-.delay-400 { animation-delay: 0.4s; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
 .animate-scale-in {
-  animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
