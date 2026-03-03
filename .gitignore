@@ -1,0 +1,90 @@
+# =========================
+# FlipMemory .gitignore
+# =========================
+
+# ===== 依赖目录 =====
+node_modules/
+.pnpm-store/
+
+# ===== 构建产物 =====
+dist/
+build/
+.output/
+.nuxt/
+
+# ===== 环境变量（重要！不要上传） =====
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+!.env.example
+
+# ===== 日志文件 =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== 操作系统文件 =====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ===== IDE 和编辑器 =====
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+*~
+*.sublime-workspace
+*.sublime-project
+
+# ===== 测试覆盖率 =====
+coverage/
+.nyc_output/
+
+# ===== TypeScript =====
+*.tsbuildinfo
+
+# ===== Prisma =====
+# 保留 schema，忽略迁移历史中的某些文件
+# prisma/migrations/ 应该被追踪
+
+# ===== 本地数据库文件 =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== 上传的文件（本地测试） =====
+uploads/
+temp/
+tmp/
+
+# ===== Docker =====
+docker-compose.override.yml
+
+# ===== 缓存 =====
+.cache/
+.parcel-cache/
+.turbo/
+.eslintcache
+.stylelintcache
+
+# ===== Vite =====
+*.local
+
+# ===== 其他 =====
+*.bak
+*.backup
+.vercel
+.netlify
