@@ -8,9 +8,11 @@ import {
 import { useUserStore } from '@/stores'
 import api from '@/services/api'
 import { logger } from '@/services/logger'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const userStore = useUserStore()
+const { t } = useI18n()
 
 const isLoaded = ref(false)
 const isLogin = ref(true) 
@@ -44,10 +46,10 @@ const isCheckingUsername = ref(false)
 const validateUsername = (username: string) => /^[a-zA-Z0-9_]{3,30}$/.test(username)
 
 const passwordReqs = [
-  { id: 'len', label: '需 8 位字符', check: (p: string) => p.length >= 8 },
-  { id: 'up', label: '含大写字母', check: (p: string) => /[A-Z]/.test(p) },
-  { id: 'low', label: '含小写字母', check: (p: string) => /[a-z]/.test(p) },
-  { id: 'num', label: '含数字', check: (p: string) => /[0-9]/.test(p) }
+  { id: 'len', check: (p: string) => p.length >= 8 },
+  { id: 'upper', check: (p: string) => /[A-Z]/.test(p) },
+  { id: 'lower', check: (p: string) => /[a-z]/.test(p) },
+  { id: 'num', check: (p: string) => /[0-9]/.test(p) }
 ]
 
 const currentRequirement = computed(() => {
@@ -109,13 +111,13 @@ const handleSubmit = async () => {
     userStore.init()
     router.replace('/')
   } catch (error: any) {
-    errorMessage.value = error.message || 'Authentication Failed'
+    errorMessage.value = error.message || t('auth.auth_failed')
   } finally {
     isLoading.value = false
   }
 }
 
-onMounted(() => setTimeout(() => isLoaded.value = true, 100))
+onMounted(() => setTimeout(() => { isLoaded.value = true }, 100))
 onUnmounted(() => {
   if (usernameTimeout) clearTimeout(usernameTimeout)
 })
@@ -133,15 +135,15 @@ onUnmounted(() => {
       <header class="pt-16 pb-8 text-center transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0, transform: isLoaded ? 'translateY(0)' : 'translateY(20px)' }">
         <div class="w-20 h-20 mx-auto mb-4 rounded-[2rem] flex items-center justify-center text-4xl shadow-2xl bg-gradient-to-br from-orange-400 to-orange-600">📖</div>
         <h1 class="text-3xl font-black tracking-tighter" style="color: var(--text-primary);">Flip<span class="text-orange-500">Memory</span></h1>
-        <p class="text-[10px] font-black mt-1 opacity-20 uppercase tracking-[0.4em]" style="color: var(--text-primary);">Personal Time Gallery</p>
+        <p class="text-[10px] font-black mt-1 opacity-20 uppercase tracking-[0.4em]" style="color: var(--text-primary);">{{ t('auth.subtitle') }}</p>
       </header>
       
       <section class="flex-1 transition-all duration-700 delay-100" :style="{ opacity: isLoaded ? 1 : 0, transform: isLoaded ? 'translateY(0)' : 'translateY(20px)' }">
         <div class="p-8 rounded-[2.5rem] backdrop-blur-3xl border border-white/10 shadow-2xl" style="background-color: var(--card-bg);">
           <!-- Tab -->
           <div class="flex p-1 rounded-2xl bg-black/5 dark:bg-white/5 mb-8">
-            <button @click="isLogin = true" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl" :class="isLogin ? 'bg-white dark:bg-white/15 shadow-sm opacity-100' : 'opacity-30'" style="color: var(--text-primary);">Login</button>
-            <button @click="isLogin = false" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl" :class="!isLogin ? 'bg-white dark:bg-white/15 shadow-sm opacity-100' : 'opacity-30'" style="color: var(--text-primary);">Join</button>
+            <button @click="isLogin = true" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl" :class="isLogin ? 'bg-white dark:bg-white/15 shadow-sm opacity-100' : 'opacity-30'" style="color: var(--text-primary);">{{ t('auth.login_tab') }}</button>
+            <button @click="isLogin = false" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl" :class="!isLogin ? 'bg-white dark:bg-white/15 shadow-sm opacity-100' : 'opacity-30'" style="color: var(--text-primary);">{{ t('auth.register_tab') }}</button>
           </div>
           
           <Transition enter-active-class="animate-shake">
@@ -154,7 +156,7 @@ onUnmounted(() => {
             <!-- 昵称 -->
             <div v-if="!isLogin" class="input-group" :class="{ 'animate-shake': shakeFields.nickname }">
               <div class="icon-left"><User class="w-5 h-5 opacity-20" /></div>
-              <input v-model="formData.nickname" type="text" placeholder="Display Name" />
+              <input v-model="formData.nickname" type="text" :placeholder="t('auth.nickname_placeholder')" />
             </div>
 
             <!-- 登录账号 / 注册用户名 -->
@@ -162,49 +164,36 @@ onUnmounted(() => {
               <div class="icon-left">
                 <Loader2 v-if="!isLogin && isCheckingUsername" class="w-5 h-5 animate-spin text-orange-400" />
                 <template v-else>
-                  <CheckCircle2 v-if="!isLogin && isUsernameAvailable === true" class="w-5 h-5 text-green-500" />
-                  <XCircle v-else-if="!isLogin && isUsernameAvailable === false" class="w-5 h-5 text-red-500" />
+                  <CheckCircle2 v-if="!isLogin && isUsernameAvailable === true" class="w-5 h-5 text-green-500 animate-scale-in" />
+                  <XCircle v-else-if="!isLogin && isUsernameAvailable === false" class="w-5 h-5 text-red-500 animate-fade-in" />
                   <component :is="isLogin ? User : Hash" v-else class="w-5 h-5 opacity-20" />
                 </template>
               </div>
               
-              <!-- 修复 v-model 逻辑：分开渲染以支持响应式绑定 -->
-              <input 
-                v-if="isLogin" 
-                v-model="formData.account" 
-                type="text" 
-                placeholder="Username or Email" 
-                @focus="isFocused = 'account'" 
-                @blur="isFocused = null" 
-              />
-              <input 
-                v-else 
-                v-model="formData.username" 
-                type="text" 
-                placeholder="Unique Username" 
-              />
+              <input v-if="isLogin" v-model="formData.account" type="text" :placeholder="t('auth.username_placeholder')" @focus="isFocused = 'account'" @blur="isFocused = null" />
+              <input v-else v-model="formData.username" type="text" :placeholder="t('auth.unique_username_placeholder')" />
               
-              <div v-if="!isLogin && isUsernameAvailable === false" class="feedback-right text-red-500">已被占用</div>
+              <div v-if="!isLogin && isUsernameAvailable === false" class="feedback-right text-red-500">{{ t('auth.error.taken') }}</div>
             </div>
 
             <!-- 邮箱 -->
             <div v-if="!isLogin" class="input-group" :class="{ 'animate-shake': shakeFields.email }">
               <div class="icon-left"><Mail class="w-5 h-5 opacity-20" /></div>
-              <input v-model="formData.email" type="email" placeholder="Email Address" />
+              <input v-model="formData.email" type="email" :placeholder="t('auth.email_address')" />
             </div>
             
             <!-- 密码 -->
             <div class="input-group" :class="{ 'animate-shake': shakeFields.password, 'has-error': !isLogin && currentRequirement && formData.password, 'focused': isFocused === 'pass' }">
               <div class="icon-left">
                 <template v-if="!isLogin && formData.password">
-                  <CheckCircle2 v-if="isPasswordAllMet" class="w-5 h-5 text-green-500" />
-                  <XCircle v-else class="w-5 h-5 text-red-500" />
+                  <CheckCircle2 v-if="isPasswordAllMet" class="w-5 h-5 text-green-500 animate-scale-in" />
+                  <XCircle v-else class="w-5 h-5 text-red-500 animate-fade-in" />
                 </template>
                 <Lock v-else class="w-5 h-5 opacity-20" />
               </div>
-              <input v-model="formData.password" :type="showPassword ? 'text' : 'password'" placeholder="Password" @focus="isFocused = 'pass'" @blur="isFocused = null" />
+              <input v-model="formData.password" :type="showPassword ? 'text' : 'password'" :placeholder="t('auth.password_placeholder')" @focus="isFocused = 'pass'" @blur="isFocused = null" />
               <div class="flex items-center gap-2">
-                <div v-if="!isLogin && currentRequirement" class="feedback-right text-red-500">{{ currentRequirement.label }}</div>
+                <div v-if="!isLogin && currentRequirement" class="feedback-right text-red-500">{{ t('auth.pwd_req.' + currentRequirement.id) }}</div>
                 <button type="button" @click="showPassword = !showPassword" class="opacity-20 hover:opacity-100 transition-opacity">
                   <component :is="showPassword ? EyeOff : Eye" class="w-4 h-4" />
                 </button>
@@ -215,20 +204,20 @@ onUnmounted(() => {
             <div v-if="!isLogin" class="input-group" :class="{ 'animate-shake': shakeFields.confirmPassword, 'has-error': formData.confirmPassword && !isConfirmMatch }">
               <div class="icon-left">
                 <template v-if="formData.confirmPassword">
-                  <CheckCircle2 v-if="isConfirmMatch" class="w-5 h-5 text-green-500" />
-                  <XCircle v-else class="w-5 h-5 text-red-500" />
+                  <CheckCircle2 v-if="isConfirmMatch" class="w-5 h-5 text-green-500 animate-scale-in" />
+                  <XCircle v-else class="w-5 h-5 text-red-500 animate-fade-in" />
                 </template>
                 <Lock v-else class="w-5 h-5 opacity-20" />
               </div>
-              <input v-model="formData.confirmPassword" :type="showPassword ? 'text' : 'password'" placeholder="Confirm Password" />
-              <div v-if="formData.confirmPassword && !isConfirmMatch" class="feedback-right text-red-500">不一致</div>
+              <input v-model="formData.confirmPassword" :type="showPassword ? 'text' : 'password'" :placeholder="t('auth.confirm_password_placeholder')" />
+              <div v-if="formData.confirmPassword && !isConfirmMatch" class="feedback-right text-red-500">{{ t('auth.error.mismatch') }}</div>
             </div>
             
-            <button type="submit" :disabled="isLoading" class="submit-btn">
+            <button type="submit" :disabled="isLoading" class="submit-btn shadow-premium">
               <Loader2 v-if="isLoading" class="w-5 h-5 animate-spin" />
               <template v-else>
                 <span class="flex items-center gap-3">
-                  {{ isLogin ? 'Authenticate' : 'Create Account' }}
+                  {{ isLogin ? t('auth.authenticate') : t('auth.create_account') }}
                   <ArrowRight class="w-4 h-4" />
                 </span>
               </template>
@@ -238,7 +227,7 @@ onUnmounted(() => {
       </section>
       
       <footer class="py-10 text-center transition-all duration-700 delay-300" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <p class="text-[10px] font-black uppercase tracking-[0.4em] opacity-20" style="color: var(--text-primary);">FlipMemory Cloud</p>
+        <p class="text-[10px] font-black uppercase tracking-[0.4em] opacity-20" style="color: var(--text-primary);">{{ t('auth.footer_text') }}</p>
       </footer>
     </div>
   </div>

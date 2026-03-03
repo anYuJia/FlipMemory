@@ -1,0 +1,122 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑",
+    "delete": "删除",
+    "confirm": "确定",
+    "loading": "加载中...",
+    "success": "成功",
+    "failed": "失败",
+    "all": "全部",
+    "none": "无"
+  },
+  "nav": {
+    "home": "首页",
+    "calendar": "日历",
+    "flashback": "回顾",
+    "stats": "统计",
+    "settings": "设置"
+  },
+  "home": {
+    "greeting": {
+      "morning": "早安",
+      "afternoon": "午安",
+      "evening": "傍晚好",
+      "night": "晚安"
+    },
+    "sub_greeting": "今天有什么值得纪念的瞬间吗？ ✨",
+    "monthly_records": "本月记录",
+    "memories_unit": "条记忆",
+    "view_trends": "查看趋势",
+    "recent_memories": "最近记忆",
+    "featured_title": "时光回顾",
+    "no_featured": "还没有精选回忆，去记录一条吧",
+    "record_now": "记录今天"
+  },
+  "auth": {
+    "sign_in": "登录",
+    "register": "注册",
+    "login_tab": "登录",
+    "register_tab": "加入",
+    "join": "立即加入",
+    "authenticate": "身份验证",
+    "create_account": "创建账号",
+    "username_placeholder": "用户名或邮箱",
+    "unique_username_placeholder": "唯一用户名",
+    "password_placeholder": "密码",
+    "nickname_placeholder": "你的昵称",
+    "confirm_password_placeholder": "再次确认密码",
+    "subtitle": "您的私人时光画廊",
+    "footer_text": "由 FlipMemory 安全保护",
+    "auth_failed": "身份验证失败",
+    "pwd_req": {
+      "len": "需 8 位字符",
+      "upper": "含大写字母",
+      "lower": "含小写字母",
+      "num": "含数字"
+    },
+    "error": {
+      "mismatch": "不一致",
+      "taken": "已被占用",
+      "fix_errors": "请先修正表单错误"
+    }
+  },
+  "settings": {
+    "theme_title": "主题外观",
+    "language_title": "语言设置",
+    "daily_reminder": "每日提醒",
+    "local_cache": "本地缓存",
+    "logout": "退出登录",
+    "theme": {
+      "light": "浅色",
+      "dark": "深色",
+      "system": "跟随系统"
+    }
+  },
+  "calendar": {
+    "title": "记忆日历",
+    "subtitle": "在时光中寻找珍贵的回忆 ✨",
+    "back_to_today": "返回今天"
+  },
+  "search": {
+    "placeholder": "寻找哪一段记忆...",
+    "recent_searches": "最近搜索",
+    "trending": "热门推荐",
+    "found": "找到",
+    "memories_count": "条相关记忆",
+    "no_results": "未找到结果",
+    "no_results_sub": "没有找到与 \"{query}\" 相关的记忆"
+  },
+  "stats": {
+    "title": "数据统计",
+    "subtitle": "你的情感数据看板",
+    "total_memories": "记忆总数",
+    "streak": "连续记录",
+    "photos": "照片总数",
+    "mood_dist": "情绪分布",
+    "activity_trend": "活动趋势",
+    "unit_entries": "条",
+    "unit_days": "天",
+    "unit_pics": "张"
+  },
+  "create": {
+    "new_entry": "新建记录",
+    "edit_mode": "编辑模式",
+    "take_photo": "拍照",
+    "gallery": "相册",
+    "placeholder": "今天发生了什么...",
+    "location_label": "地点",
+    "location_placeholder": "你在哪？",
+    "weather_label": "天气",
+    "current_mood": "当前心情",
+    "your_story": "你的故事"
+  },
+  "detail": {
+    "blank_page": "空白页",
+    "no_entry": "这一天还没有留下印记",
+    "start_writing": "开始记录",
+    "date_captured": "记录日期",
+    "delete_confirm": "确定要删除这段记忆吗？"
+  }
+}

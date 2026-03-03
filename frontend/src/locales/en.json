@@ -1,0 +1,122 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "success": "Success",
+    "failed": "Failed",
+    "all": "All",
+    "none": "None"
+  },
+  "nav": {
+    "home": "Home",
+    "calendar": "Calendar",
+    "flashback": "Recall",
+    "stats": "Stats",
+    "settings": "Settings"
+  },
+  "home": {
+    "greeting": {
+      "morning": "Good Morning",
+      "afternoon": "Good Afternoon",
+      "evening": "Good Evening",
+      "night": "Good Night"
+    },
+    "sub_greeting": "Any precious moments today? ✨",
+    "monthly_records": "Monthly Stats",
+    "memories_unit": "Memories",
+    "view_trends": "Trends",
+    "recent_memories": "Recent Memories",
+    "featured_title": "Time Flashback",
+    "no_featured": "No featured memories yet. Go record one!",
+    "record_now": "Record Today"
+  },
+  "auth": {
+    "sign_in": "Sign In",
+    "register": "Join",
+    "login_tab": "Login",
+    "register_tab": "Join",
+    "join": "Join Now",
+    "authenticate": "Authenticate",
+    "create_account": "Create Account",
+    "username_placeholder": "Email or Username",
+    "unique_username_placeholder": "Unique Username",
+    "password_placeholder": "Password",
+    "nickname_placeholder": "Nickname",
+    "confirm_password_placeholder": "Confirm Password",
+    "subtitle": "Personal Time Gallery",
+    "footer_text": "Protected by FlipMemory",
+    "auth_failed": "Authentication Failed",
+    "pwd_req": {
+      "len": "Min 8 chars",
+      "upper": "Uppercase",
+      "lower": "Lowercase",
+      "num": "Number"
+    },
+    "error": {
+      "mismatch": "Mismatched",
+      "taken": "Taken",
+      "fix_errors": "Fix errors first"
+    }
+  },
+  "settings": {
+    "theme_title": "Appearance",
+    "language_title": "Language",
+    "daily_reminder": "Daily Reminder",
+    "local_cache": "Local Cache",
+    "logout": "Sign Out",
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
+  },
+  "calendar": {
+    "title": "Timeline",
+    "subtitle": "Discover precious moments in time ✨",
+    "back_to_today": "Today"
+  },
+  "search": {
+    "placeholder": "Searching for a memory...",
+    "recent_searches": "Recent",
+    "trending": "Trending",
+    "found": "Found",
+    "memories_count": "Memories",
+    "no_results": "No Results",
+    "no_results_sub": "No memories found for \"{query}\""
+  },
+  "stats": {
+    "title": "Statistics",
+    "subtitle": "Your emotional dashboard",
+    "total_memories": "Total",
+    "streak": "Streak",
+    "photos": "Photos",
+    "mood_dist": "Mood Distribution",
+    "activity_trend": "Activity Trend",
+    "unit_entries": "entries",
+    "unit_days": "days",
+    "unit_pics": "pics"
+  },
+  "create": {
+    "new_entry": "New Entry",
+    "edit_mode": "Edit Mode",
+    "take_photo": "Take Photo",
+    "gallery": "Gallery",
+    "placeholder": "What happened today...",
+    "location_label": "Location",
+    "location_placeholder": "Where are you?",
+    "weather_label": "Weather",
+    "current_mood": "Current Mood",
+    "your_story": "Your Story"
+  },
+  "detail": {
+    "blank_page": "Blank Page",
+    "no_entry": "No印记 here yet",
+    "start_writing": "Start Writing",
+    "date_captured": "Date Captured",
+    "delete_confirm": "Are you sure you want to delete this?"
+  }
+}

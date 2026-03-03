@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onActivated, onDeactivated } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  BarChart3, Camera, TrendingUp, Flame,
-  ChevronLeft, ChevronRight, Calendar, Sparkles
+  ChevronLeft, ChevronRight, Sparkles
 } from 'lucide-vue-next'
 import { useMemoryStore } from '@/stores'
-import { MoodEmoji, MoodLabel } from '@/types/memory'
+import { MoodEmoji } from '@/types/memory'
 import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const memoryStore = useMemoryStore()
+const { t } = useI18n()
 
 const isLoaded = ref(false)
 const hasAnimated = ref(false)
@@ -22,15 +23,14 @@ const currentWeek = ref(1)
 const selectedBarIndex = ref<number | null>(null)
 
 const timeRanges = [
-  { key: 'week', label: '周' },
-  { key: 'month', label: '月' },
-  { key: 'year', label: '年' },
-  { key: 'all', label: '全部' }
+  { key: 'week', label: t('common.all').replace('全部', '周') }, // 临时处理，后续在 locales 补全
+  { key: 'month', label: t('common.all').replace('全部', '月') },
+  { key: 'year', label: t('common.all').replace('全部', '年') },
+  { key: 'all', label: t('common.all') }
 ]
 
 const activeRangeIndex = computed(() => timeRanges.findIndex(r => r.key === activeRange.value))
 
-// 统计数据
 const stats = ref({
   totalMemories: 0,
   totalPhotos: 0,
@@ -85,9 +85,9 @@ const moodDistribution = computed(() => {
 const trendData = computed(() => stats.value.trend)
 const maxTrendCount = computed(() => Math.max(...trendData.value.map(t => t.count), 1))
 const timeLabel = computed(() => {
-  if (activeRange.value === 'month') return `${currentYear.value}年 ${currentMonth.value}月`
-  if (activeRange.value === 'year') return `${currentYear.value}年`
-  return '所有记忆'
+  if (activeRange.value === 'month') return `${currentYear.value} / ${currentMonth.value}`
+  if (activeRange.value === 'year') return `${currentYear.value}`
+  return t('common.all')
 })
 
 const toggleBarSelection = (index: number) => {
@@ -99,17 +99,17 @@ const toggleBarSelection = (index: number) => {
   <div class="page-container min-h-screen relative overflow-x-hidden">
     <!-- 背景光晕 -->
     <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.1] dark:opacity-[0.05]" style="background-color: var(--glow-blue);" />
+      <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.1] dark:opacity-[0.05]" style="background-color: var(--glow-primary);" />
     </div>
     
     <div class="relative max-w-lg mx-auto px-6">
       <header class="pt-16 pb-6 safe-area-top transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="flex flex-col gap-1">
           <div class="flex items-center gap-2">
-            <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-tertiary);">Your Insights</span>
+            <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('stats.subtitle') }}</span>
             <div class="w-1 h-1 rounded-full bg-blue-500 opacity-60"></div>
           </div>
-          <h1 class="text-4xl font-black tracking-tighter" style="color: var(--text-primary);">数据统计</h1>
+          <h1 class="text-4xl font-black tracking-tighter" style="color: var(--text-primary);">{{ t('stats.title') }}</h1>
         </div>
       </header>
       
@@ -128,15 +128,15 @@ const toggleBarSelection = (index: number) => {
         </div>
         
         <div v-if="activeRange !== 'all'" class="flex items-center justify-between mt-6 px-2">
-          <button @click="goPrev" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/5 border border-black/5 dark:border-white/5">
-            <ChevronLeft class="w-4 h-4 opacity-40" />
+          <button @click="goPrev" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90">
+            <ChevronLeft class="w-4 h-4 opacity-40" style="color: var(--text-primary);" />
           </button>
           <div class="flex flex-col items-center">
             <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ activeRange }}</span>
             <span class="text-sm font-bold tracking-tight mt-0.5" style="color: var(--text-primary);">{{ timeLabel }}</span>
           </div>
-          <button @click="goNext" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/5 border border-black/5 dark:border-white/5">
-            <ChevronRight class="w-4 h-4 opacity-40" />
+          <button @click="goNext" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90">
+            <ChevronRight class="w-4 h-4 opacity-40" style="color: var(--text-primary);" />
           </button>
         </div>
       </section>
@@ -145,27 +145,27 @@ const toggleBarSelection = (index: number) => {
       <section class="mb-8 transition-all duration-700 delay-200" :style="{ opacity: isLoaded ? 1 : 0 }">
         <SkeletonLoader v-if="isLoadingStats" type="stats" />
         <div v-else class="grid grid-cols-2 gap-4">
-          <div class="p-6 rounded-[2rem] bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-500/10 dark:to-orange-950/20 border border-orange-200/50 dark:border-orange-500/20 shadow-sm flex flex-col justify-between relative overflow-hidden">
+          <div class="p-6 rounded-[2rem] bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-orange-500/10 dark:to-transparent border border-orange-200/50 dark:border-orange-500/20 shadow-sm flex flex-col justify-between relative overflow-hidden">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-400 rounded-full blur-[40px] opacity-20 dark:opacity-10"></div>
-            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 text-orange-800 dark:text-orange-400">Total Memories</span>
+            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 text-orange-800 dark:text-orange-300">{{ t('stats.total_memories') }}</span>
             <div class="mt-4 flex items-baseline gap-2">
               <span class="text-5xl font-black tracking-tighter text-orange-600 dark:text-orange-400">{{ stats.totalMemories }}</span>
-              <span class="text-[10px] font-bold text-orange-600/50 dark:text-orange-400/50 uppercase">Entries</span>
+              <span class="text-[10px] font-bold text-orange-600/50 dark:text-orange-400/50 uppercase">{{ t('stats.unit_entries') }}</span>
             </div>
           </div>
           <div class="flex flex-col gap-4">
             <div class="flex-1 p-5 rounded-[2rem] card-static shadow-sm flex flex-col justify-center">
-              <span class="text-[9px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">Streak</span>
+              <span class="text-[9px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('stats.streak') }}</span>
               <div class="mt-1 flex items-baseline gap-1">
                 <span class="text-3xl font-black tracking-tighter text-blue-600 dark:text-blue-400">{{ stats.consecutiveDays }}</span>
-                <span class="text-[10px] font-bold text-blue-600/50 uppercase">Days</span>
+                <span class="text-[10px] font-bold text-blue-600/50 uppercase">{{ t('stats.unit_days') }}</span>
               </div>
             </div>
             <div class="flex-1 p-5 rounded-[2rem] card-static shadow-sm flex flex-col justify-center">
-              <span class="text-[9px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">Photos</span>
+              <span class="text-[9px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('stats.photos') }}</span>
               <div class="mt-1 flex items-baseline gap-1">
                 <span class="text-3xl font-black tracking-tighter text-purple-600 dark:text-purple-400">{{ stats.totalPhotos }}</span>
-                <span class="text-[10px] font-bold text-purple-600/50 uppercase">Pics</span>
+                <span class="text-[10px] font-bold text-purple-600/50 uppercase">{{ t('stats.unit_pics') }}</span>
               </div>
             </div>
           </div>
@@ -173,10 +173,9 @@ const toggleBarSelection = (index: number) => {
       </section>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 pb-32 transition-all duration-700 delay-300" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <!-- 情绪 -->
         <section>
           <div class="p-6 rounded-[2rem] card-static shadow-sm">
-            <h3 class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 mb-6" style="color: var(--text-primary);">Mood Distribution</h3>
+            <h3 class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 mb-6" style="color: var(--text-primary);">{{ t('stats.mood_dist') }}</h3>
             <div class="space-y-4">
               <div v-for="item in moodDistribution" :key="item.mood" class="flex items-center gap-4">
                 <div class="w-10 h-10 rounded-2xl bg-white/50 dark:bg-white/10 flex items-center justify-center text-xl shadow-sm border border-white/20">{{ MoodEmoji[item.mood as keyof typeof MoodEmoji] }}</div>
@@ -194,10 +193,9 @@ const toggleBarSelection = (index: number) => {
           </div>
         </section>
         
-        <!-- 趋势 -->
         <section>
           <div class="p-6 rounded-[2rem] card-static shadow-sm h-full flex flex-col">
-            <h3 class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 mb-6" style="color: var(--text-primary);">Activity Trend</h3>
+            <h3 class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 mb-6" style="color: var(--text-primary);">{{ t('stats.activity_trend') }}</h3>
             <div class="flex-1 flex items-end justify-between gap-2 pt-8 relative">
               <div v-for="(item, index) in trendData" :key="item.label" class="flex-1 flex flex-col items-center cursor-pointer group h-full justify-end" @click="toggleBarSelection(index)">
                 <div class="mb-2 px-2 py-1 rounded-lg bg-black dark:bg-white text-white dark:text-black text-[9px] font-bold tracking-wider transition-all"

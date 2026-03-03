@@ -1,0 +1,122 @@
+{
+  "common": {
+    "save": "儲存",
+    "cancel": "取消",
+    "edit": "編輯",
+    "delete": "刪除",
+    "confirm": "確定",
+    "loading": "載入中...",
+    "success": "成功",
+    "failed": "失敗",
+    "all": "全部",
+    "none": "無"
+  },
+  "nav": {
+    "home": "首頁",
+    "calendar": "日曆",
+    "flashback": "回顧",
+    "stats": "統計",
+    "settings": "設置"
+  },
+  "home": {
+    "greeting": {
+      "morning": "早安",
+      "afternoon": "午安",
+      "evening": "傍晚好",
+      "night": "晚安"
+    },
+    "sub_greeting": "今天有什麼值得紀念的瞬間吗？ ✨",
+    "monthly_records": "本月記錄",
+    "memories_unit": "條記憶",
+    "view_trends": "查看趨勢",
+    "recent_memories": "最近記憶",
+    "featured_title": "時光回顧",
+    "no_featured": "還沒有精選回憶，去記錄一條吧",
+    "record_now": "記錄今天"
+  },
+  "auth": {
+    "sign_in": "登錄",
+    "register": "註冊",
+    "login_tab": "登錄",
+    "register_tab": "加入",
+    "join": "立即加入",
+    "authenticate": "身份驗證",
+    "create_account": "創建賬號",
+    "username_placeholder": "用戶名或郵箱",
+    "unique_username_placeholder": "唯一用戶名",
+    "password_placeholder": "密碼",
+    "nickname_placeholder": "你的暱稱",
+    "confirm_password_placeholder": "再次確認密碼",
+    "subtitle": "您的私人時光畫廊",
+    "footer_text": "由 FlipMemory 安全保護",
+    "auth_failed": "身份驗證失敗",
+    "pwd_req": {
+      "len": "需 8 位字符",
+      "upper": "含大寫字母",
+      "lower": "含小寫字母",
+      "num": "含數字"
+    },
+    "error": {
+      "mismatch": "不一致",
+      "taken": "已被佔用",
+      "fix_errors": "請先修正表單錯誤"
+    }
+  },
+  "settings": {
+    "theme_title": "主題外觀",
+    "language_title": "語言設置",
+    "daily_reminder": "每日提醒",
+    "local_cache": "本地快取",
+    "logout": "登出",
+    "theme": {
+      "light": "淺色",
+      "dark": "深色",
+      "system": "跟隨系統"
+    }
+  },
+  "calendar": {
+    "title": "記憶日曆",
+    "subtitle": "在時光中尋找珍貴的回憶 ✨",
+    "back_to_today": "返回今天"
+  },
+  "search": {
+    "placeholder": "尋找哪一段記憶...",
+    "recent_searches": "最近搜索",
+    "trending": "熱門推薦",
+    "found": "找到",
+    "memories_count": "條相關記憶",
+    "no_results": "未找到結果",
+    "no_results_sub": "沒有找到與 \"{query}\" 相關的記憶"
+  },
+  "stats": {
+    "title": "數據統計",
+    "subtitle": "你的情感數據看板",
+    "total_memories": "記憶總數",
+    "streak": "連續記錄",
+    "photos": "照片總數",
+    "mood_dist": "情緒分佈",
+    "activity_trend": "活動趨勢",
+    "unit_entries": "條",
+    "unit_days": "天",
+    "unit_pics": "張"
+  },
+  "create": {
+    "new_entry": "新建記錄",
+    "edit_mode": "編輯模式",
+    "take_photo": "拍照",
+    "gallery": "相册",
+    "placeholder": "今天發生了什麼...",
+    "location_label": "地點",
+    "location_placeholder": "你在哪？",
+    "weather_label": "天氣",
+    "current_mood": "當前心情",
+    "your_story": "你的故事"
+  },
+  "detail": {
+    "blank_page": "空白頁",
+    "no_entry": "這一天還沒有留下印記",
+    "start_writing": "開始記錄",
+    "date_captured": "記錄日期",
+    "delete_confirm": "確定要刪除這段記憶嗎？"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "キャンセル",
+    "edit": "編集",
+    "delete": "削除",
+    "confirm": "確認",
+    "loading": "読み込み中...",
+    "success": "成功",
+    "failed": "失敗",
+    "all": "すべて",
+    "none": "なし"
+  },
+  "nav": {
+    "home": "ホーム",
+    "calendar": "カレンダー",
+    "flashback": "振り返り",
+    "stats": "統計",
+    "settings": "設定"
+  },
+  "home": {
+    "greeting": {
+      "morning": "おはようございます",
+      "afternoon": "こんにちは",
+      "evening": "こんばんは",
+      "night": "おやすみなさい"
+    },
+    "sub_greeting": "今日はどんな素敵な瞬間がありましたか？ ✨",
+    "monthly_records": "今月の記録",
+    "memories_unit": "件の思い出",
+    "view_trends": "トレンドを見る",
+    "recent_memories": "最近の思い出",
+    "featured_title": "タイムフラッシュバック",
+    "no_featured": "まだおすすめの思い出はありません。今日を記録しましょう！",
+    "record_now": "今日を記録する"
+  },
+  "auth": {
+    "sign_in": "ログイン",
+    "register": "登録",
+    "login_tab": "ログイン",
+    "register_tab": "参加",
+    "join": "今すぐ参加",
+    "authenticate": "認証する",
+    "create_account": "アカウント作成",
+    "username_placeholder": "ユーザー名またはメール",
+    "unique_username_placeholder": "一意のユーザー名",
+    "password_placeholder": "パスワード",
+    "nickname_placeholder": "ニックネーム",
+    "confirm_password_placeholder": "パスワードを再入力",
+    "subtitle": "あなたの私人タイムギャラリー",
+    "footer_text": "FlipMemoryによって保護されています",
+    "auth_failed": "認証に失敗しました",
+    "pwd_req": {
+      "len": "8文字以上",
+      "upper": "大文字を含む",
+      "lower": "小文字を含む",
+      "num": "数字を含む"
+    },
+    "error": {
+      "mismatch": "不一致",
+      "taken": "使用済み",
+      "fix_errors": "エラーを修正してください"
+    }
+  },
+  "settings": {
+    "theme_title": "テーマ設定",
+    "language_title": "言語設定",
+    "daily_reminder": "毎日リマインダー",
+    "local_cache": "ローカルキャッシュ",
+    "logout": "ログアウト",
+    "theme": {
+      "light": "ライト",
+      "dark": "ダーク",
+      "system": "システム設定"
+    }
+  },
+  "calendar": {
+    "title": "思い出のカレンダー",
+    "subtitle": "時の流れの中で大切な思い出を見つける ✨",
+    "back_to_today": "今日に戻る"
+  },
+  "search": {
+    "placeholder": "思い出を探す...",
+    "recent_searches": "最近の検索",
+    "trending": "おすすめ",
+    "found": "見つかった",
+    "memories_count": "件の関連する思い出",
+    "no_results": "結果が見つかりません",
+    "no_results_sub": "\"{query}\" に一致する思い出はありません"
+  },
+  "stats": {
+    "title": "統計データ",
+    "subtitle": "あなたの感情ダッシュボード",
+    "total_memories": "思い出の総数",
+    "streak": "継続記録",
+    "photos": "写真の総数",
+    "mood_dist": "気分の分布",
+    "activity_trend": "活動トレンド",
+    "unit_entries": "件",
+    "unit_days": "日",
+    "unit_pics": "枚"
+  },
+  "create": {
+    "new_entry": "新規作成",
+    "edit_mode": "編集モード",
+    "take_photo": "写真を撮る",
+    "gallery": "アルバム",
+    "placeholder": "今日はどんなことがありましたか...",
+    "location_label": "場所",
+    "location_placeholder": "どこにいますか？",
+    "weather_label": "天気",
+    "current_mood": "今の気分",
+    "your_story": "あなたの物語"
+  },
+  "detail": {
+    "blank_page": "空白のページ",
+    "no_entry": "この日にはまだ記録がありません",
+    "start_writing": "記録を始める",
+    "date_captured": "記録日",
+    "delete_confirm": "この思い出を削除してもよろしいですか？"
+  }
+}

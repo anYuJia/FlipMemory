@@ -1,98 +1,43 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
 import { Home, Calendar, Sparkles, BarChart3, Settings } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const route = useRoute()
+const { t } = useI18n()
 
 const navItems = [
-  { name: 'home', icon: Home, label: '首页' },
-  { name: 'calendar', icon: Calendar, label: '日历' },
-  { name: 'flashback', icon: Sparkles, label: '回顾' },
-  { name: 'stats', icon: BarChart3, label: '统计' },
-  { name: 'settings', icon: Settings, label: '设置' },
+  { name: 'home', icon: Home, label: 'nav.home' },
+  { name: 'calendar', icon: Calendar, label: 'nav.calendar' },
+  { name: 'flashback', icon: Sparkles, label: 'nav.flashback' },
+  { name: 'stats', icon: BarChart3, label: 'nav.stats' },
+  { name: 'settings', icon: Settings, label: 'nav.settings' },
 ]
 
-const isActive = (name: string) => {
-  return route.name === name
-}
-
-const navigate = (name: string) => {
-  router.push({ name })
-}
+const isActive = (name: string) => route.name === name
+const navigate = (name: string) => router.push({ name })
 </script>
 
 <template>
   <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2.5rem)] max-w-md">
-    <!-- 悬浮胶囊背景 -->
-    <div 
-      class="absolute inset-0 rounded-[2rem] shadow-2xl backdrop-blur-3xl saturate-[180%]"
-      style="
-        background: var(--bg-nav); 
-        border: 1px solid var(--border-primary);
-        box-shadow: 
-          0 10px 40px -10px rgba(0,0,0,0.1),
-          0 20px 60px -20px rgba(0,0,0,0.05),
-          inset 0 1px 0 rgba(255,255,255,0.4);
-      "
-    />
-    
+    <div class="absolute inset-0 rounded-[2rem] shadow-2xl backdrop-blur-3xl saturate-[180%] border border-white/10 dark:border-white/5" style="background: var(--nav-bg);" />
     <div class="relative flex items-center justify-between h-20 px-4">
-      <button
-        v-for="item in navItems"
-        :key="item.name"
-        @click="navigate(item.name)"
-        class="relative flex flex-col items-center justify-center flex-1 h-full transition-all active:scale-90 group"
-      >
-        <!-- 背景高亮指示 -->
-        <div 
-          v-if="isActive(item.name)"
-          class="absolute inset-x-2 inset-y-3 rounded-2xl bg-gradient-to-br from-orange-400/10 to-transparent animate-fade-in"
-        />
-
-        <!-- 图标 -->
+      <button v-for="item in navItems" :key="item.name" @click="navigate(item.name)" class="relative flex flex-col items-center justify-center flex-1 h-full transition-all active:scale-90 group">
+        <div v-if="isActive(item.name)" class="absolute inset-x-2 inset-y-3 rounded-2xl bg-orange-400/10 dark:bg-orange-400/5 animate-fade-in" />
         <div class="relative transition-transform duration-300 group-hover:-translate-y-1">
-          <component 
-            :is="item.icon" 
-            class="w-5.5 h-5.5 transition-all duration-500"
-            :stroke-width="isActive(item.name) ? 2.5 : 2"
-            :style="{
-              color: isActive(item.name) ? 'var(--color-primary)' : 'var(--text-tertiary)',
-              filter: isActive(item.name) ? 'drop-shadow(0 4px 8px rgba(251, 146, 60, 0.3))' : 'none'
-            }"
-          />
+          <component :is="item.icon" class="w-5.5 h-5.5 transition-all duration-500" :stroke-width="isActive(item.name) ? 2.5 : 2" :style="{ color: isActive(item.name) ? 'var(--color-primary)' : 'var(--text-tertiary)', filter: isActive(item.name) ? 'drop-shadow(0 4px 8px rgba(251, 146, 60, 0.3))' : 'none' }" />
         </div>
-        
-        <!-- 标签文字 -->
-        <span 
-          class="text-[9px] font-black uppercase tracking-[0.1em] mt-1.5 transition-all duration-300"
-          :style="{
-            color: isActive(item.name) ? 'var(--color-primary)' : 'var(--text-tertiary)',
-            opacity: isActive(item.name) ? '1' : '0.4',
-            transform: isActive(item.name) ? 'scale(1)' : 'scale(0.95)'
-          }"
-        >
-          {{ item.label }}
+        <span class="text-[9px] font-black uppercase tracking-[0.1em] mt-1.5 transition-all duration-300" :style="{ color: isActive(item.name) ? 'var(--color-primary)' : 'var(--text-tertiary)', opacity: isActive(item.name) ? '1' : '0.4' }">
+          {{ t(item.label) }}
         </span>
-
-        <!-- 底部小圆点 -->
-        <div 
-          v-if="isActive(item.name)"
-          class="absolute bottom-2.5 w-1 h-1 rounded-full bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,1)] animate-pulse"
-        />
+        <div v-if="isActive(item.name)" class="absolute bottom-2.5 w-1 h-1 rounded-full bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,1)] animate-pulse" />
       </button>
     </div>
   </nav>
 </template>
 
 <style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
+.animate-fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 </style>
-

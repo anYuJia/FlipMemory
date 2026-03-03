@@ -35,6 +35,7 @@ export const useUserStore = defineStore('user', () => {
         appLockType: null,
         theme: 'system',
         startOfWeek: 1,
+        locale: 'zh-CN',
     })
     const accessToken = ref<string | null>(null)
     const isLoading = ref(false)
@@ -209,6 +210,12 @@ export const useUserStore = defineStore('user', () => {
     // 便捷方法
     function setTheme(theme: 'light' | 'dark' | 'system') {
         updateSettings({ theme })
+    }
+
+    function setLocale(locale: string) {
+        updateSettings({ locale } as any)
+        localStorage.setItem('locale', locale)
+        window.location.reload()
     }
 
     function setStartOfWeek(day: 0 | 1) {
