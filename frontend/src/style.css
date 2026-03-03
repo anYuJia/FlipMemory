@@ -20,6 +20,7 @@
   --card-border: rgba(255, 255, 255, 0.8);
   --nav-bg: rgba(255, 255, 255, 0.8);
   --border-primary: rgba(0, 0, 0, 0.06);
+  --hover-bg: rgba(0, 0, 0, 0.03);
   
   /* 光影与渐变 */
   --glow-primary: rgba(255, 140, 66, 0.3);
@@ -46,6 +47,7 @@
   --card-border: rgba(255, 255, 255, 0.08);
   --nav-bg: rgba(15, 15, 20, 0.85);
   --border-primary: rgba(255, 255, 255, 0.1);
+  --hover-bg: rgba(255, 255, 255, 0.05);
   
   /* 暗色光影 */
   --glow-primary: rgba(255, 140, 66, 0.1);
