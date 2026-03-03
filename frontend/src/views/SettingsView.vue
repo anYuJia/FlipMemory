@@ -68,10 +68,10 @@ onDeactivated(() => { scrollY.value = window.scrollY })
 
 <template>
   <div class="page-container">
-    <!-- 背景光晕 -->
+    <!-- 背景光晕 - 极致压制暗色下的亮度 -->
     <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.15] dark:opacity-[0.08]" style="background-color: var(--glow-primary);" />
-      <div class="absolute top-1/4 -right-48 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.1] dark:opacity-[0.05]" style="background-color: var(--glow-secondary);" />
+      <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.12] dark:opacity-[0.04]" style="background-color: var(--glow-primary);" />
+      <div class="absolute top-1/4 -right-48 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.08] dark:opacity-[0.03]" style="background-color: var(--glow-secondary);" />
     </div>
     
     <div class="relative max-w-lg mx-auto px-6">
