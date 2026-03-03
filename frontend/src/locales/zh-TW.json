@@ -9,7 +9,10 @@
     "success": "成功",
     "failed": "失敗",
     "all": "全部",
-    "none": "無"
+    "none": "無",
+    "week": "週",
+    "month": "月",
+    "year": "年"
   },
   "nav": {
     "home": "首頁",

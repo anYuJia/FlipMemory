@@ -83,9 +83,9 @@ onMounted(async () => {
             <Camera class="w-10 h-10 opacity-20" style="color: var(--text-primary);" />
           </div>
         </div>
-        <h3 class="text-xl font-black tracking-tight mb-2" style="color: var(--text-primary);">{{ t('detail.blank_page') }}</h3>
-        <p class="text-xs font-medium opacity-40 mb-8 tracking-widest uppercase" style="color: var(--text-primary);">{{ t('detail.no_entry') }}</p>
-        <button @click="router.push({ name: 'create-memory', query: { date } })" class="px-8 py-4 rounded-2xl text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all" style="background: var(--gradient-accent);">{{ t('detail.start_writing') }}</button>
+        <h3 class="text-xl font-black tracking-tight mb-2" style="color: var(--text-primary);">{{ $t('detail.blank_page') }}</h3>
+        <p class="text-xs font-medium opacity-40 mb-8 tracking-widest uppercase" style="color: var(--text-primary);">{{ $t('detail.no_entry') }}</p>
+        <button @click="router.push({ name: 'create-memory', query: { date } })" class="px-8 py-4 rounded-2xl text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all" style="background: var(--gradient-accent);">{{ $t('detail.start_writing') }}</button>
       </div>
       
       <div v-else class="transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
@@ -96,7 +96,7 @@ onMounted(async () => {
         <div class="mb-8 p-6 rounded-[2rem] card-static shadow-lg relative overflow-hidden">
           <div class="flex items-center justify-between relative z-10">
             <div class="flex flex-col gap-1">
-              <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ t('detail.date_captured') }}</span>
+              <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ $t('detail.date_captured') }}</span>
               <div class="font-black tracking-tight text-lg" style="color: var(--text-primary);">{{ formattedDate }}</div>
             </div>
             <div v-if="memory.mood" class="flex flex-col items-end gap-1">
@@ -119,11 +119,11 @@ onMounted(async () => {
         <div class="pb-24 grid grid-cols-2 gap-4">
           <button @click="handleEdit" class="flex flex-col items-center justify-center gap-2 py-5 rounded-[2rem] card-static hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all group">
             <Edit3 class="w-5 h-5 opacity-40 group-hover:opacity-100 transition-opacity" style="color: var(--text-primary);" />
-            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 group-hover:opacity-100" style="color: var(--text-primary);">{{ t('common.edit') }}</span>
+            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 group-hover:opacity-100" style="color: var(--text-primary);">{{ $t('common.edit') }}</span>
           </button>
           <button @click="handleDelete" class="flex flex-col items-center justify-center gap-2 py-5 rounded-[2rem] bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 active:scale-95 transition-all group">
             <Trash2 class="w-5 h-5 text-red-500 opacity-60 group-hover:opacity-100" />
-            <span class="text-[10px] font-black tracking-[0.2em] uppercase text-red-500 opacity-60 group-hover:opacity-100">{{ t('common.delete') }}</span>
+            <span class="text-[10px] font-black tracking-[0.2em] uppercase text-red-500 opacity-60 group-hover:opacity-100">{{ $t('common.delete') }}</span>
           </button>
         </div>
       </div>

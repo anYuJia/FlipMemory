@@ -9,7 +9,10 @@
     "success": "Success",
     "failed": "Failed",
     "all": "All",
-    "none": "None"
+    "none": "None",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year"
   },
   "nav": {
     "home": "Home",

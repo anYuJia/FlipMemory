@@ -29,7 +29,7 @@ const navigate = (name: string) => router.push({ name })
           <component :is="item.icon" class="w-5.5 h-5.5 transition-all duration-500" :stroke-width="isActive(item.name) ? 2.5 : 2" :style="{ color: isActive(item.name) ? 'var(--color-primary)' : 'var(--text-tertiary)', filter: isActive(item.name) ? 'drop-shadow(0 4px 8px rgba(251, 146, 60, 0.3))' : 'none' }" />
         </div>
         <span class="text-[9px] font-black uppercase tracking-[0.1em] mt-1.5 transition-all duration-300" :style="{ color: isActive(item.name) ? 'var(--color-primary)' : 'var(--text-tertiary)', opacity: isActive(item.name) ? '1' : '0.4' }">
-          {{ t(item.label) }}
+          {{ $t(item.label) }}
         </span>
         <div v-if="isActive(item.name)" class="absolute bottom-2.5 w-1 h-1 rounded-full bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,1)] animate-pulse" />
       </button>

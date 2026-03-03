@@ -53,11 +53,12 @@ const goToToday = () => {
 }
 
 onMounted(async () => {
-  await memoryStore.fetchMonthMemories()
+  const { year, month } = memoryStore.currentMonth
+  await memoryStore.fetchCalendarData(year, month)
 })
 
-watch(() => memoryStore.currentMonth, async () => {
-  await memoryStore.fetchMonthMemories()
+watch(() => memoryStore.currentMonth, async (newMonth) => {
+  await memoryStore.fetchCalendarData(newMonth.year, newMonth.month)
 }, { deep: true })
 </script>
 
@@ -83,7 +84,7 @@ watch(() => memoryStore.currentMonth, async () => {
           class="text-[9px] font-black tracking-[0.2em] uppercase opacity-40 hover:opacity-100 transition-opacity"
           style="color: var(--text-primary);"
         >
-          {{ t('calendar.back_to_today') }}
+          {{ $t('calendar.back_to_today') }}
         </button>
       </div>
       

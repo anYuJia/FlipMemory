@@ -130,7 +130,7 @@ onMounted(() => {
       <div v-if="!searchQuery" class="pt-6 transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
         <section v-if="searchHistory.length > 0" class="mb-10">
           <div class="flex items-center justify-between mb-4">
-            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ t('search.recent_searches') }}</span>
+            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ $t('search.recent_searches') }}</span>
             <button @click="clearHistory" class="text-[10px] font-bold tracking-widest uppercase text-red-400 opacity-60 hover:opacity-100 transition-opacity">Clear</button>
           </div>
           <div class="flex flex-wrap gap-2.5">
@@ -141,7 +141,7 @@ onMounted(() => {
         <section>
           <div class="flex items-center gap-2 mb-4">
             <TrendingUp class="w-4 h-4 text-orange-400 opacity-60" />
-            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ t('search.trending') }}</span>
+            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ $t('search.trending') }}</span>
           </div>
           <div class="flex flex-wrap gap-2.5">
             <button v-for="tag in hotTags" :key="tag" @click="useHistory(tag)" class="px-5 py-2.5 rounded-full text-[11px] font-bold tracking-wide uppercase transition-all bg-orange-50/50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 text-orange-600/70 hover:text-orange-600 active:scale-95">{{ tag }}</button>
@@ -151,9 +151,9 @@ onMounted(() => {
       
       <div v-else class="pt-6">
         <div class="flex items-center gap-2 mb-8">
-          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('search.found') }}</span>
+          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ $t('search.found') }}</span>
           <span class="text-xl font-black tracking-tighter text-gradient">{{ searchResults.length }}</span>
-          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('search.memories_count') }}</span>
+          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ $t('search.memories_count') }}</span>
         </div>
         
         <div class="space-y-4 pb-32">
@@ -184,8 +184,8 @@ onMounted(() => {
               <Search class="w-10 h-10 opacity-20" style="color: var(--text-primary);" />
             </div>
           </div>
-          <h3 class="text-xl font-black tracking-tight mb-2" style="color: var(--text-primary);">{{ t('search.no_results') }}</h3>
-          <p class="text-[10px] font-black opacity-40 tracking-[0.2em] uppercase text-center max-w-[200px] leading-relaxed" style="color: var(--text-primary);">{{ t('search.no_results_sub', { query: searchQuery }) }}</p>
+          <h3 class="text-xl font-black tracking-tight mb-2" style="color: var(--text-primary);">{{ $t('search.no_results') }}</h3>
+          <p class="text-[10px] font-black opacity-40 tracking-[0.2em] uppercase text-center max-w-[200px] leading-relaxed" style="color: var(--text-primary);">{{ $t('search.no_results_sub', { query: searchQuery }) }}</p>
         </div>
       </div>
     </main>

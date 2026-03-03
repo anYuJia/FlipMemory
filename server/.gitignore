@@ -1,0 +1,41 @@
+# Server/Backend specific ignores
+node_modules/
+dist/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environment variables (IMPORTANT!)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Prisma
+# Keep migrations, ignore generated client cache
+node_modules/.prisma/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+
+# TypeScript
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Uploads (local testing)
+uploads/
+temp/

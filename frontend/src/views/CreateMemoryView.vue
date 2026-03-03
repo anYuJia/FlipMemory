@@ -107,13 +107,13 @@ onMounted(() => setTimeout(() => { isLoaded.value = true }, 100))
             <div class="grid grid-cols-1 gap-4 w-full max-w-[200px]">
               <label class="cursor-pointer">
                 <div class="py-4 rounded-2xl bg-black dark:bg-white text-white dark:text-black text-[10px] font-black tracking-[0.2em] uppercase flex items-center justify-center gap-2 shadow-xl">
-                  <Camera class="w-4 h-4" /> {{ t('create.take_photo') }}
+                  <Camera class="w-4 h-4" /> {{ $t('create.take_photo') }}
                 </div>
                 <input type="file" accept="image/*" capture="environment" class="hidden" @change="handlePhotoSelect" />
               </label>
               <label class="cursor-pointer">
                 <div class="py-4 rounded-2xl bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/10 text-black dark:text-white text-[10px] font-black tracking-[0.2em] uppercase flex items-center justify-center gap-2">
-                  <Image class="w-4 h-4 opacity-40" /> {{ t('create.gallery') }}
+                  <Image class="w-4 h-4 opacity-40" /> {{ $t('create.gallery') }}
                 </div>
                 <input type="file" accept="image/*" class="hidden" @change="handlePhotoSelect" />
               </label>
@@ -124,14 +124,14 @@ onMounted(() => setTimeout(() => { isLoaded.value = true }, 100))
       
       <section class="transition-all duration-700 delay-200" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="flex items-center gap-2 mb-4 opacity-30" style="color: var(--text-primary);">
-          <Edit3 class="w-4 h-4" /> <span class="text-[10px] font-black tracking-[0.2em] uppercase">{{ t('create.your_story') }}</span>
+          <Edit3 class="w-4 h-4" /> <span class="text-[10px] font-black tracking-[0.2em] uppercase">{{ $t('create.your_story') }}</span>
         </div>
         <textarea v-model="content" :placeholder="t('create.placeholder')" class="w-full bg-transparent border-none focus:outline-none text-xl font-medium leading-[1.8] placeholder:opacity-20 transition-all min-h-[200px]" style="color: var(--text-primary);"></textarea>
       </section>
 
       <section class="transition-all duration-700 delay-300" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="flex items-center gap-2 mb-6 opacity-30" style="color: var(--text-primary);">
-          <Sparkles class="w-4 h-4" /> <span class="text-[10px] font-black tracking-[0.2em] uppercase">{{ t('create.current_mood') }}</span>
+          <Sparkles class="w-4 h-4" /> <span class="text-[10px] font-black tracking-[0.2em] uppercase">{{ $t('create.current_mood') }}</span>
         </div>
         <div class="flex gap-4 overflow-x-auto pb-4 hide-scrollbar -mx-2 px-2">
           <button v-for="m in moods" :key="m" @click="selectMood(m)" class="flex-shrink-0 flex flex-col items-center gap-3 transition-all duration-500" :style="{ transform: mood === m ? 'scale(1.1) translateY(-4px)' : 'scale(1)', opacity: mood && mood !== m ? '0.3' : '1' }">
@@ -144,13 +144,13 @@ onMounted(() => setTimeout(() => { isLoaded.value = true }, 100))
       <section class="grid grid-cols-2 gap-4 pb-32 transition-all duration-700 delay-400" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="p-5 rounded-[2rem] card-static flex flex-col gap-3">
           <div class="flex items-center gap-2 opacity-30" style="color: var(--text-primary);">
-            <MapPin class="w-3.5 h-3.5" /> <span class="text-[9px] font-black tracking-[0.2em] uppercase">{{ t('create.location_label') }}</span>
+            <MapPin class="w-3.5 h-3.5" /> <span class="text-[9px] font-black tracking-[0.2em] uppercase">{{ $t('create.location_label') }}</span>
           </div>
           <input v-model="location" :placeholder="t('create.location_placeholder')" class="bg-transparent border-none focus:outline-none text-xs font-bold w-full" style="color: var(--text-primary);" />
         </div>
         <div class="p-5 rounded-[2rem] card-static flex flex-col gap-3">
           <div class="flex items-center gap-2 opacity-30" style="color: var(--text-primary);">
-            <Sun class="w-3.5 h-3.5" /> <span class="text-[9px] font-black tracking-[0.2em] uppercase">{{ t('create.weather_label') }}</span>
+            <Sun class="w-3.5 h-3.5" /> <span class="text-[9px] font-black tracking-[0.2em] uppercase">{{ $t('create.weather_label') }}</span>
           </div>
           <div class="flex gap-2">
             <button v-for="opt in weatherOptions.slice(0, 3)" :key="opt.id" @click="weather = opt.id" class="w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm" :style="{ background: weather === opt.id ? 'var(--color-primary)' : 'rgba(0,0,0,0.05)', color: weather === opt.id ? '#fff' : 'var(--text-tertiary)' }"><component :is="opt.icon" class="w-3.5 h-3.5" /></button>

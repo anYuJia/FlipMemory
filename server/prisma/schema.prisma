@@ -1,0 +1,140 @@
+// Prisma Schema for FlipMemory
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  passwordHash  String
+  nickname      String?
+  avatar        String?
+
+  // 用户资料
+  gender        String?             // male, female, other
+  birthday      DateTime? @db.Date
+  profession    String?
+  interests     String[]  @default([])
+
+  timezone      String    @default("Asia/Shanghai")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  memories      Memory[]
+  settings      UserSettings?
+
+  @@index([createdAt])
+  @@map("users")
+}
+
+model UserSettings {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // 提醒设置
+  reminderEnabled       Boolean  @default(true)
+  reminderTime          String   @default("21:00")
+  reminderFrequency     String   @default("daily") // daily, weekly
+  
+  // 隐私设置
+  appLockEnabled        Boolean  @default(false)
+  appLockType           String?  // pin, biometric
+  appLockPin            String?  // 加密存储的 PIN
+  
+  // 显示设置
+  theme                 String   @default("system") // light, dark, system
+  startOfWeek           Int      @default(0)        // 0 = Sunday, 1 = Monday
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@map("user_settings")
+}
+
+model Memory {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date          DateTime  @db.Date  // 记忆日期（不含时间）
+  content       String?   @db.Text  // 文字内容
+  mood          String?             // 情绪标签
+  isPrivate     Boolean   @default(false)  // 隐私记忆
+
+  // 自动记录信息
+  weather       String?             // 天气
+  location      String?             // 地点名称
+  latitude      Float?              // 纬度
+  longitude     Float?              // 经度
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  photos        Photo[]
+  tags          MemoryTag[]
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@index([userId, mood])
+  @@index([userId, createdAt])
+  @@index([userId, isPrivate])        // 隐私过滤查询优化
+  @@index([date])                     // 日历范围查询优化
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@map("memories")
+}
+
+model Photo {
+  id            String    @id @default(cuid())
+  memoryId      String
+  memory        Memory    @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+
+  // 存储路径
+  originalKey   String              // MinIO 原图 key
+  thumbnailKey  String              // 缩略图 key
+  mediumKey     String              // 中等尺寸 key
+
+  // EXIF 信息
+  takenAt       DateTime?           // 拍摄时间
+  latitude      Float?              // GPS 纬度
+  longitude     Float?              // GPS 经度
+  width         Int?
+  height        Int?
+
+  order         Int       @default(0)  // 排序
+  createdAt     DateTime  @default(now())
+
+  @@index([memoryId])
+  @@index([memoryId, order])          // 排序查询优化
+  @@index([takenAt])                  // 按拍摄时间查询
+  @@map("photos")
+}
+
+model Tag {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  color         String?
+  
+  memories      MemoryTag[]
+  
+  @@map("tags")
+}
+
+model MemoryTag {
+  memoryId      String
+  tagId         String
+  memory        Memory    @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  tag           Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([memoryId, tagId])
+  @@index([tagId])                    // 按标签查询记忆
+  @@map("memory_tags")
+}

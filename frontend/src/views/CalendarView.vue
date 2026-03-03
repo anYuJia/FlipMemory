@@ -23,7 +23,8 @@ const scrollY = ref(0)
 
 onMounted(async () => {
   if (memoryStore.currentMonthDays.length === 0) {
-    await memoryStore.fetchMonthMemories()
+    const { year, month } = memoryStore.currentMonth
+    await memoryStore.fetchCalendarData(year, month)
   }
   setTimeout(() => {
     isLoaded.value = true
@@ -60,8 +61,8 @@ const goToSearch = () => router.push({ name: 'search' })
           
           <div class="flex items-end justify-between mt-2">
             <div>
-              <h1 class="text-4xl font-black tracking-tighter" style="color: var(--text-primary);">{{ t('calendar.title') }}</h1>
-              <p class="text-sm font-medium mt-1 opacity-40" style="color: var(--text-primary);">{{ t('calendar.subtitle') }}</p>
+              <h1 class="text-4xl font-black tracking-tighter" style="color: var(--text-primary);">{{ $t('calendar.title') }}</h1>
+              <p class="text-sm font-medium mt-1 opacity-40" style="color: var(--text-primary);">{{ $t('calendar.subtitle') }}</p>
             </div>
             
             <div class="flex flex-col items-end">

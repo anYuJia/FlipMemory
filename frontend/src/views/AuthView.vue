@@ -135,15 +135,15 @@ onUnmounted(() => {
       <header class="pt-16 pb-8 text-center transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0, transform: isLoaded ? 'translateY(0)' : 'translateY(20px)' }">
         <div class="w-20 h-20 mx-auto mb-4 rounded-[2rem] flex items-center justify-center text-4xl shadow-2xl bg-gradient-to-br from-orange-400 to-orange-600">📖</div>
         <h1 class="text-3xl font-black tracking-tighter" style="color: var(--text-primary);">Flip<span class="text-orange-500">Memory</span></h1>
-        <p class="text-[10px] font-black mt-1 opacity-20 uppercase tracking-[0.4em]" style="color: var(--text-primary);">{{ t('auth.subtitle') }}</p>
+        <p class="text-[10px] font-black mt-1 opacity-20 uppercase tracking-[0.4em]" style="color: var(--text-primary);">{{ $t('auth.subtitle') }}</p>
       </header>
       
       <section class="flex-1 transition-all duration-700 delay-100" :style="{ opacity: isLoaded ? 1 : 0, transform: isLoaded ? 'translateY(0)' : 'translateY(20px)' }">
         <div class="p-8 rounded-[2.5rem] backdrop-blur-3xl border border-white/10 shadow-2xl" style="background-color: var(--card-bg);">
           <!-- Tab -->
           <div class="flex p-1 rounded-2xl bg-black/5 dark:bg-white/5 mb-8">
-            <button @click="isLogin = true" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl" :class="isLogin ? 'bg-white dark:bg-white/15 shadow-sm opacity-100' : 'opacity-30'" style="color: var(--text-primary);">{{ t('auth.login_tab') }}</button>
-            <button @click="isLogin = false" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl" :class="!isLogin ? 'bg-white dark:bg-white/15 shadow-sm opacity-100' : 'opacity-30'" style="color: var(--text-primary);">{{ t('auth.register_tab') }}</button>
+            <button @click="isLogin = true" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl" :class="isLogin ? 'bg-white dark:bg-white/15 shadow-sm opacity-100' : 'opacity-30'" style="color: var(--text-primary);">{{ $t('auth.login_tab') }}</button>
+            <button @click="isLogin = false" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl" :class="!isLogin ? 'bg-white dark:bg-white/15 shadow-sm opacity-100' : 'opacity-30'" style="color: var(--text-primary);">{{ $t('auth.register_tab') }}</button>
           </div>
           
           <Transition enter-active-class="animate-shake">
@@ -173,7 +173,7 @@ onUnmounted(() => {
               <input v-if="isLogin" v-model="formData.account" type="text" :placeholder="t('auth.username_placeholder')" @focus="isFocused = 'account'" @blur="isFocused = null" />
               <input v-else v-model="formData.username" type="text" :placeholder="t('auth.unique_username_placeholder')" />
               
-              <div v-if="!isLogin && isUsernameAvailable === false" class="feedback-right text-red-500">{{ t('auth.error.taken') }}</div>
+              <div v-if="!isLogin && isUsernameAvailable === false" class="feedback-right text-red-500">{{ $t('auth.error.taken') }}</div>
             </div>
 
             <!-- 邮箱 -->
@@ -193,7 +193,7 @@ onUnmounted(() => {
               </div>
               <input v-model="formData.password" :type="showPassword ? 'text' : 'password'" :placeholder="t('auth.password_placeholder')" @focus="isFocused = 'pass'" @blur="isFocused = null" />
               <div class="flex items-center gap-2">
-                <div v-if="!isLogin && currentRequirement" class="feedback-right text-red-500">{{ t('auth.pwd_req.' + currentRequirement.id) }}</div>
+                <div v-if="!isLogin && currentRequirement" class="feedback-right text-red-500">{{ $t('auth.pwd_req.' + currentRequirement.id) }}</div>
                 <button type="button" @click="showPassword = !showPassword" class="opacity-20 hover:opacity-100 transition-opacity">
                   <component :is="showPassword ? EyeOff : Eye" class="w-4 h-4" />
                 </button>
@@ -210,7 +210,7 @@ onUnmounted(() => {
                 <Lock v-else class="w-5 h-5 opacity-20" />
               </div>
               <input v-model="formData.confirmPassword" :type="showPassword ? 'text' : 'password'" :placeholder="t('auth.confirm_password_placeholder')" />
-              <div v-if="formData.confirmPassword && !isConfirmMatch" class="feedback-right text-red-500">{{ t('auth.error.mismatch') }}</div>
+              <div v-if="formData.confirmPassword && !isConfirmMatch" class="feedback-right text-red-500">{{ $t('auth.error.mismatch') }}</div>
             </div>
             
             <button type="submit" :disabled="isLoading" class="submit-btn shadow-premium">
@@ -227,7 +227,7 @@ onUnmounted(() => {
       </section>
       
       <footer class="py-10 text-center transition-all duration-700 delay-300" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <p class="text-[10px] font-black uppercase tracking-[0.4em] opacity-20" style="color: var(--text-primary);">{{ t('auth.footer_text') }}</p>
+        <p class="text-[10px] font-black uppercase tracking-[0.4em] opacity-20" style="color: var(--text-primary);">{{ $t('auth.footer_text') }}</p>
       </footer>
     </div>
   </div>
