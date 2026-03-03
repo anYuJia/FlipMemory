@@ -1,185 +1,127 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, Sun, Moon, Smartphone, Check } from 'lucide-vue-next'
 import { useUserStore } from '@/stores'
+import { ArrowLeft, Check, Sparkles, Sun, Moon, Clock } from 'lucide-vue-next'
+import { useTimeTheme } from '@/composables/useTimeTheme'
 
 const router = useRouter()
 const userStore = useUserStore()
-
+const { allPalettes } = useTimeTheme()
 const isLoaded = ref(false)
 
-const themes = [
-  { 
-    value: 'light' as const, 
-    label: '浅色模式',
-    description: '明亮清爽的视觉体验',
-    icon: Sun,
-    preview: {
-      bg: '#ffffff',
-      card: '#f9fafb',
-      text: '#1f2937',
-    }
-  },
-  { 
-    value: 'dark' as const, 
-    label: '深色模式', 
-    description: '护眼舒适的夜间模式',
-    icon: Moon,
-    preview: {
-      bg: '#0a0a0b',
-      card: '#1a1a1d',
-      text: '#f9fafb',
-    }
-  },
-  { 
-    value: 'system' as const, 
-    label: '跟随系统', 
-    description: '自动匹配系统主题设置',
-    icon: Smartphone,
-    preview: {
-      bg: 'linear-gradient(135deg, #ffffff 50%, #0a0a0b 50%)',
-      card: 'linear-gradient(135deg, #f9fafb 50%, #1a1a1d 50%)',
-      text: '#6b7280',
-    }
-  },
-]
+const lightPalettes = computed(() => allPalettes.filter(p => !p.isDark))
+const darkPalettes = computed(() => allPalettes.filter(p => p.isDark))
 
-const selectTheme = (theme: 'light' | 'dark' | 'system') => {
-  userStore.setTheme(theme)
-}
-
-const goBack = () => {
-  router.back()
+const handleSelect = (id: string) => {
+  userStore.setThemeColor(id)
 }
 
 onMounted(() => {
-  setTimeout(() => {
-    isLoaded.value = true
-  }, 100)
+  setTimeout(() => { isLoaded.value = true }, 100)
 })
 </script>
 
 <template>
-  <div class="page-container">
-    <!-- 背景装饰光晕 -->
-    <div class="fixed inset-0 pointer-events-none overflow-hidden">
-      <div 
-        class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-60"
-        style="background: var(--glow-primary);"
-      />
-      <div 
-        class="absolute top-1/3 -right-48 w-[400px] h-[400px] rounded-full blur-[100px] opacity-40"
-        style="background: var(--glow-secondary);"
-      />
-    </div>
-    
-    <!-- 顶部导航 -->
-    <header 
-      class="sticky top-0 z-40 safe-area-top"
-      style="background: rgba(var(--bg-primary-rgb), 0.9); backdrop-filter: blur(20px);"
-    >
-      <div class="max-w-lg mx-auto px-4 py-3">
-        <div class="flex items-center gap-3">
-          <button 
-            @click="goBack"
-            class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105"
-            style="background: var(--card-bg);"
-          >
-            <ArrowLeft class="w-5 h-5" style="color: var(--text-secondary);" />
-          </button>
-          <h1 class="text-lg font-semibold" style="color: var(--text-primary);">主题外观</h1>
-        </div>
+  <div class="page-container min-h-screen relative overflow-x-hidden">
+    <header class="sticky top-0 z-40 safe-area-top backdrop-blur-xl">
+      <div class="max-w-lg mx-auto px-6 py-4 flex items-center gap-4">
+        <button @click="router.back()" class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90 shadow-sm">
+          <ArrowLeft class="w-5 h-5 opacity-40" style="color: var(--text-primary);" />
+        </button>
+        <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">个性化调色盘</h1>
       </div>
     </header>
-    
-    <!-- 主内容 -->
-    <div class="relative max-w-lg mx-auto px-5 py-6">
-      <p 
-        class="text-sm mb-6"
-        style="color: var(--text-tertiary);"
-        :class="{ 'animate-fade-in': isLoaded }"
-        :style="{ opacity: isLoaded ? 1 : 0 }"
-      >
-        选择你喜欢的界面外观
-      </p>
+
+    <main class="relative max-w-lg mx-auto px-6 py-4 space-y-10 pb-32 transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
       
-      <!-- 主题选项 -->
-      <div class="space-y-3">
-        <button
-          v-for="(theme, index) in themes"
-          :key="theme.value"
-          @click="selectTheme(theme.value)"
-          class="relative w-full p-4 rounded-2xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] overflow-hidden"
-          :class="{ 'animate-slide-up': isLoaded }"
-          :style="{ 
-            background: userStore.theme === theme.value 
-              ? 'linear-gradient(135deg, rgba(251, 146, 60, 0.08), rgba(249, 115, 22, 0.04))' 
-              : 'var(--card-bg)',
-            animationDelay: `${index * 50}ms`,
-            opacity: isLoaded ? 1 : 0,
-          }"
+      <!-- 时光流动 (Auto) -->
+      <section>
+        <div class="flex items-center gap-2 mb-4 opacity-40">
+          <Clock class="w-4 h-4" />
+          <span class="text-[10px] font-black uppercase tracking-[0.2em]">Flowing Mode</span>
+        </div>
+        <button 
+          @click="handleSelect('auto')"
+          class="w-full p-6 rounded-[2.5rem] card-static relative overflow-hidden transition-all active:scale-[0.98] group"
+          :class="{ 'ring-4 ring-orange-500/40 shadow-2xl scale-[1.02]': userStore.themeColor === 'auto' }"
         >
-          <!-- 左侧高亮条 -->
-          <div 
-            v-if="userStore.theme === theme.value"
-            class="absolute left-0 top-3 bottom-3 w-1 rounded-full"
-            style="background: linear-gradient(180deg, #fb923c, #f97316);"
-          />
-          
-          <div class="flex items-center gap-4">
-            <!-- 预览图 -->
-            <div 
-              class="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0"
-              :class="userStore.theme === theme.value ? 'ring-2 ring-orange-400/30' : 'ring-1 ring-black/5'"
-              :style="{ background: theme.preview.bg }"
-            >
-              <div 
-                class="m-1.5 h-2 w-8 rounded-full"
-                :style="{ background: theme.preview.card }"
-              />
-              <div 
-                class="m-1.5 h-1.5 w-6 rounded-full"
-                :style="{ background: theme.preview.text, opacity: 0.5 }"
-              />
-            </div>
-            
-            <!-- 图标和文字 -->
-            <div class="flex-1 text-left">
-              <div class="flex items-center gap-2">
-                <component 
-                  :is="theme.icon" 
-                  class="w-4 h-4" 
-                  :style="{ color: userStore.theme === theme.value ? 'var(--color-primary)' : 'var(--text-secondary)' }"
-                />
-                <span 
-                  class="font-medium"
-                  :style="{ color: userStore.theme === theme.value ? 'var(--color-primary)' : 'var(--text-primary)' }"
-                >
-                  {{ theme.label }}
-                </span>
+          <div class="absolute inset-0 bg-gradient-to-r from-orange-400/20 via-purple-500/20 to-blue-500/20 opacity-40"></div>
+          <div class="relative flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-white dark:bg-white/10 flex items-center justify-center shadow-lg">
+                <Sparkles class="w-6 h-6 text-orange-500" />
               </div>
-              <p class="text-sm mt-0.5" style="color: var(--text-muted);">{{ theme.description }}</p>
-            </div>
-            
-            <!-- 选中标记 -->
-            <Transition
-              enter-active-class="transition-all duration-300"
-              leave-active-class="transition-all duration-200"
-              enter-from-class="opacity-0 scale-50"
-              leave-to-class="opacity-0 scale-50"
-            >
-              <div 
-                v-if="userStore.theme === theme.value"
-                class="w-6 h-6 rounded-full flex items-center justify-center"
-                style="background: linear-gradient(135deg, #fb923c, #f97316); box-shadow: 0 2px 8px rgba(251, 146, 60, 0.4);"
-              >
-                <Check class="w-4 h-4 text-white" />
+              <div class="text-left">
+                <div class="font-black tracking-tight" style="color: var(--text-primary);">时光流转</div>
+                <div class="text-[10px] font-bold opacity-40 uppercase tracking-wider mt-0.5">Auto adaptive day & night</div>
               </div>
-            </Transition>
+            </div>
+            <div v-if="userStore.themeColor === 'auto'" class="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center shadow-inner">
+              <Check class="w-3.5 h-3.5 text-white" stroke-width="4" />
+            </div>
           </div>
         </button>
-      </div>
-    </div>
+      </section>
+
+      <!-- 亮色系 (Light Collection) -->
+      <section>
+        <div class="flex items-center gap-2 mb-4 opacity-40">
+          <Sun class="w-4 h-4" />
+          <span class="text-[10px] font-black uppercase tracking-[0.2em]">Light Tones</span>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <button 
+            v-for="p in lightPalettes" 
+            :key="p.id"
+            @click="handleSelect(p.id)"
+            class="p-5 rounded-[2.5rem] card-static flex flex-col items-center gap-4 transition-all active:scale-95"
+            :class="{ 'ring-4 ring-orange-500/40 shadow-xl scale-105 bg-white/80': userStore.themeColor === p.id }"
+          >
+            <!-- 双色预览球 -->
+            <div class="relative w-16 h-16">
+              <div class="absolute inset-0 rounded-full border-2 border-white shadow-md overflow-hidden" :style="{ backgroundColor: p.bg }">
+                <div class="absolute -right-2 -bottom-2 w-10 h-10 rounded-full" :style="{ backgroundColor: p.primary }"></div>
+              </div>
+            </div>
+            <span class="text-[11px] font-black tracking-widest uppercase opacity-60" style="color: var(--text-primary);">{{ p.name }}</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 暗色系 (Dark Collection) -->
+      <section>
+        <div class="flex items-center gap-2 mb-4 opacity-40">
+          <Moon class="w-4 h-4" />
+          <span class="text-[10px] font-black uppercase tracking-[0.2em]">Dark Tones</span>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <button 
+            v-for="p in darkPalettes" 
+            :key="p.id"
+            @click="handleSelect(p.id)"
+            class="p-5 rounded-[2.5rem] card-static flex flex-col items-center gap-4 transition-all active:scale-95"
+            :class="{ 'ring-4 ring-orange-500/40 shadow-xl scale-105 bg-black/40': userStore.themeColor === p.id }"
+          >
+            <div class="relative w-16 h-16">
+              <div class="absolute inset-0 rounded-full border-2 border-white/10 shadow-lg overflow-hidden" :style="{ backgroundColor: p.bg }">
+                <div class="absolute -right-2 -bottom-2 w-10 h-10 rounded-full" :style="{ backgroundColor: p.primary }"></div>
+              </div>
+            </div>
+            <span class="text-[11px] font-black tracking-widest uppercase opacity-60" style="color: var(--text-primary);">{{ p.name }}</span>
+          </button>
+        </div>
+      </section>
+
+    </main>
   </div>
 </template>
+
+<style scoped>
+.card-static {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(32px) saturate(180%);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+</style>
