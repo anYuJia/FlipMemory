@@ -22,6 +22,7 @@
     "settings": "设置"
   },
   "home": {
+    "welcome": "{greeting}，{name}",
     "greeting": {
       "morning": "早安",
       "afternoon": "午安",

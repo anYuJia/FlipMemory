@@ -117,7 +117,7 @@ onMounted(() => {
           </button>
           
           <div class="flex-1 flex items-center gap-3 pr-2">
-            <input ref="searchInputRef" v-model="searchQuery" @focus="isFocused = true" @blur="isFocused = false" @keyup.enter="doSearch" type="text" :placeholder="t('search.placeholder')" class="flex-1 bg-transparent border-none outline-none text-base font-medium placeholder:opacity-30" style="color: var(--text-primary);" />
+            <input ref="searchInputRef" v-model="searchQuery" @focus="isFocused = true" @blur="isFocused = false" @keyup.enter="doSearch" type="text" :placeholder="$t('search.placeholder')" class="flex-1 bg-transparent border-none outline-none text-base font-medium placeholder:opacity-30" style="color: var(--text-primary);" />
             <button v-if="searchQuery" @click="clearSearch" class="w-10 h-10 rounded-full flex items-center justify-center bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-all">
               <X class="w-4 h-4 opacity-40" style="color: var(--text-primary);" />
             </button>

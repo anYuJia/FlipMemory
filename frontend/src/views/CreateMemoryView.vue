@@ -36,7 +36,8 @@ const weatherOptions = [
 
 const formattedDate = computed(() => {
   const d = new Date(date)
-  return d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })
+  const locale = localStorage.getItem('locale') || 'zh-CN'
+  return d.toLocaleDateString(locale, { month: 'long', day: 'numeric', weekday: 'long' })
 })
 
 const handlePhotoSelect = async (e: Event) => {
@@ -55,9 +56,16 @@ const selectMood = (m: MoodType) => { mood.value = mood.value === m ? '' : m }
 const handleSubmit = async () => {
   if (isSubmitting.value) return
   isSubmitting.value = true
-  try { setTimeout(() => router.push('/'), 1000) } 
-  catch (err) { logger.error('Failed to save memory', 'CreateView', err) } 
-  finally { isSubmitting.value = false }
+  try { 
+    // 调用实际保存逻辑 (此处保持模拟，确保 UI 流程通畅)
+    setTimeout(() => {
+      router.push('/')
+    }, 800)
+  } catch (err) { 
+    logger.error('Failed to save memory', 'CreateView', err) 
+  } finally { 
+    isSubmitting.value = false 
+  }
 }
 
 const goBack = () => router.back()
@@ -66,13 +74,13 @@ onMounted(() => setTimeout(() => { isLoaded.value = true }, 100))
 
 <template>
   <div class="page-container min-h-screen relative overflow-x-hidden">
-    <!-- 背景光晕 -->
+    <!-- 背景 -->
     <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.12] dark:opacity-[0.04]" style="background-color: var(--glow-primary);" />
+      <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.1] dark:opacity-[0.04]" style="background-color: var(--glow-primary);" />
       <div class="absolute top-1/3 -right-48 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.08] dark:opacity-[0.03]" style="background-color: var(--glow-secondary);" />
     </div>
 
-    <header class="sticky top-0 z-40 safe-area-top">
+    <header class="sticky top-0 z-40 safe-area-top transition-all duration-500">
       <div class="max-w-lg mx-auto px-6 py-4 flex items-center justify-between">
         <button @click="goBack" class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90 shadow-sm">
           <ArrowLeft class="w-5 h-5 opacity-40" style="color: var(--text-primary);" />
@@ -88,31 +96,32 @@ onMounted(() => setTimeout(() => { isLoaded.value = true }, 100))
       </div>
     </header>
     
-    <div class="relative max-w-lg mx-auto px-6 py-4 space-y-8">
-      <div class="flex justify-center transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div class="px-4 py-1.5 rounded-full bg-black/5 dark:bg-white/5 text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ date }}</div>
-      </div>
-      
+    <div class="relative max-w-lg mx-auto px-6 py-4 space-y-10">
+      <!-- 预览区 -->
       <section class="transition-all duration-700 delay-100" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div class="rounded-[2.5rem] overflow-hidden shadow-2xl relative group card-static aspect-[4/5] flex items-center justify-center">
+        <div class="rounded-[2.5rem] overflow-hidden shadow-2xl relative group card-static aspect-[4/5] flex items-center justify-center border-dashed">
           <div v-if="photoPreview" class="h-full w-full">
-            <img :src="photoPreview" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <img :src="photoPreview" class="w-full h-full object-cover" />
             <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
             <button @click="removePhoto" class="absolute top-6 right-6 w-10 h-10 rounded-full flex items-center justify-center text-white/80 bg-black/20 backdrop-blur-xl border border-white/10 hover:bg-black/40 transition-all"><X class="w-4 h-4" /></button>
           </div>
-          <div v-else class="flex flex-col items-center gap-6 p-10 w-full">
-            <div class="w-20 h-20 rounded-[2rem] flex items-center justify-center bg-black/5 dark:bg-white/5">
+          
+          <div v-else class="flex flex-col items-center gap-8 p-10 w-full">
+            <div class="w-20 h-20 rounded-full flex items-center justify-center bg-black/[0.03] dark:bg-white/[0.03]">
               <Camera class="w-8 h-8 opacity-10" style="color: var(--text-primary);" />
             </div>
-            <div class="grid grid-cols-1 gap-4 w-full max-w-[200px]">
+            
+            <!-- 修复：不再使用 bg-white，改用品牌色和暗色适配按钮 -->
+            <div class="grid grid-cols-1 gap-4 w-full max-w-[220px]">
               <label class="cursor-pointer">
-                <div class="py-4 rounded-2xl bg-black dark:bg-white text-white dark:text-black text-[10px] font-black tracking-[0.2em] uppercase flex items-center justify-center gap-2 shadow-xl">
+                <div class="py-4 rounded-2xl bg-orange-500 text-white text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl transition-all hover:scale-[1.02] active:scale-95">
                   <Camera class="w-4 h-4" /> {{ $t('create.take_photo') }}
                 </div>
                 <input type="file" accept="image/*" capture="environment" class="hidden" @change="handlePhotoSelect" />
               </label>
+              
               <label class="cursor-pointer">
-                <div class="py-4 rounded-2xl bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/10 text-black dark:text-white text-[10px] font-black tracking-[0.2em] uppercase flex items-center justify-center gap-2">
+                <div class="py-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-main text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all hover:bg-black/10 dark:hover:bg-white/10 active:scale-95">
                   <Image class="w-4 h-4 opacity-40" /> {{ $t('create.gallery') }}
                 </div>
                 <input type="file" accept="image/*" class="hidden" @change="handlePhotoSelect" />
@@ -122,13 +131,15 @@ onMounted(() => setTimeout(() => { isLoaded.value = true }, 100))
         </div>
       </section>
       
+      <!-- 故事 -->
       <section class="transition-all duration-700 delay-200" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="flex items-center gap-2 mb-4 opacity-30" style="color: var(--text-primary);">
           <Edit3 class="w-4 h-4" /> <span class="text-[10px] font-black tracking-[0.2em] uppercase">{{ $t('create.your_story') }}</span>
         </div>
-        <textarea v-model="content" :placeholder="t('create.placeholder')" class="w-full bg-transparent border-none focus:outline-none text-xl font-medium leading-[1.8] placeholder:opacity-20 transition-all min-h-[200px]" style="color: var(--text-primary);"></textarea>
+        <textarea v-model="content" :placeholder="$t('create.placeholder')" class="w-full bg-transparent border-none focus:outline-none text-xl font-medium leading-[1.8] placeholder:opacity-20 transition-all min-h-[180px]" style="color: var(--text-primary);"></textarea>
       </section>
 
+      <!-- 心情 -->
       <section class="transition-all duration-700 delay-300" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="flex items-center gap-2 mb-6 opacity-30" style="color: var(--text-primary);">
           <Sparkles class="w-4 h-4" /> <span class="text-[10px] font-black tracking-[0.2em] uppercase">{{ $t('create.current_mood') }}</span>
@@ -141,19 +152,20 @@ onMounted(() => setTimeout(() => { isLoaded.value = true }, 100))
         </div>
       </section>
 
+      <!-- 底部卡片 -->
       <section class="grid grid-cols-2 gap-4 pb-32 transition-all duration-700 delay-400" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="p-5 rounded-[2rem] card-static flex flex-col gap-3">
           <div class="flex items-center gap-2 opacity-30" style="color: var(--text-primary);">
             <MapPin class="w-3.5 h-3.5" /> <span class="text-[9px] font-black tracking-[0.2em] uppercase">{{ $t('create.location_label') }}</span>
           </div>
-          <input v-model="location" :placeholder="t('create.location_placeholder')" class="bg-transparent border-none focus:outline-none text-xs font-bold w-full" style="color: var(--text-primary);" />
+          <input v-model="location" :placeholder="$t('create.location_placeholder')" class="bg-transparent border-none focus:outline-none text-xs font-bold w-full" style="color: var(--text-primary);" />
         </div>
         <div class="p-5 rounded-[2rem] card-static flex flex-col gap-3">
           <div class="flex items-center gap-2 opacity-30" style="color: var(--text-primary);">
             <Sun class="w-3.5 h-3.5" /> <span class="text-[9px] font-black tracking-[0.2em] uppercase">{{ $t('create.weather_label') }}</span>
           </div>
           <div class="flex gap-2">
-            <button v-for="opt in weatherOptions.slice(0, 3)" :key="opt.id" @click="weather = opt.id" class="w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm" :style="{ background: weather === opt.id ? 'var(--color-primary)' : 'rgba(0,0,0,0.05)', color: weather === opt.id ? '#fff' : 'var(--text-tertiary)' }"><component :is="opt.icon" class="w-3.5 h-3.5" /></button>
+            <button v-for="opt in weatherOptions.slice(0, 3)" :key="opt.id" @click="weather = opt.id" class="w-8 h-8 rounded-full flex items-center justify-center transition-all" :style="{ background: weather === opt.id ? 'var(--color-primary)' : 'rgba(0,0,0,0.05)', color: weather === opt.id ? '#fff' : 'var(--text-tertiary)' }"><component :is="opt.icon" class="w-3.5 h-3.5" /></button>
           </div>
         </div>
       </section>
@@ -165,7 +177,8 @@ onMounted(() => setTimeout(() => { isLoaded.value = true }, 100))
 .card-static {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(32px) saturate(180%);
 }
+.text-main { color: var(--text-primary); }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 </style>

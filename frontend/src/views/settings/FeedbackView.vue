@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, Send, MessageSquare, Sparkles, CheckCircle2 } from 'lucide-vue-next'
+import { ArrowLeft, Send, MessageSquare, Sparkles, CheckCircle2, Loader2 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 
 const router = useRouter()

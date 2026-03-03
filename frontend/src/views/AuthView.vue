@@ -142,8 +142,8 @@ onUnmounted(() => {
         <div class="p-8 rounded-[2.5rem] backdrop-blur-3xl border border-white/10 shadow-2xl" style="background-color: var(--card-bg);">
           <!-- Tab -->
           <div class="flex p-1 rounded-2xl bg-black/5 dark:bg-white/5 mb-8">
-            <button @click="isLogin = true" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl" :class="isLogin ? 'bg-white dark:bg-white/15 shadow-sm opacity-100' : 'opacity-30'" style="color: var(--text-primary);">{{ $t('auth.login_tab') }}</button>
-            <button @click="isLogin = false" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl" :class="!isLogin ? 'bg-white dark:bg-white/15 shadow-sm opacity-100' : 'opacity-30'" style="color: var(--text-primary);">{{ $t('auth.register_tab') }}</button>
+            <button type="button" @click="isLogin = true" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl" :class="isLogin ? 'bg-white dark:bg-white/15 shadow-sm opacity-100' : 'opacity-30'" style="color: var(--text-primary);">{{ $t('auth.login_tab') }}</button>
+            <button type="button" @click="isLogin = false" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl" :class="!isLogin ? 'bg-white dark:bg-white/15 shadow-sm opacity-100' : 'opacity-30'" style="color: var(--text-primary);">{{ $t('auth.register_tab') }}</button>
           </div>
           
           <Transition enter-active-class="animate-shake">
@@ -152,11 +152,11 @@ onUnmounted(() => {
             </div>
           </Transition>
           
-          <form @submit.prevent="handleSubmit" class="space-y-5">
+          <form @submit.prevent="handleSubmit" class="space-y-5" autocomplete="off">
             <!-- 昵称 -->
             <div v-if="!isLogin" class="input-group" :class="{ 'animate-shake': shakeFields.nickname }">
               <div class="icon-left"><User class="w-5 h-5 opacity-20" /></div>
-              <input v-model="formData.nickname" type="text" :placeholder="t('auth.nickname_placeholder')" />
+              <input v-model="formData.nickname" type="text" :placeholder="$t('auth.nickname_placeholder')" autocomplete="off" />
             </div>
 
             <!-- 登录账号 / 注册用户名 -->
@@ -170,8 +170,8 @@ onUnmounted(() => {
                 </template>
               </div>
               
-              <input v-if="isLogin" v-model="formData.account" type="text" :placeholder="t('auth.username_placeholder')" @focus="isFocused = 'account'" @blur="isFocused = null" />
-              <input v-else v-model="formData.username" type="text" :placeholder="t('auth.unique_username_placeholder')" />
+              <input v-if="isLogin" v-model="formData.account" type="text" :placeholder="$t('auth.username_placeholder')" @focus="isFocused = 'account'" @blur="isFocused = null" autocomplete="username" />
+              <input v-else v-model="formData.username" type="text" :placeholder="$t('auth.unique_username_placeholder')" autocomplete="off" />
               
               <div v-if="!isLogin && isUsernameAvailable === false" class="feedback-right text-red-500">{{ $t('auth.error.taken') }}</div>
             </div>
@@ -179,7 +179,7 @@ onUnmounted(() => {
             <!-- 邮箱 -->
             <div v-if="!isLogin" class="input-group" :class="{ 'animate-shake': shakeFields.email }">
               <div class="icon-left"><Mail class="w-5 h-5 opacity-20" /></div>
-              <input v-model="formData.email" type="email" :placeholder="t('auth.email_address')" />
+              <input v-model="formData.email" type="email" :placeholder="$t('auth.email_address')" autocomplete="email" />
             </div>
             
             <!-- 密码 -->
@@ -191,7 +191,7 @@ onUnmounted(() => {
                 </template>
                 <Lock v-else class="w-5 h-5 opacity-20" />
               </div>
-              <input v-model="formData.password" :type="showPassword ? 'text' : 'password'" :placeholder="t('auth.password_placeholder')" @focus="isFocused = 'pass'" @blur="isFocused = null" />
+              <input v-model="formData.password" :type="showPassword ? 'text' : 'password'" :placeholder="$t('auth.password_placeholder')" @focus="isFocused = 'pass'" @blur="isFocused = null" autocomplete="current-password" />
               <div class="flex items-center gap-2">
                 <div v-if="!isLogin && currentRequirement" class="feedback-right text-red-500">{{ $t('auth.pwd_req.' + currentRequirement.id) }}</div>
                 <button type="button" @click="showPassword = !showPassword" class="opacity-20 hover:opacity-100 transition-opacity">
@@ -209,7 +209,7 @@ onUnmounted(() => {
                 </template>
                 <Lock v-else class="w-5 h-5 opacity-20" />
               </div>
-              <input v-model="formData.confirmPassword" :type="showPassword ? 'text' : 'password'" :placeholder="t('auth.confirm_password_placeholder')" />
+              <input v-model="formData.confirmPassword" :type="showPassword ? 'text' : 'password'" :placeholder="$t('auth.confirm_password_placeholder')" autocomplete="new-password" />
               <div v-if="formData.confirmPassword && !isConfirmMatch" class="feedback-right text-red-500">{{ $t('auth.error.mismatch') }}</div>
             </div>
             
@@ -250,12 +250,8 @@ onUnmounted(() => {
 }
 
 .input-group:focus-within {
-  background-color: #fff;
+  background-color: var(--bg-elevated);
   box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
-}
-
-:root.dark .input-group:focus-within {
-  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .input-group.has-error {
@@ -272,13 +268,22 @@ onUnmounted(() => {
 
 .input-group input {
   flex: 1;
-  background: transparent;
+  background: transparent !important;
   border: none;
   outline: none;
   font-weight: 700;
   font-size: 0.875rem;
   min-width: 0;
   color: var(--text-primary);
+}
+
+/* 彻底解决浏览器自动填充导致的背景色变白问题 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-transition-delay: 99999s;
+  -webkit-transition: background-color 99999s ease-out, color 99999s ease-out;
 }
 
 .input-group input::placeholder {

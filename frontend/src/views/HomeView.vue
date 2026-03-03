@@ -19,19 +19,20 @@ const router = useRouter()
 const memoryStore = useMemoryStore()
 const userStore = useUserStore()
 const { isDesktop } = useResponsive()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const isLoaded = ref(false)
 const hasAnimated = ref(false)
 const carouselRef = ref<HTMLElement | null>(null)
 
 // 问候语逻辑
-const greeting = computed(() => {
+const greetingKey = computed(() => {
   const hour = new Date().getHours()
-  if (hour < 12) return t('home.greeting.morning')
-  if (hour < 18) return t('home.greeting.afternoon')
-  if (hour < 22) return t('home.greeting.evening')
-  return t('home.greeting.night')
+  if (hour < 5) return 'home.greeting.night'
+  if (hour < 12) return 'home.greeting.morning'
+  if (hour < 18) return 'home.greeting.afternoon'
+  if (hour < 22) return 'home.greeting.evening'
+  return 'home.greeting.night'
 })
 
 const greetingIcon = computed(() => {
@@ -40,19 +41,14 @@ const greetingIcon = computed(() => {
 })
 
 const currentDate = computed(() => {
-  const locale = localStorage.getItem('locale') || 'zh-CN'
-  return new Date().toLocaleDateString(locale, { month: 'long', day: 'numeric', weekday: 'long' })
+  return new Date().toLocaleDateString(locale.value, { month: 'long', day: 'numeric', weekday: 'long' })
 })
 
-// 记忆数据 - 修复引用错误
 const recentMemories = computed(() => memoryStore.recentMemories || [])
-const featuredMemories = computed(() => recentMemories.value.slice(0, 3)) // 暂时用最近的作为精选
+const featuredMemories = computed(() => recentMemories.value.slice(0, 3))
 
-// 轮播配置
 const carouselCardWidth = computed(() => '280px')
-const extendedMemories = computed(() => {
-  return featuredMemories.value.map(m => ({ memory: m }))
-})
+const extendedMemories = computed(() => featuredMemories.value.map(m => ({ memory: m })))
 
 onMounted(async () => {
   if (!memoryStore.recentMemories || memoryStore.recentMemories.length === 0) {
@@ -66,10 +62,7 @@ onMounted(async () => {
 
 const goToStats = () => router.push({ name: 'stats' })
 const goToCalendar = () => router.push({ name: 'calendar' })
-
-const handleRefresh = async () => {
-  await memoryStore.fetchRecentMemories()
-}
+const handleRefresh = async () => await memoryStore.fetchRecentMemories()
 </script>
 
 <template>
@@ -92,7 +85,7 @@ const handleRefresh = async () => {
             <component :is="greetingIcon" class="w-3.5 h-3.5 opacity-40" style="color: var(--color-primary);" />
           </div>
           <h1 class="text-3xl font-black tracking-tighter mt-1" style="color: var(--text-primary);">
-            {{ greeting }}，<span class="text-gradient">{{ userStore.displayName }}</span>
+            {{ $t('home.welcome', { greeting: $t(greetingKey), name: userStore.displayName }) }}
           </h1>
           <p class="text-sm font-medium mt-1 opacity-40" style="color: var(--text-primary);">
             {{ $t('home.sub_greeting') }}
@@ -116,13 +109,13 @@ const handleRefresh = async () => {
 
             <div class="flex items-center gap-6">
               <div class="flex flex-col items-center">
-                <div class="w-10 h-10 rounded-2xl flex items-center justify-center mb-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10">
+                <div class="w-10 h-10 rounded-2xl flex items-center justify-center mb-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 shadow-sm">
                   <Camera class="w-5 h-5 opacity-40" style="color: var(--text-primary);" />
                 </div>
                 <span class="text-[9px] font-black opacity-30 uppercase tracking-tighter" style="color: var(--text-primary);">Photo</span>
               </div>
               <div class="flex flex-col items-center">
-                <div class="w-10 h-10 rounded-2xl flex items-center justify-center mb-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10">
+                <div class="w-10 h-10 rounded-2xl flex items-center justify-center mb-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 shadow-sm">
                   <span class="text-xl">😊</span>
                 </div>
                 <span class="text-[9px] font-black opacity-30 uppercase tracking-tighter" style="color: var(--text-primary);">Mood</span>
@@ -141,7 +134,7 @@ const handleRefresh = async () => {
         </div>
       </section>
       
-      <!-- 精选记忆轮播 -->
+      <!-- 精选记忆 -->
       <section class="mb-10 transition-all duration-700 delay-200" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="flex items-center gap-2 mb-4">
           <Sparkles class="w-4 h-4 opacity-40" />
@@ -158,7 +151,7 @@ const handleRefresh = async () => {
             </div>
 
             <div v-for="(item, idx) in extendedMemories" :key="`${item.memory.id}-${idx}`" class="flex-shrink-0 snap-center" :style="{ width: carouselCardWidth }">
-              <div class="h-[320px] shadow-2xl transition-transform duration-500 hover:scale-[1.02]">
+              <div class="shadow-2xl transition-transform duration-500 hover:scale-[1.02]">
                 <FlipCard :memory="item.memory" />
               </div>
             </div>
@@ -189,7 +182,6 @@ const handleRefresh = async () => {
         </div>
       </section>
     </div>
-    
     <FloatingAddButton />
   </div>
   </PullToRefresh>
@@ -199,7 +191,13 @@ const handleRefresh = async () => {
 .card-static {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(32px) saturate(180%);
+}
+.text-gradient {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 </style>

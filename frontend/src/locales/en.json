@@ -22,6 +22,7 @@
     "settings": "Settings"
   },
   "home": {
+    "welcome": "{greeting}, {name}",
     "greeting": {
       "morning": "Good Morning",
       "afternoon": "Good Afternoon",

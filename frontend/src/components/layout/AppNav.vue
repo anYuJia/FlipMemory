@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
+import { computed } from 'vue'
 import { Home, Calendar, Sparkles, BarChart3, Settings } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 
