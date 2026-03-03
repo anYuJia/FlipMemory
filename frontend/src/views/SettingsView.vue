@@ -174,16 +174,17 @@ onMounted(() => {
         </div>
       </section>
       
-      <!-- 反馈与退出 -->
+      <!-- 反馈与退出与反馈分组 -->
       <section class="mb-12 pb-32 transition-all duration-700 delay-400" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="rounded-[2.5rem] overflow-hidden card-static shadow-sm">
-          <button @click="showFeedbackDialog = true" class="w-full flex items-center gap-4 px-6 py-5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+          <button @click="router.push({ name: 'settings-feedback' })" class="w-full flex items-center gap-4 px-6 py-5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
             <div class="w-10 h-10 rounded-2xl flex items-center justify-center bg-gray-50 dark:bg-gray-500/10 shadow-sm">
               <MessageSquare class="w-5 h-5 text-gray-400 dark:text-gray-300" />
             </div>
             <div class="flex-1 text-left text-sm font-bold tracking-tight" style="color: var(--text-primary);">反馈与建议</div>
             <ChevronRight class="w-4 h-4 opacity-20" />
           </button>
+
           <div class="h-px mx-6 bg-black/[0.03] dark:bg-white/[0.03]"></div>
           <button @click="handleLogout" class="w-full flex items-center gap-4 px-6 py-5 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors group">
             <div class="w-10 h-10 rounded-2xl flex items-center justify-center bg-red-50 dark:bg-red-500/10 shadow-sm group-hover:bg-red-100 dark:group-hover:bg-red-500/20 transition-colors">

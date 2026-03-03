@@ -14,52 +14,28 @@ const userStore = useUserStore()
 const offlineStore = useOfflineStore()
 const route = useRoute()
 
-// 判断是否显示底部导航（登录页不显示）
-const showNav = computed(() => {
-  return route.name !== 'auth'
-})
-
-// 监听主题变化并应用到 HTML 元素
-const applyTheme = () => {
-  const theme = userStore.settings.theme
-  const isDark = theme === 'dark' ||
-    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-
-  document.documentElement.classList.toggle('dark', isDark)
-}
-
-watch(() => userStore.settings.theme, applyTheme)
+const showNav = computed(() => route.name !== 'auth')
 
 onMounted(async () => {
-  applyTheme()
-
-  // 初始化离线 Store
+  userStore.init()
   await offlineStore.init()
-
-  // 监听系统主题变化
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (userStore.settings.theme === 'system') {
-      applyTheme()
-    }
-  })
 })
 </script>
 
 <template>
   <ErrorBoundary>
-    <div class="min-h-screen">
-      <!-- 离线状态横幅 -->
+    <div class="min-h-screen bg-app overflow-x-hidden">
       <OfflineBanner />
 
       <RouterView v-slot="{ Component }">
         <Transition name="page" mode="out-in">
           <KeepAlive :include="['HomeView', 'CalendarView', 'StatsView', 'SearchView', 'FlashbackView', 'SettingsView']">
-            <component :is="Component" />
+            <component :is="Component" :key="route.fullPath" />
           </KeepAlive>
         </Transition>
       </RouterView>
 
-      <AppNav v-if="showNav" />
+      <AppNav />
       <ToastNotification />
       <ErrorToast />
       <GlobalConfirmDialog />
@@ -69,27 +45,34 @@ onMounted(async () => {
 </template>
 
 <style>
-/* 页面切换动画 - 顶级丝滑感 */
+.bg-app {
+  background-color: var(--bg-primary);
+  transition: background-color 0.5s ease;
+}
+
+/* 顶级 App 切换动效：iOS 风格的平滑推移 */
 .page-enter-active,
 .page-leave-active {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .page-enter-from {
   opacity: 0;
-  transform: scale(0.98) translateY(10px);
+  transform: translateX(30px) scale(0.98);
   filter: blur(10px);
 }
 
 .page-leave-to {
   opacity: 0;
-  transform: scale(1.02) translateY(-10px);
+  transform: translateX(-30px) scale(1.02);
   filter: blur(10px);
 }
 
-/* 确保切换时背景不闪烁 */
+/* 确保切换时布局稳定 */
 .page-container {
   min-height: 100vh;
   width: 100%;
+  position: relative;
+  overflow-x: hidden;
 }
 </style>

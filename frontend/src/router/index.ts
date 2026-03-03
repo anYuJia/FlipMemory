@@ -115,6 +115,12 @@ const settingsRoutes = [
         component: () => import(/* webpackChunkName: "settings" */ '@/views/settings/ProfileSettingsView.vue'),
         meta: { title: '个人资料', requiresAuth: true },
     },
+    {
+        path: '/settings/feedback',
+        name: 'settings-feedback',
+        component: () => import(/* webpackChunkName: "settings" */ '@/views/settings/FeedbackView.vue'),
+        meta: { title: '反馈与建议', requiresAuth: true },
+    },
 ]
 
 // 合并所有路由

@@ -15,12 +15,22 @@ const navItems = [
   { name: 'settings', icon: Settings, label: 'nav.settings' },
 ]
 
+// 核心主页面名单
+const mainPages = ['home', 'calendar', 'flashback', 'stats', 'settings']
+const showNav = computed(() => mainPages.includes(route.name as string))
+
 const isActive = (name: string) => route.name === name
 const navigate = (name: string) => router.push({ name })
 </script>
 
 <template>
-  <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2.5rem)] max-w-md">
+  <Transition
+    enter-active-class="transition-all duration-500 ease-out"
+    leave-active-class="transition-all duration-300 ease-in"
+    enter-from-class="translate-y-20 opacity-0"
+    leave-to-class="translate-y-20 opacity-0"
+  >
+    <nav v-if="showNav" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2.5rem)] max-md:w-[calc(100%-2rem)] max-w-md">
     <div class="absolute inset-0 rounded-[2rem] shadow-2xl backdrop-blur-3xl saturate-[180%] border border-white/10 dark:border-white/5" style="background: var(--nav-bg);" />
     <div class="relative flex items-center justify-between h-20 px-4">
       <button v-for="item in navItems" :key="item.name" @click="navigate(item.name)" class="relative flex flex-col items-center justify-center flex-1 h-full transition-all active:scale-90 group">
