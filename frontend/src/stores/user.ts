@@ -45,9 +45,10 @@ export const useUserStore = defineStore('user', () => {
     const isLoggedIn = computed(() => !!user.value && !!accessToken.value)
 
     const displayName = computed(() => {
-        if (profile.value?.nickname) return profile.value.nickname
-        if (!user.value) return '游客'
-        return user.value.nickname || user.value.email.split('@')[0]
+        if (profile.value && profile.value.nickname) return profile.value.nickname
+        if (user.value && user.value.nickname) return user.value.nickname
+        if (user.value && user.value.email) return user.value.email.split('@')[0]
+        return 'User'
     })
 
     const theme = computed(() => settings.value.theme)
