@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, onActivated, onDeactivated, watch } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search, X, ArrowLeft, TrendingUp, Sun, Cloud, Loader2, XCircle, CheckCircle2 } from 'lucide-vue-next'
 import { useMemoryStore } from '@/stores'
@@ -17,13 +17,11 @@ const router = useRouter()
 const memoryStore = useMemoryStore()
 const { t } = useI18n()
 
-const isLoaded = ref(false)
-const hasAnimated = ref(false)
+const isLoaded = ref(true)
 const searchQuery = ref('')
 const debouncedSearchQuery = ref('')
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const isFocused = ref(false)
-const scrollY = ref(0)
 
 const weatherIcons: Record<string, any> = { sunny: Sun, cloudy: Cloud }
 
@@ -97,7 +95,6 @@ const truncateText = (text: string, length = 100) => text.length > length ? text
 const formatDate = (dateStr: string) => new Date(dateStr).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
 
 onMounted(() => {
-  setTimeout(() => { isLoaded.value = true }, 100)
   nextTick(() => searchInputRef.value?.focus())
 })
 </script>
@@ -112,8 +109,8 @@ onMounted(() => {
     <header class="sticky top-0 z-40 safe-area-top pt-6 pb-4 px-6">
       <div class="max-w-lg mx-auto">
         <div class="flex items-center gap-3 p-2 rounded-full bg-white/60 dark:bg-white/10 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-lg transition-all" :class="{ 'ring-4 ring-orange-400/20 scale-[1.02]': isFocused }">
-          <button @click="goBack" class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/5 active:scale-95">
-            <ArrowLeft class="w-5 h-5 opacity-40" style="color: var(--text-primary);" />
+          <button @click="goBack" class="btn-back border-none bg-transparent shadow-none w-10 h-10">
+            <ArrowLeft class="w-5 h-5" />
           </button>
           
           <div class="flex-1 flex items-center gap-3 pr-2">
@@ -191,11 +188,3 @@ onMounted(() => {
     </main>
   </div>
 </template>
-
-<style scoped>
-.card-static {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  backdrop-filter: blur(24px) saturate(180%);
-}
-</style>

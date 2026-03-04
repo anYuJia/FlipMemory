@@ -17,7 +17,7 @@ const { t } = useI18n()
 const date = route.params.date as string
 const memory = computed(() => memoryStore.memories.get(date))
 const isLoading = ref(false)
-const isLoaded = ref(false)
+const isLoaded = ref(true)
 
 const formattedDate = computed(() => {
   const d = new Date(date)
@@ -46,7 +46,6 @@ onMounted(async () => {
     await memoryStore.fetchMemoryByDate(date)
     isLoading.value = false
   }
-  setTimeout(() => { isLoaded.value = true }, 100)
 })
 </script>
 

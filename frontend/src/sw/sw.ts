@@ -46,46 +46,47 @@ registerRoute(
 )
 
 // ===== 图片缓存策略 =====
-// 使用 CacheFirst 策略：优先缓存，提升加载速度
+// 使用 StaleWhileRevalidate 策略：优先从缓存加载保证秒开，同时后台静默更新
 registerRoute(
     ({ request, url }) => {
-        // 匹配图片请求
-        return request.destination === 'image' ||
-            url.pathname.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/i)
+        // 匹配图片请求，排除本地 Blob 或 data: 链接
+        return (request.destination === 'image' ||
+            url.pathname.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/i)) &&
+            !url.protocol.startsWith('blob:') &&
+            !url.protocol.startsWith('data:')
     },
-    new CacheFirst({
+    new StaleWhileRevalidate({
         cacheName: CACHE_NAMES.IMAGES,
         plugins: [
             new CacheableResponsePlugin({
                 statuses: [0, 200],
             }),
             new ExpirationPlugin({
-                maxEntries: 200,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 天
+                maxEntries: 300, // 增加图片缓存数量到 300
+                maxAgeSeconds: 60 * 24 * 60 * 60, // 延长到 60 天
                 purgeOnQuotaError: true,
             }),
         ],
     })
 )
 
-// ===== 静态资源缓存策略 =====
-// 使用 StaleWhileRevalidate 策略：使用缓存同时更新
+// ===== 静态资源缓存策略 (JS/CSS/Fonts) =====
 registerRoute(
     ({ request, url }) => {
-        // 匹配 JS、CSS 等静态资源
         return request.destination === 'script' ||
             request.destination === 'style' ||
+            request.destination === 'font' ||
             url.pathname.match(/\.(js|css|woff2?|ttf|eot)$/i)
     },
-    new StaleWhileRevalidate({
+    new CacheFirst({ // 静态代码和字体使用 CacheFirst，因为它们通常带有哈希后缀
         cacheName: CACHE_NAMES.STATIC,
         plugins: [
             new CacheableResponsePlugin({
                 statuses: [0, 200],
             }),
             new ExpirationPlugin({
-                maxEntries: 50,
-                maxAgeSeconds: 7 * 24 * 60 * 60, // 7 天
+                maxEntries: 100,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 天
             }),
         ],
     })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, onActivated, onDeactivated } from 'vue'
 import { RefreshCw } from 'lucide-vue-next'
 
 const emit = defineEmits<{
@@ -14,23 +14,23 @@ const props = withDefaults(defineProps<{
   disabled: false,
 })
 
+const containerRef = ref<HTMLElement | null>(null)
 const isPulling = ref(false)
 const isRefreshing = ref(false)
 const pullDistance = ref(0)
 const startY = ref(0)
-
 const canPull = ref(false)
+let listenersBound = false
 
 const handleTouchStart = (e: TouchEvent) => {
   if (props.disabled || isRefreshing.value) return
-  
-  // 只有在页面顶部时才能下拉
+
   const scrollTop = window.scrollY || document.documentElement.scrollTop
   if (scrollTop !== 0) {
     canPull.value = false
     return
   }
-  
+
   canPull.value = true
   const touch = e.touches[0]
   if (touch) {
@@ -40,18 +40,17 @@ const handleTouchStart = (e: TouchEvent) => {
 
 const handleTouchMove = (e: TouchEvent) => {
   if (!canPull.value || props.disabled || isRefreshing.value) return
-  
+
   const touch = e.touches[0]
   if (!touch) return
-  
+
   const currentY = touch.clientY
   const diff = currentY - startY.value
-  
+
   if (diff > 0) {
-    // 阻尼效果
     pullDistance.value = Math.min(diff * 0.5, props.threshold * 1.5)
     isPulling.value = true
-    
+
     if (pullDistance.value > 20) {
       e.preventDefault()
     }
@@ -60,23 +59,19 @@ const handleTouchMove = (e: TouchEvent) => {
 
 const handleTouchEnd = async () => {
   if (!isPulling.value) return
-  
+
   if (pullDistance.value >= props.threshold) {
     isRefreshing.value = true
     emit('refresh')
-    
-    // 等待刷新完成（外部通过 complete 方法通知）
-    // 这里设置一个最小显示时间
     await new Promise(resolve => setTimeout(resolve, 1000))
     isRefreshing.value = false
   }
-  
+
   isPulling.value = false
   pullDistance.value = 0
   canPull.value = false
 }
 
-// 暴露完成刷新的方法
 const complete = () => {
   isRefreshing.value = false
   isPulling.value = false
@@ -85,17 +80,31 @@ const complete = () => {
 
 defineExpose({ complete })
 
-onMounted(() => {
+function bindListeners() {
+  if (listenersBound) return
   window.addEventListener('touchstart', handleTouchStart, { passive: true })
   window.addEventListener('touchmove', handleTouchMove, { passive: false })
   window.addEventListener('touchend', handleTouchEnd)
-})
+  listenersBound = true
+}
 
-onUnmounted(() => {
+function unbindListeners() {
+  if (!listenersBound) return
   window.removeEventListener('touchstart', handleTouchStart)
   window.removeEventListener('touchmove', handleTouchMove)
   window.removeEventListener('touchend', handleTouchEnd)
-})
+  listenersBound = false
+  // 清理拖拽状态，防止脏状态残留到下次激活
+  isPulling.value = false
+  pullDistance.value = 0
+  canPull.value = false
+}
+
+onMounted(bindListeners)
+onUnmounted(unbindListeners)
+// KeepAlive 支持：组件缓存后恢复/暂停事件监听
+onActivated(bindListeners)
+onDeactivated(unbindListeners)
 </script>
 
 <template>

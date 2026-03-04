@@ -8,13 +8,13 @@ import { ref, onMounted } from 'vue'
 const router = useRouter()
 const userStore = useUserStore()
 const { t, locale } = useI18n()
-const isLoaded = ref(false)
+const isLoaded = ref(true)
 
 const languages = [
   { key: 'zh-CN', label: '简体中文' },
   { key: 'zh-TW', label: '繁體中文' },
-  { key: 'en', label: 'English' },
-  { key: 'ja', label: '日本語' }
+  { key: 'ja', label: '日本語' },
+  { key: 'en', label: 'English' }
 ]
 
 const handleSelect = (key: string) => {
@@ -24,7 +24,6 @@ const handleSelect = (key: string) => {
 const goBack = () => router.back()
 
 onMounted(() => {
-  setTimeout(() => { isLoaded.value = true }, 100)
 })
 </script>
 
@@ -34,10 +33,10 @@ onMounted(() => {
       <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.1] dark:opacity-[0.05]" style="background-color: var(--glow-primary);" />
     </div>
 
-    <header class="sticky top-0 z-40 safe-area-top">
+    <header class="sticky top-0 z-40 safe-area-top backdrop-blur-xl">
       <div class="max-w-lg mx-auto px-6 py-4 flex items-center gap-4">
-        <button @click="goBack" class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90">
-          <ArrowLeft class="w-5 h-5 opacity-40" style="color: var(--text-primary);" />
+        <button @click="router.back()" class="btn-back">
+          <ArrowLeft class="w-5 h-5" />
         </button>
         <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">{{ $t('settings.language_title') }}</h1>
       </div>
@@ -62,7 +61,7 @@ onMounted(() => {
       </div>
       
       <p class="mt-8 px-4 text-xs font-medium opacity-30 text-center leading-relaxed" style="color: var(--text-primary);">
-        选择您的首选语言，应用将自动刷新以应用更改。
+        {{ $t('settings.language_desc') }}
       </p>
     </main>
   </div>

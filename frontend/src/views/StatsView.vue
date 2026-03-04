@@ -13,7 +13,7 @@ const router = useRouter()
 const memoryStore = useMemoryStore()
 const { t } = useI18n()
 
-const isLoaded = ref(false)
+const isLoaded = ref(true)
 const hasAnimated = ref(false)
 const isLoadingStats = ref(false)
 const activeRange = ref('month')
@@ -63,10 +63,7 @@ watch([activeRange, currentYear, currentMonth, currentWeek], fetchStats)
 
 onMounted(async () => {
   await fetchStats()
-  setTimeout(() => {
-    isLoaded.value = true
-    setTimeout(() => { hasAnimated.value = true }, 800)
-  }, 100)
+  hasAnimated.value = true
 })
 
 const goPrev = () => {
@@ -99,8 +96,13 @@ const maxTrendCount = computed(() => {
 })
 
 const timeLabel = computed(() => {
-  if (activeRange.value === 'month') return `${currentYear.value} / ${currentMonth.value}`
+  if (activeRange.value === 'month') {
+    return new Intl.DateTimeFormat(locale.value, { year: 'numeric', month: 'long' }).format(new Date(currentYear.value, currentMonth.value - 1))
+  }
   if (activeRange.value === 'year') return `${currentYear.value}`
+  if (activeRange.value === 'week') {
+    return t('stats.week_num', { num: currentWeek.value })
+  }
   return t('common.all')
 })
 
@@ -141,7 +143,7 @@ const toggleBarSelection = (index: number) => {
             <ChevronLeft class="w-4 h-4 opacity-40" style="color: var(--text-primary);" />
           </button>
           <div class="flex flex-col items-center">
-            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ activeRange }}</span>
+            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ t(`common.${activeRange}`) }}</span>
             <span class="text-sm font-bold tracking-tight mt-0.5" style="color: var(--text-primary);">{{ timeLabel }}</span>
           </div>
           <button @click="goNext" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90 shadow-sm">

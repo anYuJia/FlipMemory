@@ -13,7 +13,7 @@ const router = useRouter()
 const memoryStore = useMemoryStore()
 const { t } = useI18n()
 
-const isLoaded = ref(false)
+const isLoaded = ref(true)
 const isSubmitting = ref(false)
 const date = (route.query.date as string) || new Date().toISOString().split('T')[0]
 const isEdit = computed(() => !!route.params.id)
@@ -69,7 +69,6 @@ const handleSubmit = async () => {
 }
 
 const goBack = () => router.back()
-onMounted(() => setTimeout(() => { isLoaded.value = true }, 100))
 </script>
 
 <template>

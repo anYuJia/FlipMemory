@@ -12,11 +12,20 @@
     "none": "None",
     "week": "Week",
     "month": "Month",
-    "year": "Year"
+    "year": "Year",
+    "back": "Back",
+    "retry": "Retry Now",
+    "retrying": "Retrying...",
+    "return_home": "Back Home",
+    "error_occurred": "Error Occurred",
+    "network_error": "Network Connection Failed",
+    "timeout_error": "Request Timed Out",
+    "server_error": "Server Error",
+    "retry_countdown": "Retrying in {seconds}s..."
   },
   "nav": {
     "home": "Home",
-    "calendar": "Calendar",
+    "calendar": "Timeline",
     "flashback": "Recall",
     "stats": "Stats",
     "settings": "Settings"
@@ -32,28 +41,31 @@
     "sub_greeting": "Any precious moments today? ✨",
     "monthly_records": "Monthly Stats",
     "memories_unit": "Memories",
-    "view_trends": "Trends",
+    "view_trends": "View Trends",
     "recent_memories": "Recent Memories",
     "featured_title": "Time Flashback",
-    "no_featured": "No featured memories yet. Go record one!",
+    "no_featured": "No memories yet. Go record one!",
     "record_now": "Record Today"
   },
   "auth": {
-    "sign_in": "Sign In",
+    "sign_in": "Login",
     "register": "Join",
     "login_tab": "Login",
     "register_tab": "Join",
-    "join": "Join Now",
-    "authenticate": "Authenticate",
+    "authenticate": "Enter Now",
     "create_account": "Create Account",
     "username_placeholder": "Email or Username",
     "unique_username_placeholder": "Unique Username",
     "password_placeholder": "Password",
-    "nickname_placeholder": "Nickname",
     "confirm_password_placeholder": "Confirm Password",
+    "nickname_placeholder": "Your Nickname",
+    "email_address": "Email Address",
     "subtitle": "Personal Time Gallery",
-    "footer_text": "Protected by FlipMemory",
+    "footer_text": "FLIPMEMORY PRO PRO",
     "auth_failed": "Authentication Failed",
+    "server_config": "Server Config",
+    "server_config_title": "Setup API Endpoint",
+    "server_desc": "Mobile app cannot connect to localhost. Please enter your computer's LAN IP.",
     "pwd_req": {
       "len": "Min 8 chars",
       "upper": "Uppercase",
@@ -68,59 +80,106 @@
   },
   "settings": {
     "theme_title": "Appearance",
+    "theme_desc": "Personalize your visual experience",
     "language_title": "Language",
-    "daily_reminder": "Daily Reminder",
-    "local_cache": "Local Cache",
+    "language_desc": "Choose your language. The app will reload to apply changes.",
+    "profile_title": "Profile",
+    "profile_desc": "Manage account and preferences",
+    "privacy_title": "Security",
+    "privacy_desc": "PIN and Biometric protection",
+    "data_title": "Data Management",
+    "data_desc": "Backup, Export and Reset",
+    "feedback_title": "Feedback",
+    "feedback_desc": "Tell us what you think",
     "logout": "Sign Out",
     "theme": {
-      "light": "Light",
-      "dark": "Dark",
-      "system": "System"
+      "title": "Custom Palette",
+      "auto_mode": "Flowing Mode",
+      "auto_desc": "Adapts to day and night",
+      "library": "Presets",
+      "custom_lab": "Custom Lab",
+      "lab_preview": "Previewing",
+      "activate": "Activate Lab",
+      "active": "Lab Enabled",
+      "reset": "Reset",
+      "save_apply": "Save & Apply",
+      "primary": "Primary",
+      "background": "Background",
+      "palettes": {
+        "oatmeal": "Oatmeal",
+        "sakura": "Sakura",
+        "mint": "Mint",
+        "glacier": "Glacier",
+        "obsidian": "Obsidian",
+        "nebula": "Nebula",
+        "forest": "Forest",
+        "ember": "Ember",
+        "custom": "Custom"
+      }
+    },
+    "profile": {
+      "basic_info": "Basic Info",
+      "nickname": "Nickname",
+      "birthday": "Birthday",
+      "gender": "Gender",
+      "profession": "Profession",
+      "hobbies": "Hobbies",
+      "change_avatar": "Tap to change avatar",
+      "save_success": "Saved successfully",
+      "age_unit": "{age}y",
+      "select_gender": "Select Gender",
+      "select_birthday": "Select Birthday",
+      "select_profession": "Select Profession"
     }
   },
-  "calendar": {
-    "title": "Timeline",
-    "subtitle": "Discover precious moments in time ✨",
-    "back_to_today": "Today"
+  "flashback": {
+    "title": "Flashback",
+    "subtitle": "Relive those shining moments ✨",
+    "shuffle": "Shuffle",
+    "no_memories": "No memories to recall yet",
+    "days_ago": "{days} days ago",
+    "tabs": {
+      "year": "Past",
+      "random": "Random",
+      "featured": "Best"
+    }
   },
-  "search": {
-    "placeholder": "Searching for a memory...",
-    "recent_searches": "Recent",
-    "trending": "Trending",
-    "found": "Found",
-    "memories_count": "Memories",
-    "no_results": "No Results",
-    "no_results_sub": "No memories found for \"{query}\""
+  "feedback": {
+    "title": "Feedback",
+    "type_label": "Type",
+    "types": {
+      "bug": "Report Bug",
+      "feature": "Suggest Feature",
+      "other": "Other"
+    },
+    "content_placeholder": "Tell us more about your issue...",
+    "submit": "Submit Feedback",
+    "success_title": "Thank you!",
+    "success_msg": "We have received your feedback."
   },
   "stats": {
-    "title": "Statistics",
-    "subtitle": "Your emotional dashboard",
-    "total_memories": "Total",
+    "week_num": "Week {num}",
+    "no_data": "No data",
+    "total_memories": "Total Memories",
     "streak": "Streak",
-    "photos": "Photos",
-    "mood_dist": "Mood Distribution",
-    "activity_trend": "Activity Trend",
+    "photos": "Total Photos",
+    "mood_dist": "Mood Dist",
+    "activity_trend": "Activity",
     "unit_entries": "entries",
     "unit_days": "days",
     "unit_pics": "pics"
   },
   "create": {
-    "new_entry": "New Entry",
-    "edit_mode": "Edit Mode",
-    "take_photo": "Take Photo",
-    "gallery": "Gallery",
-    "placeholder": "What happened today...",
-    "location_label": "Location",
+    "story_label": "Your Story",
+    "mood_label": "Mood",
+    "weather": {
+      "sunny": "Sunny",
+      "cloudy": "Cloudy",
+      "rainy": "Rainy",
+      "windy": "Windy",
+      "snowy": "Snowy"
+    },
     "location_placeholder": "Where are you?",
-    "weather_label": "Weather",
-    "current_mood": "Current Mood",
-    "your_story": "Your Story"
-  },
-  "detail": {
-    "blank_page": "Blank Page",
-    "no_entry": "No印记 here yet",
-    "start_writing": "Start Writing",
-    "date_captured": "Date Captured",
-    "delete_confirm": "Are you sure you want to delete this?"
+    "placeholder": "What happened today..."
   }
 }

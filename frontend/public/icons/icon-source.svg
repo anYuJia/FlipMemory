@@ -1,0 +1,32 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景：极致深邃的渐变 -->
+  <rect width="1024" height="1024" rx="220" fill="url(#bg_gradient)"/>
+  
+  <!-- 装饰性光晕 -->
+  <circle cx="200" cy="200" r="400" fill="white" fill-opacity="0.03"/>
+  
+  <!-- 后层卡片：品牌色 -->
+  <rect x="320" y="280" width="420" height="520" rx="60" fill="#FF8C42" transform="rotate(-12 530 540)"/>
+  
+  <!-- 前层卡片：磨砂玻璃质感 -->
+  <g filter="url(#glass_blur)">
+    <rect x="280" y="220" width="420" height="520" rx="60" fill="white" fill-opacity="0.15"/>
+    <rect x="280.5" y="220.5" width="419" height="519" rx="59.5" stroke="white" stroke-opacity="0.4"/>
+  </g>
+  
+  <!-- 核心标识：翻转的星芒 -->
+  <path d="M490 420L510 480L530 420L590 400L530 380L510 320L490 380L430 400L490 420Z" fill="white"/>
+
+  <defs>
+    <linearGradient id="bg_gradient" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1E293B"/>
+      <stop offset="1" stop-color="#020617"/>
+    </linearGradient>
+    <filter id="glass_blur" x="180" y="120" width="620" height="720" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feGaussianBlur in="BackgroundImageFix" stdDeviation="20"/>
+      <feComposite in2="SourceAlpha" operator="in" result="effect1_backgroundBlur"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_backgroundBlur" result="shape"/>
+    </filter>
+  </defs>
+</svg>

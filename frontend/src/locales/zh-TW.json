@@ -12,7 +12,16 @@
     "none": "無",
     "week": "週",
     "month": "月",
-    "year": "年"
+    "year": "年",
+    "back": "返回",
+    "retry": "立即重試",
+    "retrying": "重試中...",
+    "return_home": "返回首頁",
+    "error_occurred": "出錯了",
+    "network_error": "網絡連接失敗",
+    "timeout_error": "請求超時",
+    "server_error": "服務器錯誤",
+    "retry_countdown": "{seconds}秒後自動重試..."
   },
   "nav": {
     "home": "首頁",
@@ -29,7 +38,7 @@
       "evening": "傍晚好",
       "night": "晚安"
     },
-    "sub_greeting": "今天有什麼值得紀念的瞬間吗？ ✨",
+    "sub_greeting": "今天有什麼值得紀念的瞬間嗎？ ✨",
     "monthly_records": "本月記錄",
     "memories_unit": "條記憶",
     "view_trends": "查看趨勢",
@@ -43,17 +52,20 @@
     "register": "註冊",
     "login_tab": "登錄",
     "register_tab": "加入",
-    "join": "立即加入",
-    "authenticate": "身份驗證",
+    "authenticate": "立即進入",
     "create_account": "創建賬號",
     "username_placeholder": "用戶名或郵箱",
     "unique_username_placeholder": "唯一用戶名",
     "password_placeholder": "密碼",
-    "nickname_placeholder": "你的暱稱",
     "confirm_password_placeholder": "再次確認密碼",
+    "nickname_placeholder": "你的暱稱",
+    "email_address": "郵箱地址",
     "subtitle": "您的私人時光畫廊",
     "footer_text": "由 FlipMemory 安全保護",
     "auth_failed": "身份驗證失敗",
+    "server_config": "服務器節點設置",
+    "server_config_title": "配置後端 API 地址",
+    "server_desc": "手機 App 無法連接 localhost。請輸入您電腦的局域網 IP。",
     "pwd_req": {
       "len": "需 8 位字符",
       "upper": "含大寫字母",
@@ -68,33 +80,86 @@
   },
   "settings": {
     "theme_title": "主題外觀",
+    "theme_desc": "個性化你的視覺體驗",
     "language_title": "語言設置",
-    "daily_reminder": "每日提醒",
-    "local_cache": "本地快取",
+    "language_desc": "選擇您的首选語言，應用將自動重新載入以套用更改。",
+    "profile_title": "個人資料",
+    "profile_desc": "管理您的賬號與偏好",
+    "privacy_title": "隱私安全",
+    "privacy_desc": "PIN 碼與生物識別保護",
+    "data_title": "數據管理",
+    "data_desc": "備份、匯出與清除數據",
+    "feedback_title": "反饋與建議",
+    "feedback_desc": "告訴我們您的想法",
     "logout": "登出",
     "theme": {
-      "light": "淺色",
-      "dark": "深色",
-      "system": "跟隨系統"
+      "title": "個性化調色盤",
+      "auto_mode": "時光流轉",
+      "auto_desc": "隨晝夜自動切換",
+      "library": "預設庫",
+      "custom_lab": "自定義實驗室",
+      "lab_preview": "預覽模式",
+      "activate": "激活實驗室",
+      "active": "實驗室已啟用",
+      "reset": "重置修改",
+      "save_apply": "儲存並應用",
+      "primary": "主色",
+      "background": "背景",
+      "palettes": {
+        "oatmeal": "燕麥",
+        "sakura": "櫻花",
+        "mint": "薄荷",
+        "glacier": "冰川",
+        "obsidian": "極夜",
+        "nebula": "星雲",
+        "forest": "森海",
+        "ember": "余燼",
+        "custom": "自定義"
+      }
+    },
+    "profile": {
+      "basic_info": "基本信息",
+      "nickname": "暱稱",
+      "birthday": "生日",
+      "gender": "性別",
+      "profession": "職業",
+      "hobbies": "興趣愛好",
+      "change_avatar": "點擊更換頭像",
+      "save_success": "儲存成功",
+      "age_unit": "{age}歲",
+      "select_gender": "選擇性別",
+      "select_birthday": "選擇生日",
+      "select_profession": "選擇職業"
     }
   },
-  "calendar": {
-    "title": "記憶日曆",
-    "subtitle": "在時光中尋找珍貴的回憶 ✨",
-    "back_to_today": "返回今天"
+  "flashback": {
+    "title": "時光回顧",
+    "subtitle": "重溫那些閃閃發光的瞬間 ✨",
+    "shuffle": "隨機換一批",
+    "no_memories": "還沒有記憶可以回顧",
+    "days_ago": "{days} 天前",
+    "tabs": {
+      "year": "往年",
+      "random": "隨機",
+      "featured": "精選"
+    }
   },
-  "search": {
-    "placeholder": "尋找哪一段記憶...",
-    "recent_searches": "最近搜索",
-    "trending": "熱門推薦",
-    "found": "找到",
-    "memories_count": "條相關記憶",
-    "no_results": "未找到結果",
-    "no_results_sub": "沒有找到與 \"{query}\" 相關的記憶"
+  "feedback": {
+    "title": "反饋建議",
+    "type_label": "反饋類型",
+    "types": {
+      "bug": "問題反饋",
+      "feature": "功能建議",
+      "other": "其他"
+    },
+    "content_placeholder": "請詳細描述您的問題或建議...",
+    "submit": "提交反饋",
+    "success_title": "感謝您的反饋",
+    "success_msg": "我們已經收到您的建議，將努力做得更好。"
   },
   "stats": {
-    "title": "數據統計",
-    "subtitle": "你的情感數據看板",
+    "week_num": "第 {num} 週",
+    "no_data": "暫無數據",
     "total_memories": "記憶總數",
     "streak": "連續記錄",
     "photos": "照片總數",
@@ -105,22 +170,16 @@
     "unit_pics": "張"
   },
   "create": {
-    "new_entry": "新建記錄",
-    "edit_mode": "編輯模式",
-    "take_photo": "拍照",
-    "gallery": "相册",
-    "placeholder": "今天發生了什麼...",
-    "location_label": "地點",
+    "story_label": "你的故事",
+    "mood_label": "當前心情",
+    "weather": {
+      "sunny": "晴天",
+      "cloudy": "多雲",
+      "rainy": "下雨",
+      "windy": "刮風",
+      "snowy": "下雪"
+    },
     "location_placeholder": "你在哪？",
-    "weather_label": "天氣",
-    "current_mood": "當前心情",
-    "your_story": "你的故事"
-  },
-  "detail": {
-    "blank_page": "空白頁",
-    "no_entry": "這一天還沒有留下印記",
-    "start_writing": "開始記錄",
-    "date_captured": "記錄日期",
-    "delete_confirm": "確定要刪除這段記憶嗎？"
+    "placeholder": "今天發生了什麼..."
   }
 }

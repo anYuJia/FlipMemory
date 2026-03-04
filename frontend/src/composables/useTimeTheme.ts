@@ -1,5 +1,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useUserStore } from '@/stores'
+import { StatusBar, Style } from '@capacitor/status-bar'
+import { Capacitor } from '@capacitor/core'
 
 export interface ThemePalette {
   id: string
@@ -48,25 +50,50 @@ export const useTimeTheme = () => {
     currentPalette.value = p
     const root = document.documentElement
     
+    // 设置核心 CSS 变量
     root.style.setProperty('--color-primary', p.primary)
     root.style.setProperty('--color-accent', p.accent)
-    root.style.setProperty('--bg-primary', p.bg)
+    
+    /**
+     * 核心增强：背景色彩渗透 (Color Infusion)
+     * 使用 color-mix 将 5%~10% 的主色混入底色，使背景不再是死板的单色，而是带有主色调的质感。
+     */
+    root.style.setProperty('--bg-primary', `color-mix(in srgb, ${p.bg}, ${p.primary} 8%)`)
     
     // 核心：基于亮度自适应系统模式
     const isDark = p.isDark
     root.classList.toggle('dark', isDark)
     
+    // ===== Capacitor 状态栏动态适配 =====
+    if (Capacitor.isNativePlatform()) {
+      // 延迟或包装在 try-catch 中以防初始化竞争
+      setTimeout(() => {
+        try {
+          StatusBar.setStyle({
+            style: isDark ? Style.Dark : Style.Light
+          }).catch(e => console.warn('StatusBar.setStyle error', e))
+          
+          StatusBar.setOverlaysWebView({ overlay: true })
+            .catch(e => console.warn('StatusBar.setOverlaysWebView error', e))
+        } catch (err) {
+          console.warn('Capacitor StatusBar control failed gracefully', err)
+        }
+      }, 100)
+    }
+    
     if (isDark) {
       root.style.setProperty('--text-primary', '#F5F5F7')
       root.style.setProperty('--text-secondary', 'rgba(255,255,255,0.7)')
-      root.style.setProperty('--card-bg', 'rgba(25, 25, 35, 0.75)')
+      // 深色模式下，卡片背景也渗入一点主色
+      root.style.setProperty('--card-bg', `color-mix(in srgb, rgba(25, 25, 35, 0.75), ${p.primary} 5%)`)
       root.style.setProperty('--card-border', 'rgba(255, 255, 255, 0.08)')
       root.style.setProperty('--border-primary', 'rgba(255, 255, 255, 0.1)')
       root.style.setProperty('--glow-dynamic', `${p.primary}20`)
     } else {
       root.style.setProperty('--text-primary', '#1A1D26')
       root.style.setProperty('--text-secondary', '#5C6478')
-      root.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.6)')
+      // 浅色模式下，卡片背景保持纯净或极微量混合
+      root.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.65)')
       root.style.setProperty('--card-border', 'rgba(255, 255, 255, 0.8)')
       root.style.setProperty('--border-primary', 'rgba(0, 0, 0, 0.05)')
       root.style.setProperty('--glow-dynamic', `${p.primary}40`)

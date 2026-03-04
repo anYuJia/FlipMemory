@@ -12,7 +12,16 @@
     "none": "无",
     "week": "周",
     "month": "月",
-    "year": "年"
+    "year": "年",
+    "back": "返回",
+    "retry": "立即重试",
+    "retrying": "重试中...",
+    "return_home": "返回首页",
+    "error_occurred": "出错了",
+    "network_error": "网络连接失败",
+    "timeout_error": "请求超时",
+    "server_error": "服务器错误",
+    "retry_countdown": "{seconds}秒后自动重试..."
   },
   "nav": {
     "home": "首页",
@@ -43,17 +52,20 @@
     "register": "注册",
     "login_tab": "登录",
     "register_tab": "加入",
-    "join": "立即加入",
-    "authenticate": "身份验证",
+    "authenticate": "立即进入",
     "create_account": "创建账号",
     "username_placeholder": "用户名或邮箱",
     "unique_username_placeholder": "唯一用户名",
     "password_placeholder": "密码",
-    "nickname_placeholder": "你的昵称",
-    "confirm_password_placeholder": "再次确认密码",
+    "confirm_password_placeholder": "确认密码",
+    "nickname_placeholder": "您的昵称",
+    "email_address": "邮箱地址",
     "subtitle": "您的私人时光画廊",
-    "footer_text": "由 FlipMemory 安全保护",
-    "auth_failed": "身份验证失败",
+    "footer_text": "FLIPMEMORY PRO PRO",
+    "auth_failed": "认证失败",
+    "server_config": "服务器节点设置",
+    "server_config_title": "配置后端 API 地址",
+    "server_desc": "手机 App 无法连接 localhost。请输入您电脑的局域网 IP。",
     "pwd_req": {
       "len": "需 8 位字符",
       "upper": "含大写字母",
@@ -68,33 +80,86 @@
   },
   "settings": {
     "theme_title": "主题外观",
+    "theme_desc": "个性化你的视觉体验",
     "language_title": "语言设置",
-    "daily_reminder": "每日提醒",
-    "local_cache": "本地缓存",
+    "language_desc": "选择您的首选语言，应用将自动刷新以应用更改。",
+    "profile_title": "个人资料",
+    "profile_desc": "管理您的账号与偏好",
+    "privacy_title": "隐私安全",
+    "privacy_desc": "PIN 码与生物识别保护",
+    "data_title": "数据管理",
+    "data_desc": "备份、导出与清除数据",
+    "feedback_title": "反馈与建议",
+    "feedback_desc": "告诉我们您的想法",
     "logout": "退出登录",
     "theme": {
-      "light": "浅色",
-      "dark": "深色",
-      "system": "跟随系统"
+      "title": "个性化调色盘",
+      "auto_mode": "时光流转",
+      "auto_desc": "随昼夜自动切换",
+      "library": "预设库",
+      "custom_lab": "自定义实验室",
+      "lab_preview": "预览模式",
+      "activate": "激活实验室",
+      "active": "实验室已启用",
+      "reset": "重置修改",
+      "save_apply": "保存并应用",
+      "primary": "主色",
+      "background": "背景",
+      "palettes": {
+        "oatmeal": "燕麦",
+        "sakura": "樱花",
+        "mint": "薄荷",
+        "glacier": "冰川",
+        "obsidian": "极夜",
+        "nebula": "星云",
+        "forest": "森海",
+        "ember": "余烬",
+        "custom": "自定义"
+      }
+    },
+    "profile": {
+      "basic_info": "基本信息",
+      "nickname": "昵称",
+      "birthday": "生日",
+      "gender": "性别",
+      "profession": "职业",
+      "hobbies": "兴趣爱好",
+      "change_avatar": "点击更换头像",
+      "save_success": "保存成功",
+      "age_unit": "{age}岁",
+      "select_gender": "选择性别",
+      "select_birthday": "选择生日",
+      "select_profession": "选择职业"
     }
   },
-  "calendar": {
-    "title": "记忆日历",
-    "subtitle": "在时光中寻找珍贵的回忆 ✨",
-    "back_to_today": "返回今天"
+  "flashback": {
+    "title": "时光回顾",
+    "subtitle": "重温那些闪闪发光的瞬间 ✨",
+    "shuffle": "随机换一批",
+    "no_memories": "还没有记忆可以回顾",
+    "days_ago": "{days} 天前",
+    "tabs": {
+      "year": "往年",
+      "random": "随机",
+      "featured": "精选"
+    }
   },
-  "search": {
-    "placeholder": "寻找哪一段记忆...",
-    "recent_searches": "最近搜索",
-    "trending": "热门推荐",
-    "found": "找到",
-    "memories_count": "条相关记忆",
-    "no_results": "未找到结果",
-    "no_results_sub": "没有找到与 \"{query}\" 相关的记忆"
+  "feedback": {
+    "title": "反馈建议",
+    "type_label": "反馈类型",
+    "types": {
+      "bug": "问题反馈",
+      "feature": "功能建议",
+      "other": "其他"
+    },
+    "content_placeholder": "请详细描述您的问题或建议...",
+    "submit": "提交反馈",
+    "success_title": "感谢您的反馈",
+    "success_msg": "我们已经收到您的建议。"
   },
   "stats": {
-    "title": "数据统计",
-    "subtitle": "你的情感数据看板",
+    "week_num": "第 {num} 周",
+    "no_data": "暂无数据",
     "total_memories": "记忆总数",
     "streak": "连续记录",
     "photos": "照片总数",
@@ -105,22 +170,16 @@
     "unit_pics": "张"
   },
   "create": {
-    "new_entry": "新建记录",
-    "edit_mode": "编辑模式",
-    "take_photo": "拍照",
-    "gallery": "相册",
-    "placeholder": "今天发生了什么...",
-    "location_label": "地点",
+    "story_label": "你的故事",
+    "mood_label": "当前心情",
+    "weather": {
+      "sunny": "晴天",
+      "cloudy": "多云",
+      "rainy": "下雨",
+      "windy": "刮风",
+      "snowy": "下雪"
+    },
     "location_placeholder": "你在哪？",
-    "weather_label": "天气",
-    "current_mood": "当前心情",
-    "your_story": "你的故事"
-  },
-  "detail": {
-    "blank_page": "空白页",
-    "no_entry": "这一天还没有留下印记",
-    "start_writing": "开始记录",
-    "date_captured": "记录日期",
-    "delete_confirm": "确定要删除这段记忆吗？"
+    "placeholder": "今天发生了什么..."
   }
 }

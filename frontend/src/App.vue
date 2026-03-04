@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, onMounted, computed } from 'vue'
+import { onMounted, computed, ref, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import AppNav from './components/layout/AppNav.vue'
 import ToastNotification from './components/ui/ToastNotification.vue'
@@ -14,7 +14,25 @@ import { useTimeTheme } from './composables/useTimeTheme'
 const userStore = useUserStore()
 const offlineStore = useOfflineStore()
 const route = useRoute()
-const { currentPhase } = useTimeTheme()
+useTimeTheme()
+
+// 判断是否是授权页面，隐藏导航栏
+const isAuthPage = computed(() => route.name === 'auth')
+
+// Tab 页面顺序索引，用于判断滑动方向
+const tabOrder = ['home', 'calendar', 'flashback', 'stats', 'settings'] as const
+const transitionName = ref('slide-left')
+
+watch(() => route.name, (newName, oldName) => {
+  const newIdx = tabOrder.indexOf(newName as typeof tabOrder[number])
+  const oldIdx = tabOrder.indexOf(oldName as typeof tabOrder[number])
+  // 仅在两个都是 tab 页面时应用滑动方向
+  if (newIdx >= 0 && oldIdx >= 0) {
+    transitionName.value = newIdx > oldIdx ? 'slide-left' : 'slide-right'
+  } else {
+    transitionName.value = 'fade'
+  }
+})
 
 onMounted(async () => {
   userStore.init()
@@ -27,13 +45,13 @@ onMounted(async () => {
     <div class="min-h-screen bg-app overflow-hidden relative">
       <!-- 全站统一动态光晕底层 -->
       <div class="fixed inset-0 pointer-events-none z-0">
-        <div 
-          class="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full blur-[140px] transition-all duration-[2000ms] ease-in-out" 
-          :style="{ backgroundColor: 'var(--color-primary)', opacity: 'var(--glow-opacity, 0.12)' }" 
+        <div
+          class="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full blur-[140px] transition-all duration-[2000ms] ease-in-out"
+          :style="{ backgroundColor: 'var(--color-primary)', opacity: '0.12' }"
         />
-        <div 
-          class="absolute top-1/3 -right-48 w-[500px] h-[500px] rounded-full blur-[120px] transition-all duration-[2000ms] ease-in-out" 
-          :style="{ backgroundColor: 'var(--color-accent)', opacity: 'var(--glow-opacity, 0.08)' }" 
+        <div
+          class="absolute top-1/3 -right-48 w-[500px] h-[500px] rounded-full blur-[120px] transition-all duration-[2000ms] ease-in-out"
+          :style="{ backgroundColor: 'var(--color-accent)', opacity: '0.08' }"
         />
       </div>
 
@@ -41,14 +59,14 @@ onMounted(async () => {
         <OfflineBanner />
 
         <RouterView v-slot="{ Component }">
-          <Transition name="page" mode="out-in">
+          <Transition :name="transitionName" mode="out-in">
             <KeepAlive :include="['HomeView', 'CalendarView', 'StatsView', 'SearchView', 'FlashbackView', 'SettingsView']">
-              <component :is="Component" :key="route.fullPath" />
+              <component :is="Component" :key="route.name" />
             </KeepAlive>
           </Transition>
         </RouterView>
 
-        <AppNav />
+        <AppNav v-if="!isAuthPage" />
       </div>
 
       <!-- 全局组件 -->
@@ -63,32 +81,48 @@ onMounted(async () => {
 <style>
 .bg-app {
   background-color: var(--bg-primary);
-  transition: background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* 顶级 App 切换动效 */
-.page-enter-active,
-.page-leave-active {
-  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.page-enter-from {
-  opacity: 0;
-  transform: translateX(30px) scale(0.98);
-  filter: blur(10px);
-}
-
-.page-leave-to {
-  opacity: 0;
-  transform: translateX(-30px) scale(1.02);
-  filter: blur(10px);
 }
 
 .page-container {
   min-height: 100vh;
   width: 100%;
   position: relative;
-  /* 确保页面容器透明，露出 App.vue 的全局光晕 */
   background-color: transparent !important;
+}
+
+/* Tab 页面左右滑动过渡 */
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slide-left-enter-from {
+  opacity: 0;
+  transform: translateX(60px);
+}
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+
+.slide-right-enter-from {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+.slide-right-leave-to {
+  opacity: 0;
+  transform: translateX(60px);
+}
+
+/* 非 Tab 页面淡入淡出 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

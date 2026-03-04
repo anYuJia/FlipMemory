@@ -397,10 +397,16 @@ export const offlineApi = {
         async getFlashback(): Promise<{ yearAgo: Memory | null; random: Memory[] }> {
             const offlineStore = useOfflineStore()
 
-            // 如果在线，从服务器获取
+            // 如果在线，从服务器获取（限时 5 秒，避免重试导致长时间等待）
             if (offlineStore.isOnline && !offlineStore.offlineModeEnabled) {
                 try {
-                    return await api.memories.getFlashback()
+                    const result = await Promise.race([
+                        api.memories.getFlashback(),
+                        new Promise<never>((_, reject) =>
+                            setTimeout(() => reject(new Error('Flashback API timeout')), 5000)
+                        ),
+                    ])
+                    return result
                 } catch (error) {
                     console.warn('[OfflineAPI] Failed to fetch flashback, falling back to local:', error)
                 }

@@ -12,7 +12,7 @@ const toast = useToast()
 const userStore = useUserStore()
 const offlineStore = useOfflineStore()
 
-const isLoaded = ref(false)
+const isLoaded = ref(true)
 const isExporting = ref(false)
 const showDeleteConfirm = ref(false)
 const deleteConfirmText = ref('')
@@ -97,11 +97,7 @@ const goBack = () => {
   router.back()
 }
 
-onMounted(() => {
-  setTimeout(() => {
-    isLoaded.value = true
-  }, 100)
-})
+onMounted(() => {})
 </script>
 
 <template>
@@ -120,20 +116,13 @@ onMounted(() => {
     
     <!-- 顶部导航 -->
     <header 
-      class="sticky top-0 z-40 safe-area-top"
-      style="background: rgba(var(--bg-primary-rgb), 0.9); backdrop-filter: blur(20px);"
+      class="sticky top-0 z-40 safe-area-top backdrop-blur-xl"
     >
-      <div class="max-w-lg mx-auto px-4 py-3">
-        <div class="flex items-center gap-3">
-          <button 
-            @click="goBack"
-            class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105"
-            style="background: var(--card-bg);"
-          >
-            <ArrowLeft class="w-5 h-5" style="color: var(--text-secondary);" />
-          </button>
-          <h1 class="text-lg font-semibold" style="color: var(--text-primary);">数据管理</h1>
-        </div>
+      <div class="max-w-lg mx-auto px-6 py-4 flex items-center gap-4">
+        <button @click="goBack" class="btn-back">
+          <ArrowLeft class="w-5 h-5" />
+        </button>
+        <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">数据管理</h1>
       </div>
     </header>
     
@@ -141,59 +130,58 @@ onMounted(() => {
     <div class="relative max-w-lg mx-auto px-5 py-6">
       <!-- 导出数据 -->
       <section 
-        class="mb-6"
+        class="mb-8"
         :class="{ 'animate-slide-up': isLoaded }"
         :style="{ opacity: isLoaded ? 1 : 0 }"
       >
-        <h2 class="text-sm font-semibold mb-3" style="color: var(--text-secondary);">导出数据</h2>
+        <div class="flex items-center gap-2 mb-4 opacity-40" style="color: var(--text-primary);">
+          <Download class="w-4 h-4" />
+          <span class="text-[10px] font-black uppercase tracking-[0.2em]">Backup & Export</span>
+        </div>
         
         <div 
-          class="p-4 rounded-2xl"
-          style="background: var(--card-bg);"
+          class="p-6 rounded-[2rem] card-static"
         >
-          <p class="text-sm mb-4" style="color: var(--text-muted);">
-            将你的所有记忆导出为备份文件，可用于数据迁移或恢复
+          <p class="text-[11px] font-medium leading-relaxed opacity-40 mb-6" style="color: var(--text-primary);">
+            将你的所有记忆导出为备份文件，可用于数据迁移或恢复。
           </p>
           
           <!-- 导出格式选择 -->
-          <div class="flex gap-2 mb-4">
+          <div class="flex gap-3 mb-6">
             <button
               @click="exportFormat = 'json'"
-              class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all duration-300"
+              class="flex-1 flex flex-col items-center gap-2 py-4 rounded-2xl transition-all duration-300 border-2"
               :style="{
-                background: exportFormat === 'json' 
-                  ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.1))' 
-                  : 'var(--bg-tertiary)',
-                color: exportFormat === 'json' ? '#3b82f6' : 'var(--text-muted)',
+                background: exportFormat === 'json' ? 'var(--color-primary)' : 'var(--bg-tertiary)',
+                borderColor: exportFormat === 'json' ? 'var(--color-primary)' : 'transparent',
+                color: exportFormat === 'json' ? '#fff' : 'var(--text-tertiary)',
               }"
             >
-              <FileJson class="w-4 h-4" />
-              <span class="text-sm font-medium">JSON 格式</span>
+              <FileJson class="w-5 h-5" />
+              <span class="text-[10px] font-black uppercase tracking-widest">JSON 格式</span>
             </button>
             <button
               @click="exportFormat = 'images'"
-              class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all duration-300"
+              class="flex-1 flex flex-col items-center gap-2 py-4 rounded-2xl transition-all duration-300 border-2"
               :style="{
-                background: exportFormat === 'images' 
-                  ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.1))' 
-                  : 'var(--bg-tertiary)',
-                color: exportFormat === 'images' ? '#22c55e' : 'var(--text-muted)',
+                background: exportFormat === 'images' ? 'var(--color-primary)' : 'var(--bg-tertiary)',
+                borderColor: exportFormat === 'images' ? 'var(--color-primary)' : 'transparent',
+                color: exportFormat === 'images' ? '#fff' : 'var(--text-tertiary)',
               }"
             >
-              <FileImage class="w-4 h-4" />
-              <span class="text-sm font-medium">含照片</span>
+              <FileImage class="w-5 h-5" />
+              <span class="text-[10px] font-black uppercase tracking-widest">含照片</span>
             </button>
           </div>
           
           <button
             @click="exportData"
             :disabled="isExporting"
-            class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
-            style="background: linear-gradient(135deg, #3b82f6, #6366f1); box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);"
+            class="w-full py-4 rounded-2xl font-black text-[11px] text-white uppercase tracking-[0.25em] transition-all active:scale-95 shadow-xl shadow-orange-500/20"
+            style="background: var(--gradient-accent);"
           >
-            <span v-if="isExporting" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            <Download v-else class="w-4 h-4" />
-            <span>{{ isExporting ? '导出中...' : '开始导出' }}</span>
+            <span v-if="isExporting" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
+            <span v-else>{{ isExporting ? '导出中...' : '启动导出任务' }}</span>
           </button>
         </div>
       </section>
@@ -203,33 +191,33 @@ onMounted(() => {
         :class="{ 'animate-slide-up delay-100': isLoaded }"
         :style="{ opacity: isLoaded ? 1 : 0 }"
       >
-        <h2 class="text-sm font-semibold mb-3 text-red-500">危险区域</h2>
+        <div class="flex items-center gap-2 mb-4 text-red-500 opacity-60">
+          <AlertTriangle class="w-4 h-4" />
+          <span class="text-[10px] font-black uppercase tracking-[0.2em]">Danger Zone</span>
+        </div>
         
         <div 
-          class="p-4 rounded-2xl"
-          style="background: rgba(239, 68, 68, 0.08);"
+          class="p-6 rounded-[2rem] border-2 border-red-500/20 bg-red-500/5"
         >
-          <div class="flex items-start gap-3 mb-4">
+          <div class="flex items-start gap-4 mb-6">
             <div 
-              class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style="background: rgba(239, 68, 68, 0.12);"
+              class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-red-500/10"
             >
-              <AlertTriangle class="w-5 h-5 text-red-500" />
+              <Trash2 class="w-6 h-6 text-red-500" />
             </div>
             <div>
-              <h3 class="font-medium text-red-500">清除所有数据</h3>
-              <p class="text-sm mt-1" style="color: var(--text-muted);">
-                永久删除所有记忆、照片和设置。此操作不可恢复，请谨慎操作。
+              <h3 class="font-black text-sm text-red-500">重置本地数据库</h3>
+              <p class="text-[10px] font-medium leading-relaxed opacity-60 mt-1" style="color: var(--text-primary);">
+                永久删除所有记忆、照片和设置。此操作不可恢复，系统将强制登出并清空所有缓存。
               </p>
             </div>
           </div>
           
           <button
             @click="showDeleteConfirm = true"
-            class="w-full py-3 rounded-xl font-semibold text-red-500 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
-            style="background: rgba(239, 68, 68, 0.12);"
+            class="w-full py-4 rounded-2xl font-black text-[11px] text-red-500 uppercase tracking-[0.25em] transition-all active:scale-95 bg-red-500/10 border border-red-500/20"
           >
-            清除所有数据
+            清除所有本地数据
           </button>
         </div>
       </section>
@@ -249,54 +237,48 @@ onMounted(() => {
           @click.self="showDeleteConfirm = false"
         >
           <div 
-            class="absolute inset-0"
-            style="background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);"
+            class="absolute inset-0 bg-black/60 backdrop-blur-md"
           />
           
           <div 
-            class="relative w-full max-w-[320px] p-6 rounded-3xl"
-            style="background: var(--card-bg); box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
+            class="relative w-full max-w-[320px] p-8 rounded-[2.5rem] card-static shadow-2xl"
           >
             <div 
-              class="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center"
-              style="background: rgba(239, 68, 68, 0.12);"
+              class="w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center bg-red-500/10"
             >
-              <Trash2 class="w-7 h-7 text-red-500" />
+              <Trash2 class="w-8 h-8 text-red-500" />
             </div>
             
-            <h3 class="text-lg font-bold text-center mb-2 text-red-500">
-              确认清除所有数据？
+            <h3 class="text-xl font-black text-center mb-2 text-red-500 tracking-tighter">
+              确定要重置吗？
             </h3>
             
-            <p class="text-sm text-center mb-4" style="color: var(--text-muted);">
-              此操作将永久删除你的所有数据，包括记忆、照片和设置，且无法恢复。
+            <p class="text-[11px] font-medium text-center mb-6 opacity-60 leading-relaxed" style="color: var(--text-primary);">
+              此操作将物理性地删除您在这台设备上留下的所有印记，且无法通过任何手段找回。
             </p>
             
-            <div class="mb-4">
-              <label class="text-xs mb-1.5 block" style="color: var(--text-muted);">
-                请输入 <span class="font-semibold text-red-500">"确认删除"</span> 以确认操作
-              </label>
+            <div class="mb-6">
               <input
                 v-model="deleteConfirmText"
                 type="text"
-                placeholder="确认删除"
-                class="w-full px-4 py-2.5 rounded-xl outline-none text-center"
-                style="background: var(--bg-tertiary); color: var(--text-primary);"
+                placeholder="输入“确认删除”"
+                class="w-full px-5 py-3 rounded-xl outline-none text-center text-xs font-black bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10"
+                style="color: var(--text-primary);"
               />
             </div>
             
             <div class="flex gap-3">
               <button
                 @click="showDeleteConfirm = false; deleteConfirmText = ''"
-                class="flex-1 py-3 rounded-xl font-medium transition-all duration-300"
-                style="background: var(--bg-tertiary); color: var(--text-secondary);"
+                class="flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-black/5 dark:bg-white/5"
+                style="color: var(--text-secondary);"
               >
                 取消
               </button>
               <button
                 @click="clearData"
                 :disabled="deleteConfirmText !== '确认删除'"
-                class="flex-1 py-3 rounded-xl font-semibold text-white transition-all duration-300 disabled:opacity-50"
+                class="flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white transition-all disabled:opacity-30"
                 style="background: linear-gradient(135deg, #ef4444, #dc2626);"
               >
                 删除

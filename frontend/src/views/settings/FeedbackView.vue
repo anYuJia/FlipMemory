@@ -1,22 +1,24 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, Send, MessageSquare, Sparkles, CheckCircle2, Loader2 } from 'lucide-vue-next'
+import { ArrowLeft, Send, MessageSquare, Sparkles, CheckCircle2, Loader2, Info } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const { t } = useI18n()
 
-const isLoaded = ref(false)
+const isLoaded = ref(true)
 const isSubmitting = ref(false)
 const isSuccess = ref(false)
 const content = ref('')
-const category = ref('suggestion')
+const category = ref('feature')
 
-const categories = [
-  { id: 'suggestion', label: '建议', icon: Sparkles },
-  { id: 'bug', label: '问题', icon: MessageSquare },
-]
+// 动态分类标签
+const categories = computed(() => [
+  { id: 'feature', label: t('feedback.types.feature'), icon: Sparkles },
+  { id: 'bug', label: t('feedback.types.bug'), icon: MessageSquare },
+  { id: 'other', label: t('feedback.types.other'), icon: Info },
+])
 
 const handleSubmit = async () => {
   if (!content.value.trim() || isSubmitting.value) return
@@ -28,15 +30,13 @@ const handleSubmit = async () => {
     isSuccess.value = true
     setTimeout(() => {
       router.back()
-    }, 2000)
+    }, 2500)
   }, 1200)
 }
 
 const goBack = () => router.back()
 
-onMounted(() => {
-  setTimeout(() => { isLoaded.value = true }, 100)
-})
+onMounted(() => {})
 </script>
 
 <template>
@@ -46,12 +46,12 @@ onMounted(() => {
       <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.1] dark:opacity-[0.05]" style="background-color: var(--glow-primary);" />
     </div>
 
-    <header class="sticky top-0 z-40 safe-area-top">
+    <header class="sticky top-0 z-40 safe-area-top backdrop-blur-xl">
       <div class="max-w-lg mx-auto px-6 py-4 flex items-center gap-4">
-        <button @click="goBack" class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90 shadow-sm">
-          <ArrowLeft class="w-5 h-5 opacity-40" style="color: var(--text-primary);" />
+        <button @click="goBack" class="btn-back">
+          <ArrowLeft class="w-5 h-5" />
         </button>
-        <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">反馈与建议</h1>
+        <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">{{ $t('feedback.title') }}</h1>
       </div>
     </header>
 
@@ -59,28 +59,32 @@ onMounted(() => {
       <div v-if="!isSuccess" class="space-y-8">
         <!-- 分类选择 -->
         <section>
-          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30 mb-4 block" style="color: var(--text-primary);">Select Category</span>
-          <div class="flex gap-3">
+          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30 mb-4 block" style="color: var(--text-primary);">{{ $t('feedback.type_label') }}</span>
+          <div class="grid grid-cols-3 gap-3">
             <button 
               v-for="cat in categories" 
               :key="cat.id"
               @click="category = cat.id"
-              class="flex-1 flex items-center justify-center gap-3 py-4 rounded-[1.5rem] transition-all border"
-              :class="category === cat.id ? 'bg-black dark:bg-white text-white dark:text-black border-transparent shadow-xl scale-105' : 'card-static border-transparent opacity-40'"
+              class="flex flex-col items-center justify-center gap-2 py-4 rounded-2xl transition-all border-2"
+              :style="{ 
+                borderColor: category === cat.id ? 'var(--color-primary)' : 'transparent',
+                backgroundColor: category === cat.id ? 'var(--card-bg)' : 'rgba(0,0,0,0.03)'
+              }"
+              :class="category === cat.id ? 'shadow-xl scale-105 opacity-100' : 'opacity-40'"
             >
-              <component :is="cat.icon" class="w-4 h-4" />
-              <span class="text-sm font-bold">{{ cat.label }}</span>
+              <component :is="cat.icon" class="w-5 h-5" :style="{ color: category === cat.id ? 'var(--color-primary)' : 'var(--text-primary)' }" />
+              <span class="text-[10px] font-black uppercase tracking-wider" :style="{ color: category === cat.id ? 'var(--color-primary)' : 'var(--text-primary)' }">{{ cat.label }}</span>
             </button>
           </div>
         </section>
 
         <!-- 输入区域 -->
         <section>
-          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30 mb-4 block" style="color: var(--text-primary);">Your Message</span>
-          <div class="rounded-[2.5rem] p-6 card-static shadow-inner min-h-[300px] flex flex-col">
+          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30 mb-4 block" style="color: var(--text-primary);">Message</span>
+          <div class="rounded-[2.5rem] p-6 card-static shadow-inner min-h-[280px] flex flex-col">
             <textarea
               v-model="content"
-              placeholder="告诉我们您的想法..."
+              :placeholder="$t('feedback.content_placeholder')"
               class="flex-1 w-full bg-transparent border-none focus:outline-none text-base font-medium leading-relaxed placeholder:opacity-20"
               style="color: var(--text-primary);"
             ></textarea>
@@ -96,17 +100,17 @@ onMounted(() => {
         >
           <Send v-if="!isSubmitting" class="w-4 h-4" />
           <Loader2 v-else class="w-4 h-4 animate-spin" />
-          <span>{{ isSubmitting ? 'Sending...' : 'Send Feedback' }}</span>
+          <span>{{ isSubmitting ? $t('common.loading') : $t('feedback.submit') }}</span>
         </button>
       </div>
 
       <!-- 成功状态 -->
       <div v-else class="py-20 flex flex-col items-center justify-center animate-scale-in">
-        <div class="w-24 h-24 rounded-[2.5rem] bg-green-500 flex items-center justify-center shadow-2xl mb-8">
+        <div class="w-24 h-24 rounded-[3rem] flex items-center justify-center shadow-2xl mb-10" style="background: var(--gradient-accent);">
           <CheckCircle2 class="w-12 h-12 text-white" stroke-width="3" />
         </div>
-        <h2 class="text-2xl font-black tracking-tighter mb-2" style="color: var(--text-primary);">感谢您的反馈</h2>
-        <p class="text-sm font-medium opacity-40 text-center" style="color: var(--text-primary);">我们将不断精进，为您提供更好的体验。</p>
+        <h2 class="text-2xl font-black tracking-tighter mb-2" style="color: var(--text-primary);">{{ $t('feedback.success_title') }}</h2>
+        <p class="text-sm font-medium opacity-40 text-center max-w-[240px] leading-relaxed" style="color: var(--text-primary);">{{ $t('feedback.success_msg') }}</p>
       </div>
     </main>
   </div>

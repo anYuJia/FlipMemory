@@ -4,10 +4,12 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores'
 import { ArrowLeft, Check, Sparkles, Clock, Palette, History } from 'lucide-vue-next'
 import { useTimeTheme } from '@/composables/useTimeTheme'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const userStore = useUserStore()
 const { allPalettes } = useTimeTheme()
+const { t } = useI18n()
 const isLoaded = ref(false)
 
 /**
@@ -21,15 +23,14 @@ const savedBg = ref(userStore.customColors.bg)
 const tempPrimary = ref(userStore.customColors.primary)
 const tempBg = ref(userStore.customColors.bg)
 
-// 脏检查：对比当前草稿和最后一次保存的基准
+// 脏检查
 const isDirty = computed(() => {
   return tempPrimary.value.toLowerCase() !== savedPrimary.value.toLowerCase() || 
          tempBg.value.toLowerCase() !== savedBg.value.toLowerCase()
 })
 
-// 仅在外部真正改变了 Store 颜色时（如点击历史记录），同步到预览和基准
+// 监听 Store 变化（仅当由外部如历史记录触发时同步基准）
 watch(() => userStore.customColors, (newVal) => {
-  // 如果当前不是因为用户正在实验室手动调色，则同步基准
   tempPrimary.value = newVal.primary
   tempBg.value = newVal.bg
   savedPrimary.value = newVal.primary
@@ -40,7 +41,7 @@ const handleSelect = (id: string) => {
   userStore.setThemeColor(id)
 }
 
-// 实时预览：仅更新内存颜色，不触碰基准，保证 isDirty 为 true
+// 实时预览
 const onColorInput = () => {
   if (userStore.themeColor !== 'custom') {
     userStore.setThemeColor('custom')
@@ -48,10 +49,9 @@ const onColorInput = () => {
   userStore.updateCustomColors(tempPrimary.value, tempBg.value)
 }
 
-// 确认保存：正式写入持久化
+// 确认保存
 const saveCustom = () => {
   userStore.setCustomColors(tempPrimary.value, tempBg.value)
-  // 保存后，当前颜色成为新的基准
   savedPrimary.value = tempPrimary.value
   savedBg.value = tempBg.value
 }
@@ -76,10 +76,10 @@ onMounted(() => {
   <div class="page-container min-h-screen relative overflow-x-hidden pb-20">
     <header class="sticky top-0 z-40 safe-area-top backdrop-blur-xl">
       <div class="max-w-lg mx-auto px-6 py-4 flex items-center gap-4">
-        <button @click="router.back()" class="w-10 h-10 rounded-xl flex items-center justify-center transition-all card-static active:scale-90 shadow-sm">
-          <ArrowLeft class="w-5 h-5 opacity-40" style="color: var(--text-primary);" />
+        <button @click="router.back()" class="btn-back">
+          <ArrowLeft class="w-5 h-5" />
         </button>
-        <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">个性化调色盘</h1>
+        <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">{{ t('settings.theme.title') }}</h1>
       </div>
     </header>
 
@@ -89,7 +89,7 @@ onMounted(() => {
       <section>
         <div class="flex items-center gap-2 mb-4 opacity-40" style="color: var(--text-primary);">
           <Clock class="w-4 h-4" />
-          <span class="text-[10px] font-black uppercase tracking-[0.2em]">Flowing Mode</span>
+          <span class="text-[10px] font-black uppercase tracking-[0.2em]">{{ t('settings.theme.auto_mode') }}</span>
         </div>
         <button @click="handleSelect('auto')" class="w-full p-5 rounded-[2rem] card-static relative overflow-hidden transition-all active:scale-[0.98] border-2" :style="{ borderColor: userStore.themeColor === 'auto' ? 'var(--color-primary)' : 'transparent' }" :class="{ 'shadow-xl': userStore.themeColor === 'auto' }">
           <div class="absolute inset-0 bg-gradient-to-r from-orange-400/20 via-purple-500/20 to-blue-500/20 opacity-30"></div>
@@ -97,8 +97,8 @@ onMounted(() => {
             <div class="flex items-center gap-4">
               <div class="w-10 h-10 rounded-xl bg-white dark:bg-white/10 flex items-center justify-center shadow-lg"><Sparkles class="w-5 h-5 text-orange-500" /></div>
               <div class="text-left">
-                <div class="font-black tracking-tight" style="color: var(--text-primary);">时光流转</div>
-                <div class="text-[9px] font-bold opacity-40 uppercase tracking-wider mt-0.5" style="color: var(--text-primary);">Adaptive Day & Night</div>
+                <div class="font-black tracking-tight" style="color: var(--text-primary);">{{ t('settings.theme.auto_mode') }}</div>
+                <div class="text-[9px] font-bold opacity-40 uppercase tracking-wider mt-0.5" style="color: var(--text-primary);">{{ t('settings.theme.auto_desc') }}</div>
               </div>
             </div>
             <div v-if="userStore.themeColor === 'auto'" class="w-6 h-6 rounded-full flex items-center justify-center shadow-inner" style="background-color: var(--color-primary);"><Check class="w-3.5 h-3.5 text-white" stroke-width="4" /></div>
@@ -106,48 +106,46 @@ onMounted(() => {
         </button>
       </section>
 
-      <!-- 2. 预设库 (使用对角线分割) -->
+      <!-- 2. 预设库 -->
       <section class="space-y-6">
         <div class="flex items-center gap-2 mb-2 opacity-40" style="color: var(--text-primary);">
           <Palette class="w-4 h-4" />
-          <span class="text-[10px] font-black uppercase tracking-[0.2em]">Preset Library</span>
+          <span class="text-[10px] font-black uppercase tracking-[0.2em]">{{ t('settings.theme.library') }}</span>
         </div>
         <div class="grid grid-cols-4 gap-3">
           <button v-for="p in allPalettes" :key="p.id" @click="handleSelect(p.id)" class="aspect-square rounded-2xl card-static flex flex-col items-center justify-center gap-2 transition-all active:scale-90 border-2" :style="{ borderColor: userStore.themeColor === p.id ? 'var(--color-primary)' : 'transparent' }">
             <div class="w-9 h-9 rounded-full border border-white/20 shadow-sm relative overflow-hidden" :style="{ background: `linear-gradient(135deg, ${p.primary} 50%, ${p.bg} 50%)` }"></div>
-            <span class="text-[8px] font-black tracking-widest uppercase opacity-60" style="color: var(--text-primary);">{{ p.name }}</span>
+            <span class="text-[8px] font-black tracking-widest uppercase opacity-60" style="color: var(--text-primary);">{{ t(`settings.theme.palettes.${p.id}`) }}</span>
           </button>
         </div>
       </section>
 
-      <!-- 3. 自定义实验室 (极简版) -->
+      <!-- 3. 自定义实验室 -->
       <section>
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2 opacity-40" style="color: var(--text-primary);">
             <Sparkles class="w-4 h-4" />
-            <span class="text-[10px] font-black uppercase tracking-[0.2em]">Custom Lab</span>
+            <span class="text-[10px] font-black uppercase tracking-[0.2em]">{{ t('settings.theme.custom_lab') }}</span>
           </div>
           <div v-if="isDirty" class="px-2 py-0.5 rounded-full bg-orange-500 text-[8px] font-black text-white uppercase animate-pulse shadow-sm">
-            预览模式
+            {{ t('settings.theme.lab_preview') }}
           </div>
         </div>
         
         <div class="rounded-[2.5rem] card-static border-2 transition-all overflow-hidden" :style="{ borderColor: userStore.themeColor === 'custom' ? 'var(--color-primary)' : 'transparent' }">
           <div class="p-6 pb-2">
             <div class="flex items-center justify-center gap-12">
-              <!-- 精简取色器 1 -->
               <div class="flex flex-col items-center gap-3">
                 <div class="relative w-12 h-12 rounded-full border-4 border-white/30 shadow-xl overflow-hidden cursor-pointer" :style="{ backgroundColor: tempPrimary }">
                   <input type="color" v-model="tempPrimary" @input="onColorInput" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full scale-150" />
                 </div>
-                <span class="text-[9px] font-black uppercase tracking-widest opacity-40">Primary</span>
+                <span class="text-[9px] font-black uppercase tracking-widest opacity-40">{{ t('settings.theme.primary') }}</span>
               </div>
-              <!-- 精简取色器 2 -->
               <div class="flex flex-col items-center gap-3">
                 <div class="relative w-12 h-12 rounded-full border-4 border-white/30 shadow-xl overflow-hidden cursor-pointer" :style="{ backgroundColor: tempBg }">
                   <input type="color" v-model="tempBg" @input="onColorInput" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full scale-150" />
                 </div>
-                <span class="text-[9px] font-black uppercase tracking-widest opacity-40">Background</span>
+                <span class="text-[9px] font-black uppercase tracking-widest opacity-40">{{ t('settings.theme.background') }}</span>
               </div>
             </div>
           </div>
@@ -155,16 +153,19 @@ onMounted(() => {
           <div class="p-8 pt-6 flex flex-col gap-4">
             <div class="flex gap-4">
               <button @click="cancelEdit" class="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all bg-black/5 dark:bg-white/10" :class="isDirty ? 'opacity-100 active:scale-95' : 'opacity-10 pointer-events-none'" style="color: var(--text-primary);">
-                重置
+                {{ t('settings.theme.reset') }}
               </button>
               <button @click="saveCustom" class="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all bg-orange-500 text-white shadow-xl shadow-orange-500/30" :class="isDirty ? 'opacity-100 active:scale-95' : 'opacity-10 pointer-events-none grayscale'">
-                保存
+                {{ t('settings.theme.save_apply') }}
               </button>
             </div>
             
             <button v-if="userStore.themeColor !== 'custom'" @click="handleSelect('custom')" class="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-black text-white dark:bg-white dark:text-black active:scale-95 shadow-lg">
-              启用实验室
+              {{ t('settings.theme.activate') }}
             </button>
+            <div v-else class="text-center py-4 text-[10px] font-black uppercase tracking-[0.2em] opacity-40" style="color: var(--text-primary);">
+              {{ t('settings.theme.active') }}
+            </div>
           </div>
         </div>
       </section>

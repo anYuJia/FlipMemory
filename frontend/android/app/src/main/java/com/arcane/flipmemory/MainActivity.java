@@ -1,4 +1,4 @@
-package com.flipmemory.app;
+package com.arcane.flipmemory;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -7,7 +7,7 @@ import { useUserStore } from '@/stores'
 const router = useRouter()
 const userStore = useUserStore()
 
-const isLoaded = ref(false)
+const isLoaded = ref(true)
 
 const options: Array<{ value: 0 | 1; label: string; description: string }> = [
   { value: 0, label: '周日', description: '以周日作为每周第一天' },
@@ -22,11 +22,7 @@ const goBack = () => {
   router.back()
 }
 
-onMounted(() => {
-  setTimeout(() => {
-    isLoaded.value = true
-  }, 100)
-})
+onMounted(() => {})
 </script>
 
 <template>

@@ -1,22 +1,32 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import type { User, UserSettings } from '@/types'
-import api, { AppError } from '@/services/api'
-import { logger } from '@/services/logger'
+import api from '@/services/api'
 import { saveToken, getToken, removeToken } from '@/services/tokenManager'
+
+export interface UserProfile {
+    id: string
+    email: string
+    nickname: string
+    gender?: 'male' | 'female' | 'other' | null
+    birthday?: string | null
+    profession?: string | null
+    interests?: string[]
+    avatar?: string | null
+}
 
 export const useUserStore = defineStore('user', () => {
     const user = ref<User | null>(null)
-    const profile = ref<any | null>(null)
+    const profile = ref<UserProfile | null>(null)
     const accessToken = ref<string | null>(null)
-    
+
     // 主题控制
     const themeColor = ref(localStorage.getItem('themeColor') || 'auto')
     const customColors = ref({
         primary: localStorage.getItem('customPrimary') || '#FF8C42',
         bg: localStorage.getItem('customBg') || '#F9F8F6'
     })
-    
+
     // 颜色历史记录
     const colorHistory = ref<{primary: string, bg: string}[]>(JSON.parse(localStorage.getItem('colorHistory') || '[]'))
 
@@ -26,9 +36,8 @@ export const useUserStore = defineStore('user', () => {
         reminderFrequency: 'daily',
         appLockEnabled: false,
         appLockType: null,
-        theme: 'system', 
-        startOfWeek: 1,
-        locale: localStorage.getItem('locale') || 'zh-CN',
+        theme: 'system',
+        startOfWeek: (Number(localStorage.getItem('startOfWeek')) || 1) as 0 | 1,
     })
 
     const isLoggedIn = computed(() => !!accessToken.value)
@@ -40,19 +49,15 @@ export const useUserStore = defineStore('user', () => {
     }
 
     function addToHistory(primary: string, bg: string) {
-        // 过滤掉当前要添加的，避免重复并保持顺序
         const filtered = colorHistory.value.filter(c => !(c.primary === primary && c.bg === bg))
-        // 将新色值放到最前面，并保留最近 8 个
         colorHistory.value = [{ primary, bg }, ...filtered].slice(0, 8)
         localStorage.setItem('colorHistory', JSON.stringify(colorHistory.value))
     }
 
-    // 仅更新内存中的颜色值，不触碰本地存储 (用于实时预览)
     function updateCustomColors(primary: string, bg: string) {
         customColors.value = { primary, bg }
     }
 
-    // 正式设置自定义颜色：更新状态、同步本地存储、加入历史记录
     function setCustomColors(primary: string, bg: string) {
         customColors.value = { primary, bg }
         localStorage.setItem('customPrimary', primary)
@@ -67,23 +72,57 @@ export const useUserStore = defineStore('user', () => {
         token ? saveToken(token) : removeToken()
     }
 
+    function setStartOfWeek(value: 0 | 1) {
+        settings.value.startOfWeek = value
+        localStorage.setItem('startOfWeek', String(value))
+    }
+
+    function setLocale(l: string) {
+        localStorage.setItem('locale', l)
+        window.location.reload()
+    }
+
     function init() {
         const t = getToken()
         if (t) accessToken.value = t
         const u = localStorage.getItem('userInfo')
         const p = localStorage.getItem('userProfile')
-        if (u) try { user.value = JSON.parse(u) } catch(e) {}
-        if (p) try { profile.value = JSON.parse(p) } catch(e) {}
+        if (u) try { user.value = JSON.parse(u) } catch {}
+        if (p) try { profile.value = JSON.parse(p) } catch {}
     }
 
     async function login(account: string, password: string) {
+        const res = await api.auth.login({ account, password })
+        setAccessToken(res.accessToken)
+        user.value = res.user as unknown as User
+        localStorage.setItem('userInfo', JSON.stringify(res.user))
+        return res.user
+    }
+
+    async function register(email: string, username: string, password: string, nickname: string) {
+        const res = await api.auth.register({ email, username, password, nickname })
+        setAccessToken(res.accessToken)
+        user.value = res.user as unknown as User
+        localStorage.setItem('userInfo', JSON.stringify(res.user))
+        return res.user
+    }
+
+    async function fetchProfile() {
         try {
-            const res = await api.auth.login({ account, password })
-            setAccessToken(res.accessToken)
-            user.value = res.user
-            localStorage.setItem('userInfo', JSON.stringify(res.user))
-            return res.user
-        } catch (e) { throw e }
+            const data = await api.user.getProfile()
+            profile.value = data as unknown as UserProfile
+            localStorage.setItem('userProfile', JSON.stringify(data))
+            return data
+        } catch (e) {
+            throw e
+        }
+    }
+
+    async function updateProfile(data: Partial<UserProfile>) {
+        const updated = await api.user.updateProfile(data)
+        profile.value = updated as unknown as UserProfile
+        localStorage.setItem('userProfile', JSON.stringify(updated))
+        return updated
     }
 
     function logout() {
@@ -91,8 +130,11 @@ export const useUserStore = defineStore('user', () => {
         localStorage.clear(); removeToken(); window.location.reload()
     }
 
-    return { 
+    return {
         user, profile, themeColor, customColors, colorHistory, accessToken, isLoggedIn, displayName, settings,
-        setThemeColor, setCustomColors, updateCustomColors, addToHistory, init, login, logout, setLocale: (l:string) => { localStorage.setItem('locale', l); window.location.reload() }
+        setThemeColor, setCustomColors, updateCustomColors, addToHistory,
+        init, login, register, logout,
+        fetchProfile, updateProfile,
+        setStartOfWeek, setLocale,
     }
 })

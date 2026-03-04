@@ -12,7 +12,16 @@
     "none": "なし",
     "week": "週",
     "month": "月",
-    "year": "年"
+    "year": "年",
+    "back": "戻る",
+    "retry": "再試行",
+    "retrying": "再試行中...",
+    "return_home": "ホームに戻る",
+    "error_occurred": "エラーが発生しました",
+    "network_error": "ネットワーク接続エラー",
+    "timeout_error": "リクエストタイムアウト",
+    "server_error": "サーバーエラー",
+    "retry_countdown": "{seconds}秒後に自動再試行..."
   },
   "nav": {
     "home": "ホーム",
@@ -43,17 +52,20 @@
     "register": "登録",
     "login_tab": "ログイン",
     "register_tab": "参加",
-    "join": "今すぐ参加",
-    "authenticate": "認証する",
+    "authenticate": "ログイン",
     "create_account": "アカウント作成",
     "username_placeholder": "ユーザー名またはメール",
     "unique_username_placeholder": "一意のユーザー名",
     "password_placeholder": "パスワード",
+    "confirm_password_placeholder": "確認用パスワード",
     "nickname_placeholder": "ニックネーム",
-    "confirm_password_placeholder": "パスワードを再入力",
+    "email_address": "メールアドレス",
     "subtitle": "あなたの私人タイムギャラリー",
-    "footer_text": "FlipMemoryによって保護されています",
+    "footer_text": "FLIPMEMORY PRO PRO",
     "auth_failed": "認証に失敗しました",
+    "server_config": "サーバー設定",
+    "server_config_title": "APIエンドポイントの設定",
+    "server_desc": "モバイルアプリからはlocalhostに接続できません。PCのローカルIPを入力してください。",
     "pwd_req": {
       "len": "8文字以上",
       "upper": "大文字を含む",
@@ -62,40 +74,93 @@
     },
     "error": {
       "mismatch": "不一致",
-      "taken": "使用済み",
+      "taken": "既に使用されています",
       "fix_errors": "エラーを修正してください"
     }
   },
   "settings": {
     "theme_title": "テーマ設定",
+    "theme_desc": "視覚体験をカスタマイズ",
     "language_title": "言語設定",
-    "daily_reminder": "毎日リマインダー",
-    "local_cache": "ローカルキャッシュ",
+    "language_desc": "言語を選択してください。変更を適用するにはアプリが自動的にリロードされます。",
+    "profile_title": "プロフィール",
+    "profile_desc": "アカウントと設定の管理",
+    "privacy_title": "プライバシー",
+    "privacy_desc": "PINコードと生体認証",
+    "data_title": "データ管理",
+    "data_desc": "バックアップ、エクスポート、リセット",
+    "feedback_title": "フィードバック",
+    "feedback_desc": "ご意見をお聞かせください",
     "logout": "ログアウト",
     "theme": {
-      "light": "ライト",
-      "dark": "ダーク",
-      "system": "システム設定"
+      "title": "カスタムパレット",
+      "auto_mode": "タイムフロー",
+      "auto_desc": "昼夜に合わせて自動切り替え",
+      "library": "プリセット",
+      "custom_lab": "カスタムラボ",
+      "lab_preview": "プレビュー中",
+      "activate": "ラボを有効化",
+      "active": "ラボが有効です",
+      "reset": "リセット",
+      "save_apply": "保存して適用",
+      "primary": "メインカラー",
+      "background": "背景色",
+      "palettes": {
+        "oatmeal": "オートミール",
+        "sakura": "桜",
+        "mint": "ミント",
+        "glacier": "氷河",
+        "obsidian": "極夜",
+        "nebula": "星雲",
+        "forest": "森の海",
+        "ember": "残り火",
+        "custom": "カスタム"
+      }
+    },
+    "profile": {
+      "basic_info": "基本情報",
+      "nickname": "ニックネーム",
+      "birthday": "誕生日",
+      "gender": "性別",
+      "profession": "職業",
+      "hobbies": "趣味",
+      "change_avatar": "アイコンを変更",
+      "save_success": "保存しました",
+      "age_unit": "{age}歳",
+      "select_gender": "性別を選択",
+      "select_birthday": "誕生日を選択",
+      "select_profession": "職業を選択"
     }
   },
-  "calendar": {
-    "title": "思い出のカレンダー",
-    "subtitle": "時の流れの中で大切な思い出を見つける ✨",
-    "back_to_today": "今日に戻る"
+  "flashback": {
+    "title": "振り返り",
+    "subtitle": "輝く瞬間を追体験 ✨",
+    "shuffle": "ランダムに切り替え",
+    "no_memories": "振り返る思い出がまだありません",
+    "days_ago": "{days} 日前",
+    "tabs": {
+      "year": "過去",
+      "random": "ランダム",
+      "featured": "ベスト"
+    }
   },
-  "search": {
-    "placeholder": "思い出を探す...",
-    "recent_searches": "最近の検索",
-    "trending": "おすすめ",
-    "found": "見つかった",
-    "memories_count": "件の関連する思い出",
-    "no_results": "結果が見つかりません",
-    "no_results_sub": "\"{query}\" に一致する思い出はありません"
+  "feedback": {
+    "title": "フィードバック",
+    "type_label": "種類",
+    "types": {
+      "bug": "バグ報告",
+      "feature": "機能提案",
+      "other": "その他"
+    },
+    "content_placeholder": "詳細を入力してください...",
+    "submit": "送信する",
+    "success_title": "ありがとうございます！",
+    "success_msg": "フィードバックを受け取りました。"
   },
   "stats": {
-    "title": "統計データ",
-    "subtitle": "あなたの感情ダッシュボード",
-    "total_memories": "思い出の総数",
+    "week_num": "第 {num} 週",
+    "no_data": "データなし",
+    "total_memories": "思い出の总数",
     "streak": "継続記録",
     "photos": "写真の総数",
     "mood_dist": "気分の分布",
@@ -105,22 +170,16 @@
     "unit_pics": "枚"
   },
   "create": {
-    "new_entry": "新規作成",
-    "edit_mode": "編集モード",
-    "take_photo": "写真を撮る",
-    "gallery": "アルバム",
-    "placeholder": "今日はどんなことがありましたか...",
-    "location_label": "場所",
+    "story_label": "あなたの物語",
+    "mood_label": "今の気分",
+    "weather": {
+      "sunny": "晴れ",
+      "cloudy": "曇り",
+      "rainy": "雨",
+      "windy": "風",
+      "snowy": "雪"
+    },
     "location_placeholder": "どこにいますか？",
-    "weather_label": "天気",
-    "current_mood": "今の気分",
-    "your_story": "あなたの物語"
-  },
-  "detail": {
-    "blank_page": "空白のページ",
-    "no_entry": "この日にはまだ記録がありません",
-    "start_writing": "記録を始める",
-    "date_captured": "記録日",
-    "delete_confirm": "この思い出を削除してもよろしいですか？"
+    "placeholder": "今日はどんなことがありましたか..."
   }
 }

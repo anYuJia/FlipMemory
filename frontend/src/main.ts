@@ -10,6 +10,7 @@ import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import { Keyboard } from '@capacitor/keyboard'
 import { SplashScreen } from '@capacitor/splash-screen'
+import { App as CapApp } from '@capacitor/app'
 
 // 性能监控和日志
 import { performanceMonitor } from './services/performanceMonitor'
@@ -75,6 +76,15 @@ async function initCapacitor() {
         if (Capacitor.isPluginAvailable('SplashScreen')) {
             await SplashScreen.hide({ fadeOutDuration: 300 })
         }
+
+        // Android 硬件返回键：有路由历史则后退，否则最小化 App
+        CapApp.addListener('backButton', () => {
+            if (router.currentRoute.value.name === 'home' || router.currentRoute.value.name === 'auth') {
+                CapApp.minimizeApp()
+            } else {
+                router.back()
+            }
+        })
     } catch (error) {
         logger.error('Capacitor initialization error', 'Capacitor', error)
     }

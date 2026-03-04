@@ -17,7 +17,7 @@ const router = useRouter()
 const memoryStore = useMemoryStore()
 const { t } = useI18n()
 
-const isLoaded = ref(false)
+const isLoaded = ref(true)
 const hasAnimated = ref(false)
 const scrollY = ref(0)
 
@@ -26,10 +26,7 @@ onMounted(async () => {
     const { year, month } = memoryStore.currentMonth
     await memoryStore.fetchCalendarData(year, month)
   }
-  setTimeout(() => {
-    isLoaded.value = true
-    setTimeout(() => { hasAnimated.value = true }, 600)
-  }, 100)
+  hasAnimated.value = true
 })
 
 onActivated(() => { if (scrollY.value > 0) window.scrollTo(0, scrollY.value) })

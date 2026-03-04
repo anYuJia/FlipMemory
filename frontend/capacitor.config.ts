@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.flipmemory.app',
+  appId: 'com.arcane.flipmemory',
   appName: 'FlipMemory',
   webDir: 'dist',
   
@@ -14,21 +14,29 @@ const config: CapacitorConfig = {
   
   // 插件配置
   plugins: {
+    // 原生 HTTP 桥接 - 让 fetch/XHR 走 Android 原生网络栈，
+    // 彻底绕过 WebView 的 CORS 和 HTTPS→HTTP 混合内容拦截
+    CapacitorHttp: {
+      enabled: true,
+    },
+
     // 状态栏配置
     StatusBar: {
       style: 'DARK',
-      backgroundColor: '#f97316',
-      overlaysWebView: false,
+      backgroundColor: '#00000000',
+      overlaysWebView: true,
     },
     
     // 启动画面配置
     SplashScreen: {
-      launchShowDuration: 2000,
+      launchShowDuration: 3000,
       launchAutoHide: true,
       backgroundColor: '#fef3e2',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
-      showSpinner: false,
+      showSpinner: true,
+      androidSpinnerStyle: 'large',
+      spinnerColor: '#FF8C42',
       splashFullScreen: true,
       splashImmersive: true,
     },

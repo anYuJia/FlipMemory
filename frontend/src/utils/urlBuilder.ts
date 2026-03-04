@@ -2,23 +2,52 @@
  * 统一的 URL 构建工具
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
-const STORAGE_BASE_URL = import.meta.env.VITE_STORAGE_URL || 'http://localhost:9000'
+/**
+ * 获取 API 基准地址
+ * 优先从 localStorage 读取，实现移动端动态配置，
+ * 否则从环境变量读取，最后回退到默认地址。
+ */
+export function getApiBaseUrl(): string {
+    const savedUrl = localStorage.getItem('apiUrl')
+    if (savedUrl) return savedUrl
+    
+    // 智能默认逻辑：移动端环境下，如果没配置，优先尝试生产服务器
+    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent)
+    if (isMobile) {
+        return 'http://139.199.55.169:3001/api'
+    }
+    
+    return import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+}
+
+/**
+ * 获取存储基准地址
+ */
+export function getStorageBaseUrl(): string {
+    const savedUrl = localStorage.getItem('storageUrl')
+    if (savedUrl) return savedUrl
+    return import.meta.env.VITE_STORAGE_URL || 'http://localhost:9000'
+}
 
 /**
  * 构建 API 端点 URL
  */
 export function buildApiUrl(endpoint: string): string {
+    const baseUrl = getApiBaseUrl()
     // 移除开头的斜杠
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint
-    return `${API_BASE_URL}/${cleanEndpoint}`
+    // 确保 baseUrl 结尾没有斜杠
+    const normalizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
+    return `${normalizedBase}/${cleanEndpoint}`
 }
 
 /**
  * 构建存储 URL（用于图片）
  */
 export function buildStorageUrl(key: string): string {
-    return `${STORAGE_BASE_URL}/flipmemory/${key}`
+    const baseUrl = getStorageBaseUrl()
+    const normalizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
+    return `${normalizedBase}/flipmemory/${key}`
 }
 
 /**

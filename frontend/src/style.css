@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
+/* Tailwind v4 默认用 prefers-color-scheme 来激活 dark:，
+   但本项目用 .dark 类切换暗色模式，必须覆盖此行为 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ===== 核心设计系统 - 动态时光轴 ===== */
 :root {
   /* 基础背景 (燕麦色基调) */
@@ -53,15 +57,47 @@
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s ease;
+  transition: color 0.5s ease;
   font-family: 'Inter', 'Outfit', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  /* 禁止移动端长按弹出菜单 (可选，增强 App 感) */
+  -webkit-touch-callout: none;
+  /* 禁止用户选择文字 (某些区域) */
+  user-select: none;
+}
+
+/* ===== 移动端安全区域适配 (Safe Area) ===== */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 20px);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+.pb-safe {
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+.pt-safe {
+  padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+}
+
+/* 统一的按钮点击反馈 */
+.btn-active {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.btn-active:active {
+  transform: scale(0.95);
+  opacity: 0.8;
 }
 
 .page-container {
   background-color: var(--bg-primary);
   min-height: 100vh;
-  transition: background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  position: relative;
+  overflow-x: hidden;
 }
 
 .card-static {
@@ -69,6 +105,24 @@ body {
   border: 1px solid var(--card-border);
   backdrop-filter: blur(32px) saturate(180%);
   transition: background-color 0.8s ease, border-color 0.8s ease;
+}
+
+.btn-back {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  backdrop-filter: blur(20px);
+}
+.btn-back:active {
+  transform: scale(0.9);
+  background-color: var(--bg-elevated);
 }
 
 .text-gradient {
