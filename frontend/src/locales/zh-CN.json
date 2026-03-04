@@ -106,6 +106,9 @@
     "logout": "退出登录",
     "theme": {
       "title": "个性化调色盘",
+      "light": "浅色",
+      "dark": "深色",
+      "system": "跟随系统",
       "auto_mode": "时光流转",
       "auto_desc": "随昼夜自动切换",
       "library": "预设库",

@@ -106,6 +106,9 @@
     "logout": "Sign Out",
     "theme": {
       "title": "Custom Palette",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System",
       "auto_mode": "Flowing Mode",
       "auto_desc": "Adapts to day and night",
       "library": "Presets",

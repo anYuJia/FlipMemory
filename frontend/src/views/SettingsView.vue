@@ -23,7 +23,16 @@ const themeIcon = { light: Sun, dark: Moon, system: Smartphone }
 // 核心修复：确保主题标签通过正确的路径动态翻译
 const currentThemeLabel = computed(() => {
   const theme = userStore.settings.theme || 'system'
-  return t(`settings.theme.${theme}`)
+  const key = `settings.theme.${theme}`
+  const translated = t(key)
+  if (translated !== key) return translated
+
+  const fallback: Record<string, string> = {
+    light: 'Light',
+    dark: 'Dark',
+    system: 'System'
+  }
+  return fallback[theme] || fallback.system
 })
 
 const languages = ['zh-CN', 'zh-TW', 'ja', 'en']

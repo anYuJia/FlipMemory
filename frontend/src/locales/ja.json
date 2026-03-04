@@ -106,6 +106,9 @@
     "logout": "ログアウト",
     "theme": {
       "title": "カスタムパレット",
+      "light": "ライト",
+      "dark": "ダーク",
+      "system": "システム",
       "auto_mode": "タイムフロー",
       "auto_desc": "昼夜に合わせて自動切替",
       "library": "プリセット",
