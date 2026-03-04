@@ -14,9 +14,15 @@
     "month": "月",
     "year": "年",
     "back": "返回",
-    "retry": "立即重试",
+    "retry": "重试",
     "return_home": "返回首页",
-    "error_occurred": "出错了"
+    "error_occurred": "发生错误",
+    "network_error": "网络连接失败",
+    "timeout_error": "请求超时",
+    "retrying": "正在重试...",
+    "retry_countdown": "{seconds} 秒后重试",
+    "clear": "清空",
+    "close": "关闭"
   },
   "nav": {
     "home": "首页",
@@ -24,6 +30,30 @@
     "flashback": "回顾",
     "stats": "统计",
     "settings": "设置"
+  },
+  "route": {
+    "home": "首页",
+    "calendar": "日历",
+    "auth": "登录",
+    "memory_detail": "记忆详情",
+    "create_memory": "新建记忆",
+    "flashback": "记忆回顾",
+    "stats": "统计",
+    "search": "搜索",
+    "settings": "设置",
+    "settings_theme": "主题外观",
+    "settings_language": "语言设置",
+    "settings_week_start": "周起始日",
+    "settings_privacy_lock": "隐私锁",
+    "settings_data": "数据管理",
+    "settings_profile": "个人资料",
+    "settings_feedback": "反馈与建议"
+  },
+  "language": {
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "ja": "日本語",
+    "en": "English"
   },
   "home": {
     "welcome": "{greeting}，{name}",
@@ -41,6 +71,24 @@
     "featured_title": "时光回顾",
     "no_featured": "还没有精选回忆，去记录一条吧",
     "record_now": "记录今天"
+  },
+  "auth": {
+    "tab_login": "登录",
+    "tab_register": "注册",
+    "nickname_placeholder": "您的昵称",
+    "account_placeholder": "账号 / 邮箱",
+    "username_placeholder": "唯一用户名",
+    "email_placeholder": "邮箱地址",
+    "password_placeholder": "密码",
+    "confirm_password_placeholder": "确认密码",
+    "submit_login": "立即进入",
+    "submit_register": "创建账号",
+    "server_settings": "服务器节点设置",
+    "config_api_title": "配置后端 API 地址",
+    "config_api_hint": "当前应用运行在移动端，无法直接访问 localhost。请输入你电脑在局域网中的 IP 地址。",
+    "save_server": "确认修改",
+    "auth_failed": "认证失败，请检查网络或配置",
+    "record_every_moment": "记录每个瞬间"
   },
   "settings": {
     "theme_title": "主题外观",
@@ -80,7 +128,101 @@
         "ember": "余烬",
         "custom": "自定义"
       }
+    },
+    "profile": {
+      "save_success": "资料已保存",
+      "change_avatar": "更换头像",
+      "basic_info": "基本信息",
+      "nickname": "昵称",
+      "birthday": "生日",
+      "age_unit": "{age} 岁",
+      "gender": {
+        "male": "男",
+        "female": "女",
+        "other": "其他"
+      }
+    },
+    "privacy": {
+      "title": "隐私安全",
+      "enabled": "隐私保护已开启",
+      "disabled": "保护你的私密记忆",
+      "enabled_sub": "安全防护已开启",
+      "disabled_sub": "锁定你的私密记录",
+      "app_lock": "应用锁",
+      "pin_protection": "PIN 保护",
+      "biometric": "面容 ID / 指纹",
+      "biometric_unlock": "生物识别解锁",
+      "note": "开启后，每次打开应用都需要验证身份。请牢记你的 PIN 码。",
+      "enabled_toast": "隐私锁已开启",
+      "disabled_toast": "隐私锁已关闭",
+      "enable_first": "请先开启隐私锁",
+      "biometric_on": "已开启生物识别",
+      "biometric_off": "已关闭生物识别"
+    },
+    "week_start": {
+      "title": "周起始日",
+      "subtitle": "选择日历的周起始日",
+      "sunday": "周日",
+      "sunday_desc": "以周日作为每周第一天",
+      "monday": "周一",
+      "monday_desc": "以周一作为每周第一天",
+      "note": "此设置将影响日历视图中每周的起始日。"
+    },
+    "data": {
+      "title": "数据管理",
+      "backup_export": "备份与导出",
+      "desc": "将你的所有记忆导出为备份文件，可用于迁移或恢复。",
+      "json_format": "JSON 格式",
+      "with_photos": "含照片",
+      "exporting": "导出中...",
+      "start_export": "启动导出任务",
+      "danger_zone": "危险区域",
+      "reset_db": "重置本地数据库",
+      "reset_desc": "永久删除本设备上的所有记忆、照片和设置。",
+      "clear_all": "清除所有本地数据",
+      "confirm_reset": "确定要重置吗？",
+      "confirm_desc": "此操作不可恢复。",
+      "input_placeholder": "输入“确认删除”",
+      "confirm_word": "确认删除",
+      "export_success": "导出成功！共 {count} 条记忆",
+      "export_failed": "导出失败，请重试",
+      "clear_success": "所有数据已清除",
+      "clear_failed": "清除失败，请重试",
+      "confirm_input_hint": "请输入“{word}”以确认操作"
     }
+  },
+  "calendar": {
+    "title": "时光日历",
+    "subtitle": "在时间轴上收藏每一天",
+    "back_to_today": "回到今天",
+    "month_label": "{month}月"
+  },
+  "create": {
+    "edit_mode": "编辑模式",
+    "new_entry": "新建记录",
+    "take_photo": "拍照",
+    "gallery": "相册",
+    "your_story": "你的故事",
+    "placeholder": "写下今天发生的事...",
+    "current_mood": "当前心情",
+    "location_label": "地点",
+    "location_placeholder": "你在哪里？",
+    "weather_label": "天气",
+    "story_label": "故事",
+    "weather": {
+      "sunny": "晴",
+      "cloudy": "阴",
+      "rainy": "雨",
+      "windy": "风",
+      "snowy": "雪"
+    }
+  },
+  "detail": {
+    "blank_page": "空白页",
+    "no_entry": "这一天还没有记录",
+    "start_writing": "开始记录",
+    "date_captured": "记录日期",
+    "delete_confirm": "确定删除这条记忆吗？此操作不可撤销。"
   },
   "flashback": {
     "title": "时光回顾",
@@ -97,6 +239,7 @@
   "feedback": {
     "title": "反馈建议",
     "type_label": "反馈类型",
+    "message_label": "反馈内容",
     "types": {
       "bug": "问题反馈",
       "feature": "功能建议",
@@ -106,6 +249,46 @@
     "submit": "提交反馈",
     "success_title": "感谢您的反馈",
     "success_msg": "我们已经收到您的建议。"
+  },
+  "feedback_dialog": {
+    "title": "反馈与建议",
+    "type": "反馈类型",
+    "content": "详细描述",
+    "content_placeholder": "请描述您的问题或建议...",
+    "contact": "联系方式（可选）",
+    "contact_placeholder": "邮箱或其他联系方式",
+    "screenshot": "截图（可选）",
+    "add_screenshot": "添加截图",
+    "preview_alt": "截图预览",
+    "include_device_info": "包含设备信息（帮助我们更好地定位问题）",
+    "submit_loading": "提交中...",
+    "submit": "提交反馈",
+    "image_too_large": "图片大小不能超过 5MB",
+    "submit_failed": "提交失败，请稍后重试",
+    "types": {
+      "bug": "问题反馈",
+      "feature": "功能建议",
+      "improvement": "体验优化",
+      "other": "其他"
+    }
+  },
+  "search": {
+    "placeholder": "搜索记忆",
+    "recent_searches": "最近搜索",
+    "trending": "热门标签",
+    "found": "找到",
+    "memories_count": "条记忆",
+    "no_results": "未找到结果",
+    "no_results_sub": "没有匹配“{query}”的结果",
+    "clear": "清空",
+    "hot_tags": {
+      "happy": "开心",
+      "travel": "旅行",
+      "food": "美食",
+      "work": "工作",
+      "weekend": "周末",
+      "friends": "朋友"
+    }
   },
   "stats": {
     "title": "统计看板",
@@ -126,5 +309,78 @@
       "network": "网络延迟",
       "health": "运行状况"
     }
+  },
+  "offline_banner": {
+    "offline_mode": "当前处于离线模式",
+    "pending_sync": "{count} 条待同步",
+    "pending_memories_photos": "{memories} 条记忆 + {photos} 张图片待同步",
+    "pending_photos_upload": "{photos} 张图片待上传",
+    "syncing": "正在同步...",
+    "pending_records": "有 {count} 条记录待同步",
+    "sync_now": "立即同步",
+    "close": "关闭提示"
+  },
+  "conflict": {
+    "title": "数据冲突",
+    "message": "检测到本地数据与服务器数据不一致，请选择保留哪个版本：",
+    "keep_local": "保留本地版本",
+    "keep_remote": "保留服务器版本",
+    "merge": "合并两个版本",
+    "merge_desc": "自动合并两个版本的数据",
+    "modified_time": "修改时间：{time}"
+  },
+  "create_menu": {
+    "record_memory": "记录记忆",
+    "new_story": "新故事",
+    "import_album": "相册导入",
+    "from_gallery": "来自相册",
+    "cancel": "取消"
+  },
+  "pull_to_refresh": {
+    "refreshing": "刷新中...",
+    "release": "释放刷新",
+    "pull": "下拉刷新"
+  },
+  "image": {
+    "load_failed": "加载失败",
+    "retry": "重试",
+    "preview_hint": "双击放大 · 滚轮缩放 · 拖动平移"
+  },
+  "error_toast": {
+    "error_code": "错误代码：{code}",
+    "retry": "重试"
+  },
+  "confirm": {
+    "delete_title": "确认删除",
+    "delete_message": "确定要删除{itemName}吗？此操作不可撤销。",
+    "logout_title": "确认退出",
+    "logout_message": "确定要退出登录吗？",
+    "discard_title": "放弃更改",
+    "discard_message": "你有未保存的更改，确定要放弃吗？",
+    "discard_confirm": "放弃",
+    "discard_cancel": "继续编辑"
+  },
+  "errors": {
+    "offline": "当前离线，部分功能不可用",
+    "unauthorized": "登录已过期，请重新登录",
+    "forbidden": "您没有权限执行此操作",
+    "token_expired": "登录已过期，请重新登录",
+    "not_found": "请求的资源不存在",
+    "conflict": "数据冲突，请刷新后重试",
+    "validation": "输入数据不合法",
+    "internal": "服务器错误，请稍后重试",
+    "unknown": "发生未知错误，请稍后重试",
+    "request_failed": "请求失败"
+  },
+  "mood": {
+    "happy": "开心",
+    "sad": "难过",
+    "angry": "生气",
+    "calm": "平静",
+    "excited": "兴奋",
+    "tired": "疲惫",
+    "loved": "幸福",
+    "thinking": "思考",
+    "neutral": "平静"
   }
 }

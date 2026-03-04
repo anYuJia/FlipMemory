@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { getToken } from '@/services/tokenManager'
+import i18n from '@/i18n'
 
 // 路由预加载函数
 function preloadRoute(importFn: () => Promise<any>) {
@@ -17,19 +18,19 @@ const coreRoutes = [
         path: '/',
         name: 'home',
         component: () => import(/* webpackChunkName: "home" */ '@/views/HomeView.vue'),
-        meta: { title: '首页', requiresAuth: true },
+        meta: { titleKey: 'route.home', requiresAuth: true },
     },
     {
         path: '/calendar',
         name: 'calendar',
         component: () => import(/* webpackChunkName: "calendar" */ '@/views/CalendarView.vue'),
-        meta: { title: '日历', requiresAuth: true },
+        meta: { titleKey: 'route.calendar', requiresAuth: true },
     },
     {
         path: '/auth',
         name: 'auth',
         component: () => import(/* webpackChunkName: "auth" */ '@/views/AuthView.vue'),
-        meta: { title: '登录', requiresAuth: false },
+        meta: { titleKey: 'route.auth', requiresAuth: false },
     },
 ]
 
@@ -39,19 +40,19 @@ const memoryRoutes = [
         path: '/memory/:date',
         name: 'memory-detail',
         component: () => import(/* webpackChunkName: "memory" */ '@/views/MemoryDetailView.vue'),
-        meta: { title: '记忆详情', requiresAuth: true },
+        meta: { titleKey: 'route.memory_detail', requiresAuth: true },
     },
     {
         path: '/create',
         name: 'create-memory',
         component: () => import(/* webpackChunkName: "memory" */ '@/views/CreateMemoryView.vue'),
-        meta: { title: '记录新记忆', requiresAuth: true },
+        meta: { titleKey: 'route.create_memory', requiresAuth: true },
     },
     {
         path: '/flashback',
         name: 'flashback',
         component: () => import(/* webpackChunkName: "flashback" */ '@/views/FlashbackView.vue'),
-        meta: { title: '记忆回顾', requiresAuth: true },
+        meta: { titleKey: 'route.flashback', requiresAuth: true },
     },
 ]
 
@@ -61,13 +62,13 @@ const featureRoutes = [
         path: '/stats',
         name: 'stats',
         component: () => import(/* webpackChunkName: "stats" */ '@/views/StatsView.vue'),
-        meta: { title: '统计', requiresAuth: true },
+        meta: { titleKey: 'route.stats', requiresAuth: true },
     },
     {
         path: '/search',
         name: 'search',
         component: () => import(/* webpackChunkName: "search" */ '@/views/SearchView.vue'),
-        meta: { title: '搜索', requiresAuth: true },
+        meta: { titleKey: 'route.search', requiresAuth: true },
     },
 ]
 
@@ -77,49 +78,49 @@ const settingsRoutes = [
         path: '/settings',
         name: 'settings',
         component: () => import(/* webpackChunkName: "settings" */ '@/views/SettingsView.vue'),
-        meta: { title: '设置', requiresAuth: true },
+        meta: { titleKey: 'route.settings', requiresAuth: true },
     },
     {
         path: '/settings/theme',
         name: 'settings-theme',
         component: () => import(/* webpackChunkName: "settings" */ '@/views/settings/ThemeSettingsView.vue'),
-        meta: { title: '主题外观', requiresAuth: true },
+        meta: { titleKey: 'route.settings_theme', requiresAuth: true },
     },
     {
         path: '/settings/language',
         name: 'settings-language',
         component: () => import(/* webpackChunkName: "settings" */ '@/views/settings/LanguageSettingsView.vue'),
-        meta: { title: '语言设置', requiresAuth: true },
+        meta: { titleKey: 'route.settings_language', requiresAuth: true },
     },
     {
         path: '/settings/week-start',
         name: 'settings-week-start',
         component: () => import(/* webpackChunkName: "settings" */ '@/views/settings/WeekStartSettingsView.vue'),
-        meta: { title: '周起始日', requiresAuth: true },
+        meta: { titleKey: 'route.settings_week_start', requiresAuth: true },
     },
     {
         path: '/settings/privacy-lock',
         name: 'settings-privacy-lock',
         component: () => import(/* webpackChunkName: "settings" */ '@/views/settings/PrivacyLockSettingsView.vue'),
-        meta: { title: '隐私锁', requiresAuth: true },
+        meta: { titleKey: 'route.settings_privacy_lock', requiresAuth: true },
     },
     {
         path: '/settings/data',
         name: 'settings-data',
         component: () => import(/* webpackChunkName: "settings" */ '@/views/settings/DataManagementView.vue'),
-        meta: { title: '数据管理', requiresAuth: true },
+        meta: { titleKey: 'route.settings_data', requiresAuth: true },
     },
     {
         path: '/settings/profile',
         name: 'settings-profile',
         component: () => import(/* webpackChunkName: "settings" */ '@/views/settings/ProfileSettingsView.vue'),
-        meta: { title: '个人资料', requiresAuth: true },
+        meta: { titleKey: 'route.settings_profile', requiresAuth: true },
     },
     {
         path: '/settings/feedback',
         name: 'settings-feedback',
         component: () => import(/* webpackChunkName: "settings" */ '@/views/settings/FeedbackView.vue'),
-        meta: { title: '反馈与建议', requiresAuth: true },
+        meta: { titleKey: 'route.settings_feedback', requiresAuth: true },
     },
 ]
 
@@ -146,7 +147,8 @@ const router = createRouter({
 // 路由守卫：检查登录状态
 router.beforeEach((to, _from, next) => {
     // 设置页面标题
-    const title = to.meta.title as string || 'FlipMemory'
+    const titleKey = to.meta.titleKey as string | undefined
+    const title = titleKey ? i18n.global.t(titleKey) : 'FlipMemory'
     document.title = `${title} - FlipMemory`
 
     // 检查是否需要登录

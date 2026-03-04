@@ -14,9 +14,15 @@
     "month": "Month",
     "year": "Year",
     "back": "Back",
-    "retry": "Retry Now",
+    "retry": "Retry",
     "return_home": "Back Home",
-    "error_occurred": "Error Occurred"
+    "error_occurred": "Something went wrong",
+    "network_error": "Network connection failed",
+    "timeout_error": "Request timed out",
+    "retrying": "Retrying...",
+    "retry_countdown": "Retry in {seconds}s",
+    "clear": "Clear",
+    "close": "Close"
   },
   "nav": {
     "home": "Home",
@@ -24,6 +30,30 @@
     "flashback": "Recall",
     "stats": "Stats",
     "settings": "Settings"
+  },
+  "route": {
+    "home": "Home",
+    "calendar": "Timeline",
+    "auth": "Sign In",
+    "memory_detail": "Memory Detail",
+    "create_memory": "New Memory",
+    "flashback": "Recall",
+    "stats": "Stats",
+    "search": "Search",
+    "settings": "Settings",
+    "settings_theme": "Appearance",
+    "settings_language": "Language",
+    "settings_week_start": "Week Start",
+    "settings_privacy_lock": "Privacy Lock",
+    "settings_data": "Data Management",
+    "settings_profile": "Profile",
+    "settings_feedback": "Feedback"
+  },
+  "language": {
+    "zh-CN": "Simplified Chinese",
+    "zh-TW": "Traditional Chinese",
+    "ja": "Japanese",
+    "en": "English"
   },
   "home": {
     "welcome": "{greeting}, {name}",
@@ -41,6 +71,24 @@
     "featured_title": "Time Flashback",
     "no_featured": "No featured memories yet. Go record one!",
     "record_now": "Record Today"
+  },
+  "auth": {
+    "tab_login": "Sign In",
+    "tab_register": "Sign Up",
+    "nickname_placeholder": "Your nickname",
+    "account_placeholder": "Username / Email",
+    "username_placeholder": "Unique username",
+    "email_placeholder": "Email",
+    "password_placeholder": "Password",
+    "confirm_password_placeholder": "Confirm password",
+    "submit_login": "Enter Now",
+    "submit_register": "Create Account",
+    "server_settings": "Server Settings",
+    "config_api_title": "Backend API URL",
+    "config_api_hint": "If running on mobile, localhost is not reachable. Enter your LAN IP.",
+    "save_server": "Save",
+    "auth_failed": "Authentication failed. Check network or server config.",
+    "record_every_moment": "Record Every Moment"
   },
   "settings": {
     "theme_title": "Appearance",
@@ -80,7 +128,101 @@
         "ember": "Ember",
         "custom": "Custom"
       }
+    },
+    "profile": {
+      "save_success": "Profile updated",
+      "change_avatar": "Change Avatar",
+      "basic_info": "Basic Info",
+      "nickname": "Nickname",
+      "birthday": "Birthday",
+      "age_unit": "{age} y",
+      "gender": {
+        "male": "Male",
+        "female": "Female",
+        "other": "Other"
+      }
+    },
+    "privacy": {
+      "title": "Privacy Security",
+      "enabled": "Privacy protection enabled",
+      "disabled": "Protect your private memories",
+      "enabled_sub": "Security Active",
+      "disabled_sub": "Lock your personal records",
+      "app_lock": "App Lock",
+      "pin_protection": "PIN Protection",
+      "biometric": "Face ID / Fingerprint",
+      "biometric_unlock": "Biometric Unlock",
+      "note": "When enabled, each app launch requires verification. Keep your PIN safe.",
+      "enabled_toast": "Privacy lock enabled",
+      "disabled_toast": "Privacy lock disabled",
+      "enable_first": "Enable privacy lock first",
+      "biometric_on": "Biometric unlock enabled",
+      "biometric_off": "Biometric unlock disabled"
+    },
+    "week_start": {
+      "title": "Week Start",
+      "subtitle": "Choose the first day of week in calendar",
+      "sunday": "Sunday",
+      "sunday_desc": "Week starts on Sunday",
+      "monday": "Monday",
+      "monday_desc": "Week starts on Monday",
+      "note": "This affects the calendar week layout."
+    },
+    "data": {
+      "title": "Data Management",
+      "backup_export": "Backup & Export",
+      "desc": "Export all your memories as backup for migration or recovery.",
+      "json_format": "JSON",
+      "with_photos": "With Photos",
+      "exporting": "Exporting...",
+      "start_export": "Start Export",
+      "danger_zone": "Danger Zone",
+      "reset_db": "Reset Local Database",
+      "reset_desc": "Permanently removes all memories, photos and settings from this device.",
+      "clear_all": "Clear All Local Data",
+      "confirm_reset": "Confirm reset?",
+      "confirm_desc": "This action is irreversible.",
+      "input_placeholder": "Type \"CONFIRM\"",
+      "confirm_word": "CONFIRM",
+      "export_success": "Exported {count} memories",
+      "export_failed": "Export failed. Please try again.",
+      "clear_success": "All data cleared",
+      "clear_failed": "Failed to clear data",
+      "confirm_input_hint": "Please type \"{word}\" to confirm"
     }
+  },
+  "calendar": {
+    "title": "Timeline",
+    "subtitle": "Capture moments as time flows",
+    "back_to_today": "Back to Today",
+    "month_label": "{month}"
+  },
+  "create": {
+    "edit_mode": "Editing",
+    "new_entry": "New Entry",
+    "take_photo": "Take Photo",
+    "gallery": "Gallery",
+    "your_story": "Your Story",
+    "placeholder": "Write what happened today...",
+    "current_mood": "Current Mood",
+    "location_label": "Location",
+    "location_placeholder": "Where were you?",
+    "weather_label": "Weather",
+    "story_label": "Story",
+    "weather": {
+      "sunny": "Sunny",
+      "cloudy": "Cloudy",
+      "rainy": "Rainy",
+      "windy": "Windy",
+      "snowy": "Snowy"
+    }
+  },
+  "detail": {
+    "blank_page": "Blank Page",
+    "no_entry": "No memory for this day",
+    "start_writing": "Start Writing",
+    "date_captured": "Date Captured",
+    "delete_confirm": "Delete this memory? This cannot be undone."
   },
   "flashback": {
     "title": "Flashback",
@@ -97,6 +239,7 @@
   "feedback": {
     "title": "Feedback",
     "type_label": "Feedback Type",
+    "message_label": "Message",
     "types": {
       "bug": "Report a Bug",
       "feature": "Suggest Feature",
@@ -106,6 +249,46 @@
     "submit": "Submit Feedback",
     "success_title": "Thank you!",
     "success_msg": "We have received your feedback."
+  },
+  "feedback_dialog": {
+    "title": "Feedback",
+    "type": "Type",
+    "content": "Details",
+    "content_placeholder": "Describe your issue or suggestion...",
+    "contact": "Contact (optional)",
+    "contact_placeholder": "Email or contact info",
+    "screenshot": "Screenshot (optional)",
+    "add_screenshot": "Add Screenshot",
+    "preview_alt": "Screenshot preview",
+    "include_device_info": "Include device info (helps debugging)",
+    "submit_loading": "Submitting...",
+    "submit": "Submit",
+    "image_too_large": "Image must be <= 5MB",
+    "submit_failed": "Submit failed. Please try again.",
+    "types": {
+      "bug": "Bug",
+      "feature": "Feature",
+      "improvement": "Improvement",
+      "other": "Other"
+    }
+  },
+  "search": {
+    "placeholder": "Search memories",
+    "recent_searches": "Recent Searches",
+    "trending": "Trending",
+    "found": "Found",
+    "memories_count": "Memories",
+    "no_results": "No Results",
+    "no_results_sub": "No results for \"{query}\"",
+    "clear": "Clear",
+    "hot_tags": {
+      "happy": "happy",
+      "travel": "travel",
+      "food": "food",
+      "work": "work",
+      "weekend": "weekend",
+      "friends": "friends"
+    }
   },
   "stats": {
     "title": "Analytics",
@@ -126,5 +309,78 @@
       "network": "Network",
       "health": "Health"
     }
+  },
+  "offline_banner": {
+    "offline_mode": "You are offline",
+    "pending_sync": "{count} pending",
+    "pending_memories_photos": "{memories} memories + {photos} photos pending",
+    "pending_photos_upload": "{photos} photos pending upload",
+    "syncing": "Syncing...",
+    "pending_records": "{count} records pending sync",
+    "sync_now": "Sync Now",
+    "close": "Close banner"
+  },
+  "conflict": {
+    "title": "Data Conflict",
+    "message": "Local and server data differ. Choose a version to keep:",
+    "keep_local": "Keep Local Version",
+    "keep_remote": "Keep Server Version",
+    "merge": "Merge Both Versions",
+    "merge_desc": "Automatically merge both versions",
+    "modified_time": "Modified: {time}"
+  },
+  "create_menu": {
+    "record_memory": "Record Memory",
+    "new_story": "New story",
+    "import_album": "Import from Album",
+    "from_gallery": "From gallery",
+    "cancel": "Cancel"
+  },
+  "pull_to_refresh": {
+    "refreshing": "Refreshing...",
+    "release": "Release to refresh",
+    "pull": "Pull to refresh"
+  },
+  "image": {
+    "load_failed": "Load failed",
+    "retry": "Retry",
+    "preview_hint": "Double-tap to zoom · wheel to scale · drag to pan"
+  },
+  "error_toast": {
+    "error_code": "Error Code: {code}",
+    "retry": "Retry"
+  },
+  "confirm": {
+    "delete_title": "Confirm Delete",
+    "delete_message": "Delete {itemName}? This cannot be undone.",
+    "logout_title": "Confirm Sign Out",
+    "logout_message": "Do you want to sign out now?",
+    "discard_title": "Discard Changes",
+    "discard_message": "You have unsaved changes. Discard them?",
+    "discard_confirm": "Discard",
+    "discard_cancel": "Keep Editing"
+  },
+  "errors": {
+    "offline": "You are offline. Some features are unavailable.",
+    "unauthorized": "Session expired. Please sign in again.",
+    "forbidden": "You do not have permission.",
+    "token_expired": "Session expired. Please sign in again.",
+    "not_found": "Requested resource not found.",
+    "conflict": "Data conflict. Refresh and try again.",
+    "validation": "Invalid input data.",
+    "internal": "Server error. Please try again later.",
+    "unknown": "Unknown error. Please try again later.",
+    "request_failed": "Request failed"
+  },
+  "mood": {
+    "happy": "Happy",
+    "sad": "Sad",
+    "angry": "Angry",
+    "calm": "Calm",
+    "excited": "Excited",
+    "tired": "Tired",
+    "loved": "Loved",
+    "thinking": "Thinking",
+    "neutral": "Neutral"
   }
 }

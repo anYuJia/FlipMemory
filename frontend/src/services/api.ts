@@ -6,6 +6,7 @@ import { logger } from '@/services/logger'
 import { performanceMonitor } from '@/services/performanceMonitor'
 import router from '@/router'
 import type { ApiResponse } from '@/types'
+import i18n from '@/i18n'
 
 // 请求超时时间（毫秒）
 const REQUEST_TIMEOUT = 30000
@@ -85,7 +86,7 @@ async function request<T>(
     if (isTokenExpired()) {
         logger.warn('Token expired, redirecting to login', 'API')
         handleUnauthorized()
-        throw new AppError('登录已过期，请重新登录', 401, null, false)
+        throw new AppError(i18n.global.t('errors.token_expired'), 401, null, false)
     }
 
     // 修复：每次请求都动态获取最新的 Token
@@ -120,7 +121,7 @@ async function request<T>(
         if (response.status === 401) {
             logger.warn('Unauthorized response, redirecting to login', 'API')
             handleUnauthorized()
-            throw new AppError('登录已过期，请重新登录', 401, json, false)
+            throw new AppError(i18n.global.t('errors.token_expired'), 401, json, false)
         }
 
         if (!response.ok || json.code !== 0) {
@@ -152,18 +153,18 @@ async function request<T>(
         if (error instanceof TypeError) {
             if (error.message.includes('Failed to fetch')) {
                 logger.error('Network connection failed', 'API', { endpoint })
-                throw new AppError('网络连接失败', 0, error, true)
+                throw new AppError(i18n.global.t('common.network_error'), 0, error, true)
             }
             if (error.message.includes('AbortError')) {
                 logger.warn('Request timeout', 'API', { endpoint })
-                throw new AppError('请求超时', 408, error, true)
+                throw new AppError(i18n.global.t('common.timeout_error'), 408, error, true)
             }
         }
 
         // 其他错误
         logger.error(`API request failed: ${endpoint}`, 'API', error)
         logError(error, `API request to ${endpoint}`)
-        throw new AppError('请求失败', 500, error, true)
+        throw new AppError(i18n.global.t('errors.request_failed'), 500, error, true)
     }
 }
 

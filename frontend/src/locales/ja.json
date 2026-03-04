@@ -16,7 +16,13 @@
     "back": "戻る",
     "retry": "再試行",
     "return_home": "ホームに戻る",
-    "error_occurred": "エラーが発生しました"
+    "error_occurred": "エラーが発生しました",
+    "network_error": "ネットワーク接続に失敗しました",
+    "timeout_error": "リクエストがタイムアウトしました",
+    "retrying": "再試行中...",
+    "retry_countdown": "{seconds}秒後に再試行",
+    "clear": "クリア",
+    "close": "閉じる"
   },
   "nav": {
     "home": "ホーム",
@@ -24,6 +30,30 @@
     "flashback": "振り返り",
     "stats": "統計",
     "settings": "設定"
+  },
+  "route": {
+    "home": "ホーム",
+    "calendar": "カレンダー",
+    "auth": "ログイン",
+    "memory_detail": "記憶の詳細",
+    "create_memory": "新しい記憶",
+    "flashback": "振り返り",
+    "stats": "統計",
+    "search": "検索",
+    "settings": "設定",
+    "settings_theme": "テーマ",
+    "settings_language": "言語設定",
+    "settings_week_start": "週の開始日",
+    "settings_privacy_lock": "プライバシーロック",
+    "settings_data": "データ管理",
+    "settings_profile": "プロフィール",
+    "settings_feedback": "フィードバック"
+  },
+  "language": {
+    "zh-CN": "簡体字中国語",
+    "zh-TW": "繁体字中国語",
+    "ja": "日本語",
+    "en": "English"
   },
   "home": {
     "welcome": "{greeting}、{name}",
@@ -39,18 +69,36 @@
     "view_trends": "トレンドを見る",
     "recent_memories": "最近の思い出",
     "featured_title": "タイムフラッシュバック",
-    "no_featured": "まだおすすめの思い出はありません。今日を記録しましょう！",
+    "no_featured": "まだおすすめの思い出はありません。記録してみましょう！",
     "record_now": "今日を記録する"
+  },
+  "auth": {
+    "tab_login": "ログイン",
+    "tab_register": "新規登録",
+    "nickname_placeholder": "ニックネーム",
+    "account_placeholder": "ユーザー名 / メール",
+    "username_placeholder": "一意のユーザー名",
+    "email_placeholder": "メールアドレス",
+    "password_placeholder": "パスワード",
+    "confirm_password_placeholder": "パスワード確認",
+    "submit_login": "今すぐ開始",
+    "submit_register": "アカウント作成",
+    "server_settings": "サーバー設定",
+    "config_api_title": "バックエンド API の設定",
+    "config_api_hint": "モバイル端末では localhost に直接アクセスできません。LAN 内の IP を入力してください。",
+    "save_server": "保存",
+    "auth_failed": "認証に失敗しました。ネットワークまたは設定を確認してください。",
+    "record_every_moment": "すべての瞬間を記録"
   },
   "settings": {
     "theme_title": "テーマ設定",
     "theme_desc": "視覚体験をカスタマイズ",
     "language_title": "言語設定",
-    "language_desc": "言語を選択してください。変更を適用するにはアプリが自動的にリロードされます。",
+    "language_desc": "言語を選択してください。変更は自動的に再読み込みして適用されます。",
     "profile_title": "プロフィール",
     "profile_desc": "アカウントと設定の管理",
     "privacy_title": "プライバシー",
-    "privacy_desc": "PINコードと生体認証",
+    "privacy_desc": "PIN と生体認証保護",
     "data_title": "データ管理",
     "data_desc": "バックアップ、エクスポート、リセット",
     "feedback_title": "フィードバック",
@@ -59,72 +107,280 @@
     "theme": {
       "title": "カスタムパレット",
       "auto_mode": "タイムフロー",
-      "auto_desc": "昼夜に合わせて自動切り替え",
+      "auto_desc": "昼夜に合わせて自動切替",
       "library": "プリセット",
       "custom_lab": "カスタムラボ",
-      "lab_preview": "プレビュー中",
+      "lab_preview": "プレビューモード",
       "activate": "ラボを有効化",
-      "active": "ラボが有効です",
+      "active": "ラボ有効中",
       "reset": "リセット",
       "save_apply": "保存して適用",
       "primary": "メインカラー",
-      "background": "背景色",
+      "background": "背景",
       "palettes": {
         "oatmeal": "オートミール",
         "sakura": "桜",
         "mint": "ミント",
         "glacier": "氷河",
-        "obsidian": "極夜",
+        "obsidian": "黒曜",
         "nebula": "星雲",
-        "forest": "森の海",
+        "forest": "森",
         "ember": "残り火",
         "custom": "カスタム"
       }
+    },
+    "profile": {
+      "save_success": "プロフィールを保存しました",
+      "change_avatar": "アバター変更",
+      "basic_info": "基本情報",
+      "nickname": "ニックネーム",
+      "birthday": "誕生日",
+      "age_unit": "{age}歳",
+      "gender": {
+        "male": "男性",
+        "female": "女性",
+        "other": "その他"
+      }
+    },
+    "privacy": {
+      "title": "プライバシー保護",
+      "enabled": "プライバシー保護は有効です",
+      "disabled": "あなたの記憶を守ります",
+      "enabled_sub": "Security Active",
+      "disabled_sub": "Lock your personal records",
+      "app_lock": "アプリロック",
+      "pin_protection": "PIN 保護",
+      "biometric": "Face ID / 指紋",
+      "biometric_unlock": "生体認証で解除",
+      "note": "有効化すると、アプリ起動時に本人確認が必要です。PIN を忘れないでください。",
+      "enabled_toast": "プライバシーロックを有効化しました",
+      "disabled_toast": "プライバシーロックを無効化しました",
+      "enable_first": "先にプライバシーロックを有効化してください",
+      "biometric_on": "生体認証を有効化しました",
+      "biometric_off": "生体認証を無効化しました"
+    },
+    "week_start": {
+      "title": "週の開始日",
+      "subtitle": "カレンダーの週開始日を選択",
+      "sunday": "日曜日",
+      "sunday_desc": "週の開始を日曜日にする",
+      "monday": "月曜日",
+      "monday_desc": "週の開始を月曜日にする",
+      "note": "この設定はカレンダー表示に反映されます。"
+    },
+    "data": {
+      "title": "データ管理",
+      "backup_export": "バックアップとエクスポート",
+      "desc": "すべての記憶をバックアップとしてエクスポートできます。",
+      "json_format": "JSON 形式",
+      "with_photos": "写真を含む",
+      "exporting": "エクスポート中...",
+      "start_export": "エクスポート開始",
+      "danger_zone": "危険領域",
+      "reset_db": "ローカルDBをリセット",
+      "reset_desc": "この端末内のすべての記憶・写真・設定を削除します。",
+      "clear_all": "すべてのローカルデータを削除",
+      "confirm_reset": "本当にリセットしますか？",
+      "confirm_desc": "この操作は元に戻せません。",
+      "input_placeholder": "「確認削除」と入力",
+      "confirm_word": "確認削除",
+      "export_success": "エクスポート完了：{count}件",
+      "export_failed": "エクスポートに失敗しました",
+      "clear_success": "すべてのデータを削除しました",
+      "clear_failed": "削除に失敗しました",
+      "confirm_input_hint": "確認のため「{word}」を入力してください"
     }
+  },
+  "calendar": {
+    "title": "タイムライン",
+    "subtitle": "時間の流れに記録を残そう",
+    "back_to_today": "今日に戻る",
+    "month_label": "{month}月"
+  },
+  "create": {
+    "edit_mode": "編集モード",
+    "new_entry": "新規記録",
+    "take_photo": "撮影",
+    "gallery": "ギャラリー",
+    "your_story": "あなたの物語",
+    "placeholder": "今日の出来事を書いてみましょう...",
+    "current_mood": "今の気分",
+    "location_label": "場所",
+    "location_placeholder": "どこにいましたか？",
+    "weather_label": "天気",
+    "story_label": "ストーリー",
+    "weather": {
+      "sunny": "晴れ",
+      "cloudy": "くもり",
+      "rainy": "雨",
+      "windy": "風",
+      "snowy": "雪"
+    }
+  },
+  "detail": {
+    "blank_page": "空白ページ",
+    "no_entry": "この日の記録はまだありません",
+    "start_writing": "記録を始める",
+    "date_captured": "記録日",
+    "delete_confirm": "この記憶を削除しますか？この操作は取り消せません。"
   },
   "flashback": {
     "title": "振り返り",
-    "subtitle": "輝く瞬間を追体験 ✨",
-    "shuffle": "ランダムに切り替え",
-    "no_memories": "振り返る思い出がまだありません",
-    "days_ago": "{days} 日前",
+    "subtitle": "輝く瞬間をもう一度 ✨",
+    "shuffle": "シャッフル",
+    "no_memories": "振り返る記憶がまだありません",
+    "days_ago": "{days}日前",
     "tabs": {
       "year": "過去",
       "random": "ランダム",
-      "featured": "ベスト"
+      "featured": "おすすめ"
     }
   },
   "feedback": {
     "title": "フィードバック",
     "type_label": "種類",
+    "message_label": "内容",
     "types": {
-      "bug": "バグ報告",
+      "bug": "不具合報告",
       "feature": "機能提案",
       "other": "その他"
     },
-    "content_placeholder": "詳細を入力してください...",
-    "submit": "送信する",
+    "content_placeholder": "詳しく入力してください...",
+    "submit": "送信",
     "success_title": "ありがとうございます！",
     "success_msg": "フィードバックを受け取りました。"
   },
+  "feedback_dialog": {
+    "title": "フィードバック",
+    "type": "種類",
+    "content": "詳細",
+    "content_placeholder": "問題や提案を入力してください...",
+    "contact": "連絡先（任意）",
+    "contact_placeholder": "メールなどの連絡先",
+    "screenshot": "スクリーンショット（任意）",
+    "add_screenshot": "画像を追加",
+    "preview_alt": "スクリーンショットプレビュー",
+    "include_device_info": "端末情報を含める（調査に役立ちます）",
+    "submit_loading": "送信中...",
+    "submit": "送信",
+    "image_too_large": "画像サイズは5MB以下にしてください",
+    "submit_failed": "送信に失敗しました。後でもう一度お試しください。",
+    "types": {
+      "bug": "不具合",
+      "feature": "機能要望",
+      "improvement": "改善提案",
+      "other": "その他"
+    }
+  },
+  "search": {
+    "placeholder": "記憶を検索",
+    "recent_searches": "最近の検索",
+    "trending": "人気タグ",
+    "found": "検索結果",
+    "memories_count": "件",
+    "no_results": "結果が見つかりません",
+    "no_results_sub": "「{query}」に一致する結果はありません",
+    "clear": "クリア",
+    "hot_tags": {
+      "happy": "嬉しい",
+      "travel": "旅行",
+      "food": "グルメ",
+      "work": "仕事",
+      "weekend": "週末",
+      "friends": "友達"
+    }
+  },
   "stats": {
     "title": "統計データ",
-    "subtitle": "あなたのデータダッシュボード",
-    "week_num": "第 {num} 週",
+    "subtitle": "あなたのダッシュボード",
+    "week_num": "第{num}週",
     "no_data": "データなし",
-    "total_memories": "思い出の总数",
-    "streak": "継続記録",
-    "photos": "写真の総数",
+    "total_memories": "思い出総数",
+    "streak": "連続記録",
+    "photos": "写真総数",
     "mood_dist": "気分の分布",
     "activity_trend": "活動トレンド",
     "unit_entries": "件",
     "unit_days": "日",
     "unit_pics": "枚",
-    "system_health": "システム健康度",
+    "system_health": "システム健全性",
     "vitals": {
       "load": "読み込み速度",
       "network": "ネットワーク遅延",
-      "health": "実行ステータス"
+      "health": "動作状態"
     }
+  },
+  "offline_banner": {
+    "offline_mode": "現在オフラインモードです",
+    "pending_sync": "{count}件が未同期",
+    "pending_memories_photos": "{memories}件の記憶 + {photos}枚の画像が未同期",
+    "pending_photos_upload": "{photos}枚の画像がアップロード待ち",
+    "syncing": "同期中...",
+    "pending_records": "{count}件の記録が同期待ち",
+    "sync_now": "今すぐ同期",
+    "close": "通知を閉じる"
+  },
+  "conflict": {
+    "title": "データ競合",
+    "message": "ローカルデータとサーバーデータが一致しません。保持するバージョンを選択してください：",
+    "keep_local": "ローカルを保持",
+    "keep_remote": "サーバーを保持",
+    "merge": "両方をマージ",
+    "merge_desc": "2つのバージョンを自動マージします",
+    "modified_time": "更新時刻：{time}"
+  },
+  "create_menu": {
+    "record_memory": "記憶を記録",
+    "new_story": "New story",
+    "import_album": "アルバムから追加",
+    "from_gallery": "From gallery",
+    "cancel": "キャンセル"
+  },
+  "pull_to_refresh": {
+    "refreshing": "更新中...",
+    "release": "離して更新",
+    "pull": "下に引いて更新"
+  },
+  "image": {
+    "load_failed": "読み込みに失敗しました",
+    "retry": "再試行",
+    "preview_hint": "ダブルタップで拡大・ホイールで拡縮・ドラッグで移動"
+  },
+  "error_toast": {
+    "error_code": "エラーコード：{code}",
+    "retry": "再試行"
+  },
+  "confirm": {
+    "delete_title": "削除の確認",
+    "delete_message": "{itemName}を削除しますか？この操作は元に戻せません。",
+    "logout_title": "ログアウト確認",
+    "logout_message": "ログアウトしますか？",
+    "discard_title": "変更を破棄",
+    "discard_message": "未保存の変更があります。破棄しますか？",
+    "discard_confirm": "破棄",
+    "discard_cancel": "編集を続ける"
+  },
+  "errors": {
+    "offline": "オフラインのため一部機能は利用できません",
+    "unauthorized": "ログイン期限が切れました。再ログインしてください",
+    "forbidden": "この操作を実行する権限がありません",
+    "token_expired": "ログイン期限が切れました。再ログインしてください",
+    "not_found": "要求されたリソースが見つかりません",
+    "conflict": "データ競合が発生しました。再読み込みして再試行してください",
+    "validation": "入力データが不正です",
+    "internal": "サーバーエラー。しばらくしてから再試行してください",
+    "unknown": "不明なエラーが発生しました",
+    "request_failed": "リクエストに失敗しました"
+  },
+  "mood": {
+    "happy": "嬉しい",
+    "sad": "悲しい",
+    "angry": "怒り",
+    "calm": "落ち着き",
+    "excited": "ワクワク",
+    "tired": "疲れた",
+    "loved": "幸せ",
+    "thinking": "考え中",
+    "neutral": "普通"
   }
 }

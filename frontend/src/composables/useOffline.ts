@@ -5,9 +5,11 @@
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useOfflineStore } from '@/stores/offline'
+import i18n from '@/i18n'
 
 export function useOffline() {
     const offlineStore = useOfflineStore()
+    const locale = computed(() => i18n.global.locale.value)
 
     // 从 store 提取响应式引用
     const {
@@ -39,7 +41,7 @@ export function useOffline() {
      * 格式化的上次同步时间
      */
     const lastSyncTimeFormatted = computed(() => {
-        if (!lastSyncTime.value) return '从未同步'
+        if (!lastSyncTime.value) return '--'
 
         const diff = Date.now() - lastSyncTime.value
         const seconds = Math.floor(diff / 1000)
@@ -47,14 +49,15 @@ export function useOffline() {
         const hours = Math.floor(diff / 3600000)
         const days = Math.floor(diff / 86400000)
 
-        if (seconds < 60) return '刚刚'
-        if (minutes < 60) return `${minutes} 分钟前`
-        if (hours < 24) return `${hours} 小时前`
-        if (days < 7) return `${days} 天前`
+        const rtf = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' })
+        if (seconds < 60) return rtf.format(-seconds, 'second')
+        if (minutes < 60) return rtf.format(-minutes, 'minute')
+        if (hours < 24) return rtf.format(-hours, 'hour')
+        if (days < 7) return rtf.format(-days, 'day')
 
         // 超过 7 天显示具体日期
         const date = new Date(lastSyncTime.value)
-        return date.toLocaleDateString('zh-CN', {
+        return date.toLocaleDateString(locale.value, {
             month: 'short',
             day: 'numeric',
             hour: '2-digit',
@@ -66,27 +69,29 @@ export function useOffline() {
      * 同步状态文本
      */
     const syncStatusText = computed(() => {
+        // Depend on locale so computed reacts after language change
+        locale.value
         switch (syncStatus.value) {
             case 'syncing':
                 return syncProgress.value > 0
-                    ? `同步中... ${syncProgress.value}%`
-                    : '同步中...'
+                    ? `${i18n.global.t('offline_banner.syncing')} ${syncProgress.value}%`
+                    : i18n.global.t('offline_banner.syncing')
             case 'offline':
-                return '离线模式'
+                return i18n.global.t('offline_banner.offline_mode')
             case 'pending': {
                 const ops = pendingOperationsCount.value
                 const photos = pendingPhotosCount.value
                 if (ops > 0 && photos > 0) {
-                    return `${ops} 条记忆 + ${photos} 张图片待同步`
+                    return i18n.global.t('offline_banner.pending_memories_photos', { memories: ops, photos })
                 } else if (photos > 0) {
-                    return `${photos} 张图片待上传`
+                    return i18n.global.t('offline_banner.pending_photos_upload', { photos })
                 }
-                return `${ops} 条待同步`
+                return i18n.global.t('offline_banner.pending_sync', { count: ops })
             }
             case 'synced':
-                return '已同步'
+                return i18n.global.t('common.success')
             case 'error':
-                return '同步失败'
+                return i18n.global.t('common.failed')
             default:
                 return ''
         }

@@ -2,7 +2,8 @@
  * 确认对话框 Composable
  */
 
-import { ref, shallowRef } from 'vue'
+import { ref } from 'vue'
+import i18n from '@/i18n'
 
 export interface ConfirmOptions {
   title: string
@@ -17,8 +18,8 @@ const isOpen = ref(false)
 const options = ref<ConfirmOptions>({
   title: '',
   message: '',
-  confirmText: '确定',
-  cancelText: '取消',
+  confirmText: i18n.global.t('common.confirm'),
+  cancelText: i18n.global.t('common.cancel'),
   type: 'info',
 })
 
@@ -29,8 +30,8 @@ let resolvePromise: ((value: boolean) => void) | null = null
  */
 export function confirm(opts: ConfirmOptions): Promise<boolean> {
   options.value = {
-    confirmText: '确定',
-    cancelText: '取消',
+    confirmText: i18n.global.t('common.confirm'),
+    cancelText: i18n.global.t('common.cancel'),
     type: 'info',
     ...opts,
   }
@@ -73,29 +74,29 @@ export function useConfirm() {
 }
 
 // 便捷方法
-export const confirmDelete = (itemName: string = '此项') =>
+export const confirmDelete = (itemName: string = 'item') =>
   confirm({
-    title: '确认删除',
-    message: `确定要删除${itemName}吗？此操作无法撤销。`,
-    confirmText: '删除',
-    cancelText: '取消',
+    title: i18n.global.t('confirm.delete_title'),
+    message: i18n.global.t('confirm.delete_message', { itemName }),
+    confirmText: i18n.global.t('common.delete'),
+    cancelText: i18n.global.t('common.cancel'),
     type: 'danger',
   })
 
 export const confirmLogout = () =>
   confirm({
-    title: '确认退出',
-    message: '确定要退出登录吗？',
-    confirmText: '退出',
-    cancelText: '取消',
+    title: i18n.global.t('confirm.logout_title'),
+    message: i18n.global.t('confirm.logout_message'),
+    confirmText: i18n.global.t('settings.logout'),
+    cancelText: i18n.global.t('common.cancel'),
     type: 'warning',
   })
 
 export const confirmDiscard = () =>
   confirm({
-    title: '放弃更改',
-    message: '你有未保存的更改，确定要放弃吗？',
-    confirmText: '放弃',
-    cancelText: '继续编辑',
+    title: i18n.global.t('confirm.discard_title'),
+    message: i18n.global.t('confirm.discard_message'),
+    confirmText: i18n.global.t('confirm.discard_confirm'),
+    cancelText: i18n.global.t('confirm.discard_cancel'),
     type: 'warning',
   })

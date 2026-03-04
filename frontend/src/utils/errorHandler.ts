@@ -24,42 +24,40 @@ export class AppError extends Error {
 /**
  * 错误类型定义
  */
-export enum ErrorType {
-    // 网络错误
-    NETWORK_ERROR = 'NETWORK_ERROR',
-    TIMEOUT = 'TIMEOUT',
-    OFFLINE = 'OFFLINE',
+export const ErrorType = {
+    NETWORK_ERROR: 'NETWORK_ERROR',
+    TIMEOUT: 'TIMEOUT',
+    OFFLINE: 'OFFLINE',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    FORBIDDEN: 'FORBIDDEN',
+    TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+    NOT_FOUND: 'NOT_FOUND',
+    CONFLICT: 'CONFLICT',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+} as const
 
-    // 认证错误
-    UNAUTHORIZED = 'UNAUTHORIZED',
-    FORBIDDEN = 'FORBIDDEN',
-    TOKEN_EXPIRED = 'TOKEN_EXPIRED',
-
-    // 业务错误
-    NOT_FOUND = 'NOT_FOUND',
-    CONFLICT = 'CONFLICT',
-    VALIDATION_ERROR = 'VALIDATION_ERROR',
-
-    // 系统错误
-    INTERNAL_ERROR = 'INTERNAL_ERROR',
-    UNKNOWN_ERROR = 'UNKNOWN_ERROR',
-}
+export type ErrorType = typeof ErrorType[keyof typeof ErrorType]
 
 /**
  * 错误信息映射
  */
-const errorMessages: Record<ErrorType, string> = {
-    [ErrorType.NETWORK_ERROR]: '网络连接失败，请检查网络设置',
-    [ErrorType.TIMEOUT]: '请求超时，请稍后重试',
-    [ErrorType.OFFLINE]: '当前离线，部分功能不可用',
-    [ErrorType.UNAUTHORIZED]: '登录已过期，请重新登录',
-    [ErrorType.FORBIDDEN]: '您没有权限执行此操作',
-    [ErrorType.TOKEN_EXPIRED]: '登录已过期，请重新登录',
-    [ErrorType.NOT_FOUND]: '请求的资源不存在',
-    [ErrorType.CONFLICT]: '数据冲突，请刷新后重试',
-    [ErrorType.VALIDATION_ERROR]: '输入数据不合法',
-    [ErrorType.INTERNAL_ERROR]: '服务器错误，请稍后重试',
-    [ErrorType.UNKNOWN_ERROR]: '发生未知错误，请稍后重试',
+const getErrorMessage = (type: ErrorType): string => {
+    const keyMap: Record<ErrorType, string> = {
+        [ErrorType.NETWORK_ERROR]: 'common.network_error',
+        [ErrorType.TIMEOUT]: 'common.timeout_error',
+        [ErrorType.OFFLINE]: 'errors.offline',
+        [ErrorType.UNAUTHORIZED]: 'errors.unauthorized',
+        [ErrorType.FORBIDDEN]: 'errors.forbidden',
+        [ErrorType.TOKEN_EXPIRED]: 'errors.token_expired',
+        [ErrorType.NOT_FOUND]: 'errors.not_found',
+        [ErrorType.CONFLICT]: 'errors.conflict',
+        [ErrorType.VALIDATION_ERROR]: 'errors.validation',
+        [ErrorType.INTERNAL_ERROR]: 'errors.internal',
+        [ErrorType.UNKNOWN_ERROR]: 'errors.unknown',
+    }
+    return i18n.global.t(keyMap[type])
 }
 
 /**
@@ -91,12 +89,12 @@ export function getUserFriendlyMessage(error: any): string {
     if (error instanceof Error) {
         // 检查是否是网络错误
         if (error.message.includes('fetch') || error.message.includes('network')) {
-            return errorMessages[ErrorType.NETWORK_ERROR]
+            return getErrorMessage(ErrorType.NETWORK_ERROR)
         }
         return error.message
     }
 
-    return errorMessages[ErrorType.UNKNOWN_ERROR]
+    return getErrorMessage(ErrorType.UNKNOWN_ERROR)
 }
 
 /**
@@ -154,3 +152,4 @@ export function createAppError(
     const isRetryable = isRetryableError({ type })
     return new AppError(message, code, data, isRetryable)
 }
+import i18n from '@/i18n'
