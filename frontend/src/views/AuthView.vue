@@ -9,6 +9,7 @@ import { useUserStore } from '@/stores'
 import api from '@/services/api'
 import { logger } from '@/services/logger'
 import { useI18n } from 'vue-i18n'
+import { getApiBaseUrl } from '@/utils/urlBuilder'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -23,7 +24,7 @@ const isFocused = ref<string | null>(null)
 
 // 服务器配置相关
 const showServerConfig = ref(false)
-const tempApiUrl = ref(localStorage.getItem('apiUrl') || 'http://localhost:3001/api')
+const tempApiUrl = ref(localStorage.getItem('apiUrl') || getApiBaseUrl())
 
 // 表单数据
 const formData = ref({
@@ -248,7 +249,7 @@ onUnmounted(() => {
                 </div>
                 <div class="input-group focused">
                   <Globe class="w-5 h-5 opacity-20" />
-                  <input v-model="tempApiUrl" type="text" placeholder="http://192.168.x.x:3001/api" />
+                  <input v-model="tempApiUrl" type="text" placeholder="http://139.199.55.169:4000/api" />
                 </div>
                 <div class="p-5 rounded-2xl bg-orange-500/5 border border-orange-500/10 text-[9px] font-bold leading-relaxed opacity-60" style="color: var(--text-primary);">
                   {{ t('auth.config_api_hint') }}

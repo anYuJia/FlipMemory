@@ -2,6 +2,8 @@
  * 统一的 URL 构建工具
  */
 
+const DEFAULT_API_URL = 'http://139.199.55.169:4000/api'
+
 /**
  * 获取 API 基准地址
  * 优先从 localStorage 读取，实现移动端动态配置，
@@ -10,14 +12,11 @@
 export function getApiBaseUrl(): string {
     const savedUrl = localStorage.getItem('apiUrl')
     if (savedUrl) return savedUrl
-    
-    // 智能默认逻辑：移动端环境下，如果没配置，优先尝试生产服务器
-    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent)
-    if (isMobile) {
-        return 'http://139.199.55.169:3001/api'
-    }
-    
-    return import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+
+    const envUrl = import.meta.env.VITE_API_URL
+    if (envUrl) return envUrl
+
+    return DEFAULT_API_URL
 }
 
 /**
