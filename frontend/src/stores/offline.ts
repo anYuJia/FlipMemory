@@ -67,7 +67,7 @@ export const useOfflineStore = defineStore('offline', () => {
         if (syncError.value) return 'error'
         if (isSyncing.value) return 'syncing'
         if (!isOnline.value) return 'offline'
-        if (pendingOperationsCount.value > 0) return 'pending'
+        if (pendingOperationsCount.value > 0 || pendingPhotosCount.value > 0) return 'pending'
         return 'synced'
     })
 
@@ -91,6 +91,13 @@ export const useOfflineStore = defineStore('offline', () => {
                 }
             })
 
+            // 监听手动离线模式开关：用户关闭离线模式后，若在线则立即补同步
+            watch(offlineModeEnabled, async (enabled) => {
+                if (!enabled && isOnline.value && hasPendingSync.value) {
+                    await syncPendingOperations()
+                }
+            })
+
             // 监听来自 Service Worker 的同步消息
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.addEventListener('message', (event) => {
@@ -98,6 +105,11 @@ export const useOfflineStore = defineStore('offline', () => {
                         syncPendingOperations()
                     }
                 })
+            }
+
+            // 初始化时若已经联网且存在历史待同步数据，也应立即触发补同步
+            if (isOnline.value && hasPendingSync.value && !offlineModeEnabled.value) {
+                await syncPendingOperations()
             }
 
             isInitialized.value = true
