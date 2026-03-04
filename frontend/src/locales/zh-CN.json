@@ -138,11 +138,37 @@
       "basic_info": "基本信息",
       "nickname": "昵称",
       "birthday": "生日",
+      "select_age": "选年龄",
+      "profession": "职业",
+      "gender_title": "性别",
+      "interests_title": "兴趣爱好",
+      "custom_interest_placeholder": "输入兴趣爱好",
+      "add_custom_interest": "添加自定义兴趣",
       "age_unit": "{age} 岁",
       "gender": {
         "male": "男",
         "female": "女",
         "other": "其他"
+      },
+      "interest_tags": {
+        "reading": "阅读",
+        "travel": "旅行",
+        "food": "美食",
+        "music": "音乐",
+        "movie": "电影",
+        "sports": "运动",
+        "photography": "摄影",
+        "drawing": "绘画",
+        "gaming": "游戏",
+        "coding": "编程",
+        "cooking": "烹饪",
+        "gardening": "园艺",
+        "yoga": "瑜伽",
+        "meditation": "冥想",
+        "hiking": "徒步",
+        "cycling": "骑行",
+        "fitness": "健身",
+        "swimming": "游泳"
       }
     },
     "privacy": {

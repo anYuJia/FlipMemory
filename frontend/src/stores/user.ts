@@ -13,6 +13,7 @@ export interface UserProfile {
     profession?: string | null
     interests?: string[]
     avatar?: string | null
+    avatarUrl?: string | null
 }
 
 export const useUserStore = defineStore('user', () => {

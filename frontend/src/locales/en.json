@@ -138,11 +138,37 @@
       "basic_info": "Basic Info",
       "nickname": "Nickname",
       "birthday": "Birthday",
+      "select_age": "Age",
+      "profession": "Profession",
+      "gender_title": "Gender",
+      "interests_title": "Interests",
+      "custom_interest_placeholder": "Enter custom interest",
+      "add_custom_interest": "Add Custom Interest",
       "age_unit": "{age} y",
       "gender": {
         "male": "Male",
         "female": "Female",
         "other": "Other"
+      },
+      "interest_tags": {
+        "reading": "Reading",
+        "travel": "Travel",
+        "food": "Food",
+        "music": "Music",
+        "movie": "Movies",
+        "sports": "Sports",
+        "photography": "Photography",
+        "drawing": "Drawing",
+        "gaming": "Gaming",
+        "coding": "Coding",
+        "cooking": "Cooking",
+        "gardening": "Gardening",
+        "yoga": "Yoga",
+        "meditation": "Meditation",
+        "hiking": "Hiking",
+        "cycling": "Cycling",
+        "fitness": "Fitness",
+        "swimming": "Swimming"
       }
     },
     "privacy": {

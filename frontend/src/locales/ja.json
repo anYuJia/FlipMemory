@@ -138,11 +138,37 @@
       "basic_info": "基本情報",
       "nickname": "ニックネーム",
       "birthday": "誕生日",
+      "select_age": "年齢",
+      "profession": "職業",
+      "gender_title": "性別",
+      "interests_title": "興味・趣味",
+      "custom_interest_placeholder": "カスタム興味を入力",
+      "add_custom_interest": "カスタム興味を追加",
       "age_unit": "{age}歳",
       "gender": {
         "male": "男性",
         "female": "女性",
         "other": "その他"
+      },
+      "interest_tags": {
+        "reading": "読書",
+        "travel": "旅行",
+        "food": "グルメ",
+        "music": "音楽",
+        "movie": "映画",
+        "sports": "スポーツ",
+        "photography": "写真",
+        "drawing": "絵画",
+        "gaming": "ゲーム",
+        "coding": "プログラミング",
+        "cooking": "料理",
+        "gardening": "園芸",
+        "yoga": "ヨガ",
+        "meditation": "瞑想",
+        "hiking": "ハイキング",
+        "cycling": "サイクリング",
+        "fitness": "フィットネス",
+        "swimming": "水泳"
       }
     },
     "privacy": {

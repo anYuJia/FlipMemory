@@ -138,11 +138,37 @@
       "basic_info": "基本資訊",
       "nickname": "暱稱",
       "birthday": "生日",
+      "select_age": "選年齡",
+      "profession": "職業",
+      "gender_title": "性別",
+      "interests_title": "興趣愛好",
+      "custom_interest_placeholder": "輸入興趣愛好",
+      "add_custom_interest": "新增自訂興趣",
       "age_unit": "{age} 歲",
       "gender": {
         "male": "男",
         "female": "女",
         "other": "其他"
+      },
+      "interest_tags": {
+        "reading": "閱讀",
+        "travel": "旅行",
+        "food": "美食",
+        "music": "音樂",
+        "movie": "電影",
+        "sports": "運動",
+        "photography": "攝影",
+        "drawing": "繪畫",
+        "gaming": "遊戲",
+        "coding": "程式設計",
+        "cooking": "烹飪",
+        "gardening": "園藝",
+        "yoga": "瑜伽",
+        "meditation": "冥想",
+        "hiking": "健行",
+        "cycling": "騎行",
+        "fitness": "健身",
+        "swimming": "游泳"
       }
     },
     "privacy": {
