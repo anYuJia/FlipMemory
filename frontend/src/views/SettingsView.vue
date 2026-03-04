@@ -24,15 +24,7 @@ const themeIcon = { light: Sun, dark: Moon, system: Smartphone }
 const currentThemeLabel = computed(() => {
   const theme = userStore.settings.theme || 'system'
   const key = `settings.theme.${theme}`
-  const translated = t(key)
-  if (translated !== key) return translated
-
-  const fallback: Record<string, string> = {
-    light: 'Light',
-    dark: 'Dark',
-    system: 'System'
-  }
-  return fallback[theme] || fallback.system
+  return t(key)
 })
 
 const languages = ['zh-CN', 'zh-TW', 'ja', 'en']

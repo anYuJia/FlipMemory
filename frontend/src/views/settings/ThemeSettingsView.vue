@@ -2,9 +2,11 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores'
-import { ArrowLeft, Check, Sparkles, Clock, Palette, History } from 'lucide-vue-next'
+import { ArrowLeft, Check, Sparkles, Clock, Palette, History, Smartphone, ChevronRight } from 'lucide-vue-next'
 import { useTimeTheme } from '@/composables/useTimeTheme'
 import { useI18n } from 'vue-i18n'
+import IOSPicker from '@/components/ui/IOSPicker.vue'
+import type { PickerColumn } from '@/components/ui/IOSPicker.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -16,6 +18,7 @@ const savedPrimary = ref(userStore.customColors.primary)
 const savedBg = ref(userStore.customColors.bg)
 const tempPrimary = ref(userStore.customColors.primary)
 const tempBg = ref(userStore.customColors.bg)
+const showThemeModePicker = ref(false)
 
 const isDirty = computed(() => {
   return tempPrimary.value.toLowerCase() !== savedPrimary.value.toLowerCase() || 
@@ -56,6 +59,25 @@ const applyFromHistory = (h: {primary: string, bg: string}) => {
   userStore.setCustomColors(h.primary, h.bg)
 }
 
+const themeModeColumns = computed<PickerColumn[]>(() => {
+  const modes = ['system', 'light', 'dark'] as const
+  return [
+    {
+      key: 'theme',
+      options: modes.map(mode => ({
+        value: mode,
+        label: t(`settings.theme.${mode}`)
+      })),
+      defaultValue: userStore.settings.theme || 'system'
+    }
+  ]
+})
+
+const onThemeModeConfirm = async (values: Record<string, string | number>) => {
+  const mode = String(values.theme) as 'light' | 'dark' | 'system'
+  await userStore.updateSettings({ theme: mode })
+}
+
 onMounted(() => {
   setTimeout(() => { isLoaded.value = true }, 100)
 })
@@ -74,6 +96,27 @@ onMounted(() => {
 
     <main class="relative max-w-lg mx-auto px-6 py-4 space-y-10 transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
       
+      <!-- 0. 主题模式（iOS Picker） -->
+      <section>
+        <div class="flex items-center gap-2 mb-4 opacity-40" style="color: var(--text-primary);">
+          <Palette class="w-4 h-4" />
+          <span class="text-[10px] font-black uppercase tracking-[0.2em]">{{ t('settings.theme_title') }}</span>
+        </div>
+        <button
+          class="w-full rounded-[2rem] card-static px-6 py-5 flex items-center gap-4 active:bg-black/5 dark:active:bg-white/5 transition-colors"
+          @click="showThemeModePicker = true"
+        >
+          <div class="w-10 h-10 rounded-2xl flex items-center justify-center bg-slate-500/10">
+            <Smartphone class="w-5 h-5 text-slate-500" />
+          </div>
+          <div class="flex-1 text-left">
+            <div class="text-sm font-black tracking-tight" style="color: var(--text-primary);">{{ t('settings.theme_title') }}</div>
+            <div class="text-[10px] font-bold uppercase opacity-40" style="color: var(--text-primary);">{{ t(`settings.theme.${userStore.settings.theme || 'system'}`) }}</div>
+          </div>
+          <ChevronRight class="w-4 h-4 opacity-20" style="color: var(--text-primary);" />
+        </button>
+      </section>
+
       <!-- 1. 自动流转 -->
       <section>
         <div class="flex items-center gap-2 mb-4 opacity-40" style="color: var(--text-primary);">
@@ -172,6 +215,15 @@ onMounted(() => {
         </TransitionGroup>
       </section>
     </main>
+
+    <IOSPicker
+      v-model:visible="showThemeModePicker"
+      :title="t('settings.theme_title')"
+      :columns="themeModeColumns"
+      :cancel-text="t('common.cancel')"
+      :confirm-text="t('common.confirm')"
+      @confirm="onThemeModeConfirm"
+    />
   </div>
 </template>
 

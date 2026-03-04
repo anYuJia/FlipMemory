@@ -83,13 +83,29 @@ export const useUserStore = defineStore('user', () => {
         window.location.reload()
     }
 
+    async function updateSettings(data: Partial<UserSettings>) {
+        try {
+            const updated = await api.user.updateSettings(data)
+            settings.value = { ...settings.value, ...updated }
+            localStorage.setItem('userSettings', JSON.stringify(settings.value))
+            return updated
+        } catch (e) {
+            console.error('Failed to update settings', e)
+            // 乐观更新，如果 API 失败，至少本地是生效的（或者在这里处理回滚）
+            settings.value = { ...settings.value, ...data }
+            localStorage.setItem('userSettings', JSON.stringify(settings.value))
+        }
+    }
+
     function init() {
         const t = getToken()
         if (t) accessToken.value = t
         const u = localStorage.getItem('userInfo')
         const p = localStorage.getItem('userProfile')
+        const s = localStorage.getItem('userSettings')
         if (u) try { user.value = JSON.parse(u) } catch {}
         if (p) try { profile.value = JSON.parse(p) } catch {}
+        if (s) try { settings.value = JSON.parse(s) } catch {}
     }
 
     async function login(account: string, password: string) {
@@ -136,6 +152,6 @@ export const useUserStore = defineStore('user', () => {
         setThemeColor, setCustomColors, updateCustomColors, addToHistory,
         init, login, register, logout,
         fetchProfile, updateProfile,
-        setStartOfWeek, setLocale,
+        setStartOfWeek, setLocale, updateSettings,
     }
 })
