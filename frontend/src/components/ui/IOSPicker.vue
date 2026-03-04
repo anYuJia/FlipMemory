@@ -47,7 +47,7 @@ const initColumns = () => {
 const scrollToIndex = (colIndex: number, itemIndex: number, smooth = false) => {
   const el = columnRefs.value[colIndex]
   if (!el) return
-  const scrollTop = itemIndex * ITEM_HEIGHT
+  const scrollTop = Math.max(0, (itemIndex - CENTER_INDEX) * ITEM_HEIGHT)
   el.scrollTo({
     top: scrollTop,
     behavior: smooth ? 'smooth' : 'auto'
@@ -58,7 +58,7 @@ const onScroll = (colIndex: number) => {
   const el = columnRefs.value[colIndex]
   if (!el) return
   const scrollTop = el.scrollTop
-  const index = Math.round(scrollTop / ITEM_HEIGHT)
+  const index = Math.round(scrollTop / ITEM_HEIGHT) + CENTER_INDEX
   const clampedIndex = Math.max(0, Math.min(index, (props.columns[colIndex]?.options.length ?? 1) - 1))
   selectedIndices.value[colIndex] = clampedIndex
 }
@@ -180,19 +180,21 @@ onMounted(() => {
   z-index: 9999;
   background: rgba(0, 0, 0, 0.4);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .ios-picker-sheet {
   width: 100%;
-  max-width: 500px;
+  max-width: 460px;
   background: var(--card-bg, #fff);
-  border-radius: 1.5rem 1.5rem 0 0;
+  border-radius: 1.5rem;
   overflow: hidden;
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 }
 
 .ios-picker-header {
@@ -295,7 +297,7 @@ onMounted(() => {
   font-weight: 600;
   color: var(--text-primary, #333);
   opacity: 0.35;
-  scroll-snap-align: start;
+  scroll-snap-align: center;
   transition: opacity 0.15s, font-size 0.15s;
   white-space: nowrap;
   overflow: hidden;
@@ -320,15 +322,17 @@ onMounted(() => {
 }
 
 .ios-picker-slide-enter-active {
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
 }
 .ios-picker-slide-leave-active {
-  transition: transform 0.25s ease-in;
+  transition: transform 0.2s ease-in, opacity 0.2s ease-in;
 }
 .ios-picker-slide-enter-from {
-  transform: translateY(100%);
+  transform: translateY(16px) scale(0.98);
+  opacity: 0;
 }
 .ios-picker-slide-leave-to {
-  transform: translateY(100%);
+  transform: translateY(16px) scale(0.98);
+  opacity: 0;
 }
 </style>

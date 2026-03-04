@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useMemoryStore } from '@/stores'
 import { ArrowLeft, Camera, Image, X, Check, Sparkles, Edit3, MapPin, Sun, Cloud, CloudRain, Wind, Snowflake, Loader2 } from 'lucide-vue-next'
 import { MoodEmoji, type MoodType } from '@/types/memory'
 import { logger } from '@/services/logger'
 import { imageProcessor } from '@/utils/imageProcessor'
 import { useI18n } from 'vue-i18n'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
+const memoryStore = useMemoryStore()
+const toast = useToast()
 const { t, locale } = useI18n()
 
 const isLoaded = ref(true)
@@ -52,13 +56,26 @@ const selectMood = (m: MoodType) => { mood.value = mood.value === m ? '' : m }
 
 const handleSubmit = async () => {
   if (isSubmitting.value) return
+  const trimmedContent = content.value.trim()
+  const hasPayload = Boolean(trimmedContent || mood.value || location.value.trim() || weather.value || photoFile.value)
+  if (!hasPayload) {
+    toast.error(t('create.placeholder'))
+    return
+  }
+
   isSubmitting.value = true
-  try { 
-    // 调用实际保存逻辑 (此处保持模拟，确保 UI 流程通畅)
-    setTimeout(() => {
-      router.push('/')
-    }, 800)
-  } catch (err) { 
+  try {
+    await memoryStore.createMemory({
+      date,
+      content: trimmedContent || undefined,
+      mood: mood.value || undefined,
+      location: location.value.trim() || undefined,
+      weather: weather.value || undefined,
+    })
+    toast.success(t('common.success'))
+    router.push('/')
+  } catch (err) {
+    toast.error(t('common.failed'))
     logger.error('Failed to save memory', 'CreateView', err) 
   } finally { 
     isSubmitting.value = false 
