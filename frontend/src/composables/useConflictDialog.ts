@@ -2,7 +2,7 @@
  * 冲突对话框 Composable
  */
 
-import { ref, shallowRef } from 'vue'
+import { ref } from 'vue'
 import type { ConflictResolutionStrategy } from '@/services/conflictResolver'
 
 export interface ConflictData {

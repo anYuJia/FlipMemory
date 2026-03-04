@@ -2,11 +2,9 @@
 import { useRouter, useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { Home, Calendar, Sparkles, BarChart3, Settings } from 'lucide-vue-next'
-import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
 
 const navItems = [
   { name: 'home', icon: Home, label: 'nav.home' },

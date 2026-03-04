@@ -2,7 +2,7 @@
  * Token 管理器测试
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
     saveToken,
     getToken,

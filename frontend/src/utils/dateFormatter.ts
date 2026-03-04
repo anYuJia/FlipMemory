@@ -72,7 +72,7 @@ export function formatChineseDate(date: Date | string): string {
  * 解析 YYYY-MM-DD 格式的日期字符串
  */
 export function parseDate(dateStr: string): Date {
-    const [year, month, day] = dateStr.split('-').map(Number)
+    const [year = 1970, month = 1, day = 1] = dateStr.split('-').map(Number)
     return new Date(year, month - 1, day)
 }
 

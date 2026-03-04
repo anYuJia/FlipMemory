@@ -6,7 +6,6 @@ import { describe, it, expect } from 'vitest'
 import {
     formatDateToString,
     formatDateTime,
-    formatRelativeTime,
     formatMonthDay,
     formatChineseDate,
     parseDate,

@@ -107,15 +107,6 @@ const allowedTags = new Set([
 ])
 
 /**
- * 允许的 HTML 属性
- */
-const allowedAttributes: Record<string, Set<string>> = {
-    a: new Set(['href', 'title', 'target', 'rel']),
-    img: new Set(['src', 'alt', 'title', 'width', 'height']),
-    '*': new Set(['class', 'id', 'style']),
-}
-
-/**
  * 清理 HTML（保留安全的标签和属性）
  */
 export function sanitizeHtml(html: string): string {

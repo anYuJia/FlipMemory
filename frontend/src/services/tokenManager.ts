@@ -9,15 +9,6 @@ const REFRESH_TOKEN_KEY = 'refreshToken'
 const TOKEN_EXPIRY_KEY = 'tokenExpiry'
 
 /**
- * 检查是否支持 HttpOnly Cookie
- */
-function supportsHttpOnlyCookie(): boolean {
-    // 在浏览器中，我们无法直接设置 HttpOnly Cookie
-    // 但服务器可以在响应中设置
-    return true
-}
-
-/**
  * 获取存储方式 - 强制统一使用 localStorage 以确保多处读写一致性
  */
 function getStorage(): Storage {

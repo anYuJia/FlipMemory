@@ -18,8 +18,8 @@ export interface ConflictInfo {
 export function detectConflict(
     localVersion: any,
     remoteVersion: any,
-    localTimestamp: number,
-    remoteTimestamp: number
+    _localTimestamp: number,
+    _remoteTimestamp: number
 ): boolean {
     // 如果版本号不同，说明有冲突
     if (localVersion !== remoteVersion) {
@@ -146,8 +146,8 @@ export function generateVersion(): string {
  * 比较版本号
  */
 export function compareVersions(v1: string, v2: string): number {
-    const t1 = parseInt(v1.split('-')[0])
-    const t2 = parseInt(v2.split('-')[0])
+    const t1 = parseInt(v1.split('-')[0] ?? '0')
+    const t2 = parseInt(v2.split('-')[0] ?? '0')
 
     if (t1 > t2) return 1
     if (t1 < t2) return -1

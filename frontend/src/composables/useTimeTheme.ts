@@ -26,7 +26,8 @@ export const useTimeTheme = () => {
   const userStore = useUserStore()
   const currentPalette = ref<ThemePalette | null>(null)
 
-  const timePhases: Record<string, ThemePalette> = {
+  type PhaseKey = 'dawn' | 'morning' | 'afternoon' | 'dusk' | 'midnight' | 'stellar'
+  const timePhases: Record<PhaseKey, ThemePalette> = {
     dawn: { id: 'dawn', name: '黎明', primary: '#FFB7C5', accent: '#FF8C94', bg: '#FDF2F4', isDark: false },
     morning: { id: 'morning', name: '上午', primary: '#FF8C42', accent: '#F97316', bg: '#F9F8F6', isDark: false },
     afternoon: { id: 'afternoon', name: '正午', primary: '#F59E0B', accent: '#D97706', bg: '#FDFBEB', isDark: false },
@@ -105,7 +106,7 @@ export const useTimeTheme = () => {
     
     if (colorId === 'auto') {
       const hour = new Date().getHours()
-      let phase = 'morning'
+      let phase: PhaseKey = 'morning'
       if (hour >= 5 && hour < 8) phase = 'dawn'
       else if (hour >= 8 && hour < 11) phase = 'morning'
       else if (hour >= 11 && hour < 16) phase = 'afternoon'
@@ -125,8 +126,13 @@ export const useTimeTheme = () => {
         isDark: isColorDark(bg)
       })
     } else {
-      const palette = allPalettes.find(p => p.id === colorId) || allPalettes[0]
-      applyPalette(palette)
+      const fallback = allPalettes[0]
+      const palette = allPalettes.find(p => p.id === colorId)
+      if (palette) {
+        applyPalette(palette)
+      } else if (fallback) {
+        applyPalette(fallback)
+      }
     }
   }
 

@@ -3,7 +3,7 @@
  * 在线时使用网络请求并缓存，离线时使用本地缓存
  */
 import { db, generateTempId, type LocalMemory, type LocalCalendarDay, type SyncStatus } from '@/services/db'
-import api, { AppError } from '@/services/api'
+import api from '@/services/api'
 import { useOfflineStore } from '@/stores/offline'
 import { logError } from '@/utils/errorHandler'
 import type { Memory, CalendarDay, CreateMemoryInput, MoodType } from '@/types'
