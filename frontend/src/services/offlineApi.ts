@@ -5,7 +5,7 @@
 import { db, generateTempId, type LocalMemory, type LocalCalendarDay, type SyncStatus } from '@/services/db'
 import api from '@/services/api'
 import { useOfflineStore } from '@/stores/offline'
-import { logError } from '@/utils/errorHandler'
+import { AppError, logError } from '@/utils/errorHandler'
 import type { Memory, CalendarDay, CreateMemoryInput, MoodType } from '@/types'
 
 /**
@@ -26,6 +26,22 @@ function toLocalMemory(memory: Memory, syncStatus: SyncStatus = 'synced'): Local
 function toServerMemory(localMemory: LocalMemory): Memory {
     const { _syncStatus, _localUpdatedAt, _serverVersion, _isTemp, ...memory } = localMemory
     return memory as Memory
+}
+
+/**
+ * 判断在线请求失败后是否应该回退到离线队列
+ * 仅网络异常/可重试错误回退，业务类 4xx 错误不应入队
+ */
+function shouldFallbackToOffline(error: unknown): boolean {
+    if (error instanceof AppError) {
+        return error.isRetryable || error.code === 0 || error.code >= 500 || error.code === 408 || error.code === 429
+    }
+
+    if (error instanceof TypeError) {
+        return true
+    }
+
+    return false
 }
 
 /**
@@ -122,6 +138,7 @@ export const offlineApi = {
          */
         async create(input: CreateMemoryInput): Promise<Memory> {
             const offlineStore = useOfflineStore()
+            const { localPhotos, ...serverInput } = input
 
             // 生成临时 ID
             const tempId = generateTempId()
@@ -136,7 +153,17 @@ export const offlineApi = {
                 isPrivate: false,
                 weather: input.weather || null,
                 location: input.location || null,
-                photos: [],
+                photos: (localPhotos || []).map((photo) => ({
+                    id: photo.id,
+                    key: photo.key ?? null,
+                    originalUrl: photo.originalUrl,
+                    thumbnailUrl: photo.thumbnailUrl,
+                    mediumUrl: photo.mediumUrl,
+                    takenAt: photo.takenAt || null,
+                    width: photo.width ?? null,
+                    height: photo.height ?? null,
+                    order: photo.order ?? 0,
+                })),
                 tags: [],
                 createdAt: now,
                 updatedAt: now,
@@ -148,7 +175,7 @@ export const offlineApi = {
             // 如果在线且未开启离线模式，尝试直接创建
             if (offlineStore.isOnline && !offlineStore.offlineModeEnabled) {
                 try {
-                    const memory = await api.memories.create(input)
+                    const memory = await api.memories.create(serverInput)
 
                     // 保存到本地缓存
                     await offlineStore.saveLocalMemory(toLocalMemory(memory))
@@ -164,6 +191,7 @@ export const offlineApi = {
 
                     return memory
                 } catch (error) {
+                    if (!shouldFallbackToOffline(error)) throw error
                     console.warn('[OfflineAPI] Failed to create on server, saving locally:', error)
                 }
             }
@@ -174,7 +202,7 @@ export const offlineApi = {
                 type: 'create',
                 entityType: 'memory',
                 entityId: tempId,
-                data: input,
+                data: serverInput,
             })
 
             // 更新日历缓存
@@ -241,6 +269,7 @@ export const offlineApi = {
 
                     return memory
                 } catch (error) {
+                    if (!shouldFallbackToOffline(error)) throw error
                     console.warn('[OfflineAPI] Failed to update on server, saving locally:', error)
                 }
             }
@@ -279,6 +308,7 @@ export const offlineApi = {
 
                     return true
                 } catch (error) {
+                    if (!shouldFallbackToOffline(error)) throw error
                     console.warn('[OfflineAPI] Failed to delete on server, marking for deletion:', error)
                 }
             }

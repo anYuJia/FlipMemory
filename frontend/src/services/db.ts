@@ -22,6 +22,7 @@ export type UploadStatus = 'pending' | 'uploading' | 'uploaded' | 'failed'
  */
 export interface LocalPhoto {
     id: string
+    key?: string | null
     originalUrl: string
     thumbnailUrl: string
     mediumUrl: string

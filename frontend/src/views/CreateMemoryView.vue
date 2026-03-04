@@ -8,6 +8,7 @@ import { logger } from '@/services/logger'
 import { imageProcessor } from '@/utils/imageProcessor'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
+import { offlinePhotoService } from '@/services/offlinePhotoService'
 
 const route = useRoute()
 const router = useRouter()
@@ -65,12 +66,50 @@ const handleSubmit = async () => {
 
   isSubmitting.value = true
   try {
+    const photoKeys: string[] = []
+    const localPhotos: Array<{
+      id: string
+      key?: string | null
+      originalUrl: string
+      thumbnailUrl: string
+      mediumUrl: string
+      takenAt?: string | null
+      width?: number | null
+      height?: number | null
+      order?: number
+    }> = []
+
+    if (photoFile.value) {
+      const uploadResult = await offlinePhotoService.savePhoto(date, photoFile.value, {
+        filename: photoFile.value.name || `memory-${date}.jpg`,
+        order: 0,
+      })
+
+      if (uploadResult.isLocal) {
+        localPhotos.push({
+          id: uploadResult.id,
+          key: uploadResult.key,
+          originalUrl: uploadResult.originalUrl,
+          thumbnailUrl: uploadResult.thumbnailUrl,
+          mediumUrl: uploadResult.mediumUrl,
+          takenAt: null,
+          width: null,
+          height: null,
+          order: 0,
+        })
+      } else {
+        photoKeys.push(uploadResult.key)
+      }
+    }
+
     await memoryStore.createMemory({
       date,
       content: trimmedContent || undefined,
       mood: mood.value || undefined,
       location: location.value.trim() || undefined,
       weather: weather.value || undefined,
+      photoKeys: photoKeys.length > 0 ? photoKeys : undefined,
+      localPhotos: localPhotos.length > 0 ? localPhotos : undefined,
     })
     toast.success(t('common.success'))
     router.push('/')

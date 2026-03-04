@@ -16,6 +16,7 @@ export interface Memory {
 
 export interface Photo {
     id: string
+    key?: string | null
     originalUrl: string
     thumbnailUrl: string
     mediumUrl: string
@@ -103,6 +104,18 @@ export interface CreateMemoryInput {
     mood?: MoodType
     photoKeys?: string[]  // 向后兼容
     photos?: PhotoUploadData[]  // 推荐使用，包含 EXIF 数据
+    // 本地离线照片（仅本地缓存和离线同步使用，不直接透传后端）
+    localPhotos?: Array<{
+        id: string
+        key?: string | null
+        originalUrl: string
+        thumbnailUrl: string
+        mediumUrl: string
+        takenAt?: string | null
+        width?: number | null
+        height?: number | null
+        order?: number
+    }>
     tags?: string[]
     location?: string
     weather?: string

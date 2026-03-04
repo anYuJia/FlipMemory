@@ -264,9 +264,32 @@ export const useOfflineStore = defineStore('offline', () => {
     async function processMemoryOperation(op: SyncOperation): Promise<void> {
         switch (op.type) {
             case 'create': {
-                const serverMemory = await api.memories.create(op.data)
+                const createData = op.data as {
+                    date: string
+                    content?: string
+                    mood?: string
+                    photoKeys?: string[]
+                    tags?: string[]
+                    localPhotos?: unknown
+                }
+                const localMemory = await db.memories.get(createData.date)
+                const mergedPhotoKeys = [
+                    ...new Set([
+                        ...(createData.photoKeys || []),
+                        ...((localMemory?.photos || [])
+                            .map((p) => p.key)
+                            .filter((key): key is string => typeof key === 'string' && key.length > 0)),
+                    ])
+                ]
+
+                const { localPhotos: _localPhotos, ...restData } = createData
+                const payload = {
+                    ...restData,
+                    ...(mergedPhotoKeys.length > 0 ? { photoKeys: mergedPhotoKeys } : {}),
+                }
+
+                const serverMemory = await api.memories.create(payload)
                 // 更新本地缓存，替换临时 ID
-                const localMemory = await db.memories.get(op.data.date)
                 if (localMemory) {
                     await db.memories.put({
                         ...localMemory,

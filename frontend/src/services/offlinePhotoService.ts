@@ -234,6 +234,7 @@ class OfflinePhotoService {
                 return {
                     ...p,
                     id: serverPhoto.id,
+                    key: serverPhoto.key,
                     originalUrl: serverPhoto.originalUrl,
                     thumbnailUrl: serverPhoto.thumbnailUrl,
                     mediumUrl: serverPhoto.mediumUrl,

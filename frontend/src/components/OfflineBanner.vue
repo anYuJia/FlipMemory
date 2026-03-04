@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<{
 const {
   isOnline,
   isSyncing,
-  pendingOperationsCount,
+  totalPendingCount,
   hasPendingSync,
   triggerSync,
 } = useOffline()
@@ -64,8 +64,8 @@ const handleSync = async () => {
         <span class="banner-text">{{ t('offline_banner.offline_mode') }}</span>
         
         <!-- 待同步数量 -->
-        <span v-if="pendingOperationsCount > 0" class="pending-badge">
-          {{ t('offline_banner.pending_sync', { count: pendingOperationsCount }) }}
+        <span v-if="totalPendingCount > 0" class="pending-badge">
+          {{ t('offline_banner.pending_sync', { count: totalPendingCount }) }}
         </span>
       </div>
       
@@ -93,7 +93,7 @@ const handleSync = async () => {
           :class="{ 'animate-spin': isSyncing }" 
         />
         <span class="banner-text">
-          {{ isSyncing ? t('offline_banner.syncing') : t('offline_banner.pending_records', { count: pendingOperationsCount }) }}
+          {{ isSyncing ? t('offline_banner.syncing') : t('offline_banner.pending_records', { count: totalPendingCount }) }}
         </span>
         
         <!-- 同步按钮 -->

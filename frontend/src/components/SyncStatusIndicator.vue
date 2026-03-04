@@ -19,7 +19,7 @@ const {
   isSyncing,
   syncStatus,
   syncStatusText,
-  pendingOperationsCount,
+  totalPendingCount,
   triggerSync,
 } = useOffline()
 
@@ -49,8 +49,8 @@ const iconSizeClasses = {
     :class="[
       sizeClasses[size],
       {
-        'cursor-pointer hover:scale-105 active:scale-95': isOnline && !isSyncing && pendingOperationsCount > 0,
-        'cursor-default': !isOnline || isSyncing || pendingOperationsCount === 0,
+        'cursor-pointer hover:scale-105 active:scale-95': isOnline && !isSyncing && totalPendingCount > 0,
+        'cursor-default': !isOnline || isSyncing || totalPendingCount === 0,
       }
     ]"
     :style="{
@@ -65,7 +65,7 @@ const iconSizeClasses = {
              syncStatus === 'error' ? '#ef4444' :
              '#22c55e',
     }"
-    :disabled="!isOnline || isSyncing"
+    :disabled="!isOnline || isSyncing || totalPendingCount === 0"
   >
     <!-- 离线状态 -->
     <CloudOff 
