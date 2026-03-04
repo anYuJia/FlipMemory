@@ -41,7 +41,6 @@ onMounted(() => {})
 
 <template>
   <div class="page-container min-h-screen relative overflow-x-hidden">
-    <!-- 背景 -->
     <div class="fixed inset-0 pointer-events-none">
       <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.1] dark:opacity-[0.05]" style="background-color: var(--glow-primary);" />
     </div>
@@ -51,15 +50,14 @@ onMounted(() => {})
         <button @click="goBack" class="btn-back">
           <ArrowLeft class="w-5 h-5" />
         </button>
-        <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">{{ $t('feedback.title') }}</h1>
+        <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">{{ t('feedback.title') }}</h1>
       </div>
     </header>
 
     <main class="relative max-w-lg mx-auto px-6 py-4 transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
       <div v-if="!isSuccess" class="space-y-8">
-        <!-- 分类选择 -->
         <section>
-          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30 mb-4 block" style="color: var(--text-primary);">{{ $t('feedback.type_label') }}</span>
+          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30 mb-4 block" style="color: var(--text-primary);">{{ t('feedback.type_label') }}</span>
           <div class="grid grid-cols-3 gap-3">
             <button 
               v-for="cat in categories" 
@@ -78,20 +76,18 @@ onMounted(() => {})
           </div>
         </section>
 
-        <!-- 输入区域 -->
         <section>
           <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30 mb-4 block" style="color: var(--text-primary);">Message</span>
           <div class="rounded-[2.5rem] p-6 card-static shadow-inner min-h-[280px] flex flex-col">
             <textarea
               v-model="content"
-              :placeholder="$t('feedback.content_placeholder')"
+              :placeholder="t('feedback.content_placeholder')"
               class="flex-1 w-full bg-transparent border-none focus:outline-none text-base font-medium leading-relaxed placeholder:opacity-20"
               style="color: var(--text-primary);"
             ></textarea>
           </div>
         </section>
 
-        <!-- 提交按钮 -->
         <button 
           @click="handleSubmit"
           :disabled="!content.trim() || isSubmitting"
@@ -100,17 +96,16 @@ onMounted(() => {})
         >
           <Send v-if="!isSubmitting" class="w-4 h-4" />
           <Loader2 v-else class="w-4 h-4 animate-spin" />
-          <span>{{ isSubmitting ? $t('common.loading') : $t('feedback.submit') }}</span>
+          <span>{{ isSubmitting ? t('common.loading') : t('feedback.submit') }}</span>
         </button>
       </div>
 
-      <!-- 成功状态 -->
       <div v-else class="py-20 flex flex-col items-center justify-center animate-scale-in">
         <div class="w-24 h-24 rounded-[3rem] flex items-center justify-center shadow-2xl mb-10" style="background: var(--gradient-accent);">
           <CheckCircle2 class="w-12 h-12 text-white" stroke-width="3" />
         </div>
-        <h2 class="text-2xl font-black tracking-tighter mb-2" style="color: var(--text-primary);">{{ $t('feedback.success_title') }}</h2>
-        <p class="text-sm font-medium opacity-40 text-center max-w-[240px] leading-relaxed" style="color: var(--text-primary);">{{ $t('feedback.success_msg') }}</p>
+        <h2 class="text-2xl font-black tracking-tighter mb-2" style="color: var(--text-primary);">{{ t('feedback.success_title') }}</h2>
+        <p class="text-sm font-medium opacity-40 text-center max-w-[240px] leading-relaxed" style="color: var(--text-primary);">{{ t('feedback.success_msg') }}</p>
       </div>
     </main>
   </div>

@@ -5,91 +5,81 @@ import App from './App.vue'
 import i18n from './i18n'
 import './style.css'
 
-// Capacitor 插件导入
+// 性能监控与错误追踪
+import { performanceMonitor } from './services/performanceMonitor'
+import { initSentry } from './services/sentry'
+import { logger, LogLevel } from './services/logger'
+
+// Capacitor 插件
 import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import { Keyboard } from '@capacitor/keyboard'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { App as CapApp } from '@capacitor/app'
 
-// 性能监控和日志
-import { performanceMonitor } from './services/performanceMonitor'
-import { logger, LogLevel } from './services/logger'
-
-// 生产环境设置日志级别为 WARN
+// 生产环境设置日志级别
 if (import.meta.env.PROD) {
     logger.setMinLevel(LogLevel.WARN)
 }
 
 const app = createApp(App)
+const pinia = createPinia()
 
-// 国际化
+app.use(pinia)
+app.use(router)
 app.use(i18n)
 
-// 状态管理
-const pinia = createPinia()
-app.use(pinia)
+// 初始化 Sentry (Task 2)
+initSentry(app, router)
 
-// 路由
-app.use(router)
+// 初始化性能监控 (Task 1)
+performanceMonitor.init()
 
 // 初始化用户设置
 import { useUserStore } from './stores'
 const userStore = useUserStore(pinia)
 userStore.init()
 
-// 初始化性能监控
-performanceMonitor.init()
-
-// Capacitor 原生功能初始化
+// Capacitor 原生适配逻辑
 async function initCapacitor() {
-    if (!Capacitor.isNativePlatform()) {
-        logger.info('Running in web mode', 'Capacitor')
-        return
-    }
+    if (!Capacitor.isNativePlatform()) return
 
     const platform = Capacitor.getPlatform()
-    logger.info(`Running on ${platform}`, 'Capacitor')
-
-    // 添加平台类名到 html 元素，用于 CSS 特定样式
     document.documentElement.classList.add(`platform-${platform}`)
 
     try {
-        // 初始化状态栏
+        // 状态栏初始化
         if (Capacitor.isPluginAvailable('StatusBar')) {
+            // 注意：具体颜色会在 useTimeTheme 中动态改变
             await StatusBar.setStyle({ style: Style.Light })
-            await StatusBar.setBackgroundColor({ color: '#f97316' })
-            await StatusBar.setOverlaysWebView({ overlay: false })
         }
 
-        // 初始化键盘
+        // 键盘监听
         if (Capacitor.isPluginAvailable('Keyboard')) {
-            Keyboard.addListener('keyboardWillShow', () => {
-                document.body.classList.add('keyboard-visible')
-            })
-            Keyboard.addListener('keyboardWillHide', () => {
-                document.body.classList.remove('keyboard-visible')
-            })
+            Keyboard.addListener('keyboardWillShow', () => document.body.classList.add('keyboard-visible'))
+            Keyboard.addListener('keyboardWillHide', () => document.body.classList.remove('keyboard-visible'))
         }
 
-        // 隐藏启动画面
+        // 启动图处理
         if (Capacitor.isPluginAvailable('SplashScreen')) {
-            await SplashScreen.hide({ fadeOutDuration: 300 })
+            setTimeout(() => {
+                SplashScreen.hide({ fadeOutDuration: 400 })
+            }, 1000)
         }
 
-        // Android 硬件返回键：有路由历史则后退，否则最小化 App
+        // 硬件返回键
         CapApp.addListener('backButton', () => {
-            if (router.currentRoute.value.name === 'home' || router.currentRoute.value.name === 'auth') {
+            const currentName = router.currentRoute.value.name
+            if (currentName === 'home' || currentName === 'auth') {
                 CapApp.minimizeApp()
             } else {
                 router.back()
             }
         })
-    } catch (error) {
-        logger.error('Capacitor initialization error', 'Capacitor', error)
+    } catch (err) {
+        logger.error('Capacitor init failed', 'Main', err)
     }
 }
 
-// 应用挂载后初始化 Capacitor
 app.mount('#app')
 initCapacitor()

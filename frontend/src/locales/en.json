@@ -15,13 +15,8 @@
     "year": "Year",
     "back": "Back",
     "retry": "Retry Now",
-    "retrying": "Retrying...",
     "return_home": "Back Home",
-    "error_occurred": "Error Occurred",
-    "network_error": "Network Connection Failed",
-    "timeout_error": "Request Timed Out",
-    "server_error": "Server Error",
-    "retry_countdown": "Retrying in {seconds}s..."
+    "error_occurred": "Error Occurred"
   },
   "nav": {
     "home": "Home",
@@ -41,48 +36,17 @@
     "sub_greeting": "Any precious moments today? ✨",
     "monthly_records": "Monthly Stats",
     "memories_unit": "Memories",
-    "view_trends": "View Trends",
+    "view_trends": "Trends",
     "recent_memories": "Recent Memories",
     "featured_title": "Time Flashback",
-    "no_featured": "No memories yet. Go record one!",
+    "no_featured": "No featured memories yet. Go record one!",
     "record_now": "Record Today"
-  },
-  "auth": {
-    "sign_in": "Login",
-    "register": "Join",
-    "login_tab": "Login",
-    "register_tab": "Join",
-    "authenticate": "Enter Now",
-    "create_account": "Create Account",
-    "username_placeholder": "Email or Username",
-    "unique_username_placeholder": "Unique Username",
-    "password_placeholder": "Password",
-    "confirm_password_placeholder": "Confirm Password",
-    "nickname_placeholder": "Your Nickname",
-    "email_address": "Email Address",
-    "subtitle": "Personal Time Gallery",
-    "footer_text": "FLIPMEMORY PRO PRO",
-    "auth_failed": "Authentication Failed",
-    "server_config": "Server Config",
-    "server_config_title": "Setup API Endpoint",
-    "server_desc": "Mobile app cannot connect to localhost. Please enter your computer's LAN IP.",
-    "pwd_req": {
-      "len": "Min 8 chars",
-      "upper": "Uppercase",
-      "lower": "Lowercase",
-      "num": "Number"
-    },
-    "error": {
-      "mismatch": "Mismatched",
-      "taken": "Taken",
-      "fix_errors": "Fix errors first"
-    }
   },
   "settings": {
     "theme_title": "Appearance",
     "theme_desc": "Personalize your visual experience",
     "language_title": "Language",
-    "language_desc": "Choose your language. The app will reload to apply changes.",
+    "language_desc": "Choose your preferred language. The app will reload to apply changes.",
     "profile_title": "Profile",
     "profile_desc": "Manage account and preferences",
     "privacy_title": "Security",
@@ -98,7 +62,7 @@
       "auto_desc": "Adapts to day and night",
       "library": "Presets",
       "custom_lab": "Custom Lab",
-      "lab_preview": "Previewing",
+      "lab_preview": "Preview Mode",
       "activate": "Activate Lab",
       "active": "Lab Enabled",
       "reset": "Reset",
@@ -116,20 +80,6 @@
         "ember": "Ember",
         "custom": "Custom"
       }
-    },
-    "profile": {
-      "basic_info": "Basic Info",
-      "nickname": "Nickname",
-      "birthday": "Birthday",
-      "gender": "Gender",
-      "profession": "Profession",
-      "hobbies": "Hobbies",
-      "change_avatar": "Tap to change avatar",
-      "save_success": "Saved successfully",
-      "age_unit": "{age}y",
-      "select_gender": "Select Gender",
-      "select_birthday": "Select Birthday",
-      "select_profession": "Select Profession"
     }
   },
   "flashback": {
@@ -146,9 +96,9 @@
   },
   "feedback": {
     "title": "Feedback",
-    "type_label": "Type",
+    "type_label": "Feedback Type",
     "types": {
-      "bug": "Report Bug",
+      "bug": "Report a Bug",
       "feature": "Suggest Feature",
       "other": "Other"
     },
@@ -158,28 +108,23 @@
     "success_msg": "We have received your feedback."
   },
   "stats": {
+    "title": "Analytics",
+    "subtitle": "Your Data Dashboard",
     "week_num": "Week {num}",
-    "no_data": "No data",
+    "no_data": "No data available",
     "total_memories": "Total Memories",
-    "streak": "Streak",
+    "streak": "Current Streak",
     "photos": "Total Photos",
-    "mood_dist": "Mood Dist",
-    "activity_trend": "Activity",
-    "unit_entries": "entries",
+    "mood_dist": "Mood Distribution",
+    "activity_trend": "Activity Trend",
+    "unit_entries": "records",
     "unit_days": "days",
-    "unit_pics": "pics"
-  },
-  "create": {
-    "story_label": "Your Story",
-    "mood_label": "Mood",
-    "weather": {
-      "sunny": "Sunny",
-      "cloudy": "Cloudy",
-      "rainy": "Rainy",
-      "windy": "Windy",
-      "snowy": "Snowy"
-    },
-    "location_placeholder": "Where are you?",
-    "placeholder": "What happened today..."
+    "unit_pics": "photos",
+    "system_health": "System Health",
+    "vitals": {
+      "load": "Load Speed",
+      "network": "Network",
+      "health": "Health"
+    }
   }
 }

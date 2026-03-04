@@ -28,6 +28,8 @@
     "@capacitor/preferences": "^8.0.0",
     "@capacitor/splash-screen": "^8.0.0",
     "@capacitor/status-bar": "^8.0.0",
+    "@sentry/tracing": "^7.120.4",
+    "@sentry/vue": "^10.42.0",
     "@vueuse/core": "^14.1.0",
     "axios": "^1.13.6",
     "date-fns": "^4.1.0",

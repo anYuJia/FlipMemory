@@ -12,24 +12,16 @@ const { allPalettes } = useTimeTheme()
 const { t } = useI18n()
 const isLoaded = ref(false)
 
-/**
- * 核心逻辑：
- * savedValues: 上次点击“保存”或“应用”后的正式颜色，作为脏检查的基准。
- * tempValues: 取色器当前显示的颜色（草稿）。
- */
 const savedPrimary = ref(userStore.customColors.primary)
 const savedBg = ref(userStore.customColors.bg)
-
 const tempPrimary = ref(userStore.customColors.primary)
 const tempBg = ref(userStore.customColors.bg)
 
-// 脏检查
 const isDirty = computed(() => {
   return tempPrimary.value.toLowerCase() !== savedPrimary.value.toLowerCase() || 
          tempBg.value.toLowerCase() !== savedBg.value.toLowerCase()
 })
 
-// 监听 Store 变化（仅当由外部如历史记录触发时同步基准）
 watch(() => userStore.customColors, (newVal) => {
   tempPrimary.value = newVal.primary
   tempBg.value = newVal.bg
@@ -41,7 +33,6 @@ const handleSelect = (id: string) => {
   userStore.setThemeColor(id)
 }
 
-// 实时预览
 const onColorInput = () => {
   if (userStore.themeColor !== 'custom') {
     userStore.setThemeColor('custom')
@@ -49,14 +40,12 @@ const onColorInput = () => {
   userStore.updateCustomColors(tempPrimary.value, tempBg.value)
 }
 
-// 确认保存
 const saveCustom = () => {
   userStore.setCustomColors(tempPrimary.value, tempBg.value)
   savedPrimary.value = tempPrimary.value
   savedBg.value = tempBg.value
 }
 
-// 放弃修改
 const cancelEdit = () => {
   tempPrimary.value = savedPrimary.value
   tempBg.value = savedBg.value
@@ -174,7 +163,7 @@ onMounted(() => {
       <section v-if="userStore.colorHistory.length > 0">
         <div class="flex items-center gap-2 mb-4 opacity-40" style="color: var(--text-primary);">
           <History class="w-4 h-4" />
-          <span class="text-[10px] font-black uppercase tracking-[0.2em]">Color History</span>
+          <span class="text-[10px] font-black uppercase tracking-[0.2em]">{{ t('nav.flashback') }}</span>
         </div>
         <TransitionGroup name="history-list" tag="div" class="grid grid-cols-4 gap-3">
           <button v-for="h in userStore.colorHistory" :key="h.primary + h.bg" @click="applyFromHistory(h)" class="aspect-square rounded-2xl card-static flex items-center justify-center transition-all active:scale-90 border-2" :style="{ borderColor: (userStore.themeColor === 'custom' && userStore.customColors.primary === h.primary && userStore.customColors.bg === h.bg) ? 'var(--color-primary)' : 'transparent' }">

@@ -15,13 +15,8 @@
     "year": "年",
     "back": "戻る",
     "retry": "再試行",
-    "retrying": "再試行中...",
     "return_home": "ホームに戻る",
-    "error_occurred": "エラーが発生しました",
-    "network_error": "ネットワーク接続エラー",
-    "timeout_error": "リクエストタイムアウト",
-    "server_error": "サーバーエラー",
-    "retry_countdown": "{seconds}秒後に自動再試行..."
+    "error_occurred": "エラーが発生しました"
   },
   "nav": {
     "home": "ホーム",
@@ -46,37 +41,6 @@
     "featured_title": "タイムフラッシュバック",
     "no_featured": "まだおすすめの思い出はありません。今日を記録しましょう！",
     "record_now": "今日を記録する"
-  },
-  "auth": {
-    "sign_in": "ログイン",
-    "register": "登録",
-    "login_tab": "ログイン",
-    "register_tab": "参加",
-    "authenticate": "ログイン",
-    "create_account": "アカウント作成",
-    "username_placeholder": "ユーザー名またはメール",
-    "unique_username_placeholder": "一意のユーザー名",
-    "password_placeholder": "パスワード",
-    "confirm_password_placeholder": "確認用パスワード",
-    "nickname_placeholder": "ニックネーム",
-    "email_address": "メールアドレス",
-    "subtitle": "あなたの私人タイムギャラリー",
-    "footer_text": "FLIPMEMORY PRO PRO",
-    "auth_failed": "認証に失敗しました",
-    "server_config": "サーバー設定",
-    "server_config_title": "APIエンドポイントの設定",
-    "server_desc": "モバイルアプリからはlocalhostに接続できません。PCのローカルIPを入力してください。",
-    "pwd_req": {
-      "len": "8文字以上",
-      "upper": "大文字を含む",
-      "lower": "小文字を含む",
-      "num": "数字を含む"
-    },
-    "error": {
-      "mismatch": "不一致",
-      "taken": "既に使用されています",
-      "fix_errors": "エラーを修正してください"
-    }
   },
   "settings": {
     "theme_title": "テーマ設定",
@@ -116,20 +80,6 @@
         "ember": "残り火",
         "custom": "カスタム"
       }
-    },
-    "profile": {
-      "basic_info": "基本情報",
-      "nickname": "ニックネーム",
-      "birthday": "誕生日",
-      "gender": "性別",
-      "profession": "職業",
-      "hobbies": "趣味",
-      "change_avatar": "アイコンを変更",
-      "save_success": "保存しました",
-      "age_unit": "{age}歳",
-      "select_gender": "性別を選択",
-      "select_birthday": "誕生日を選択",
-      "select_profession": "職業を選択"
     }
   },
   "flashback": {
@@ -158,6 +108,8 @@
     "success_msg": "フィードバックを受け取りました。"
   },
   "stats": {
+    "title": "統計データ",
+    "subtitle": "あなたのデータダッシュボード",
     "week_num": "第 {num} 週",
     "no_data": "データなし",
     "total_memories": "思い出の总数",
@@ -167,19 +119,12 @@
     "activity_trend": "活動トレンド",
     "unit_entries": "件",
     "unit_days": "日",
-    "unit_pics": "枚"
-  },
-  "create": {
-    "story_label": "あなたの物語",
-    "mood_label": "今の気分",
-    "weather": {
-      "sunny": "晴れ",
-      "cloudy": "曇り",
-      "rainy": "雨",
-      "windy": "風",
-      "snowy": "雪"
-    },
-    "location_placeholder": "どこにいますか？",
-    "placeholder": "今日はどんなことがありましたか..."
+    "unit_pics": "枚",
+    "system_health": "システム健康度",
+    "vitals": {
+      "load": "読み込み速度",
+      "network": "ネットワーク遅延",
+      "health": "実行ステータス"
+    }
   }
 }

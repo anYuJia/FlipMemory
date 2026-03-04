@@ -15,13 +15,8 @@
     "year": "年",
     "back": "返回",
     "retry": "立即重試",
-    "retrying": "重試中...",
     "return_home": "返回首頁",
-    "error_occurred": "出錯了",
-    "network_error": "網絡連接失敗",
-    "timeout_error": "請求超時",
-    "server_error": "服務器錯誤",
-    "retry_countdown": "{seconds}秒後自動重試..."
+    "error_occurred": "出錯了"
   },
   "nav": {
     "home": "首頁",
@@ -47,37 +42,6 @@
     "no_featured": "還沒有精選回憶，去記錄一條吧",
     "record_now": "記錄今天"
   },
-  "auth": {
-    "sign_in": "登錄",
-    "register": "註冊",
-    "login_tab": "登錄",
-    "register_tab": "加入",
-    "authenticate": "立即進入",
-    "create_account": "創建賬號",
-    "username_placeholder": "用戶名或郵箱",
-    "unique_username_placeholder": "唯一用戶名",
-    "password_placeholder": "密碼",
-    "confirm_password_placeholder": "再次確認密碼",
-    "nickname_placeholder": "你的暱稱",
-    "email_address": "郵箱地址",
-    "subtitle": "您的私人時光畫廊",
-    "footer_text": "由 FlipMemory 安全保護",
-    "auth_failed": "身份驗證失敗",
-    "server_config": "服務器節點設置",
-    "server_config_title": "配置後端 API 地址",
-    "server_desc": "手機 App 無法連接 localhost。請輸入您電腦的局域網 IP。",
-    "pwd_req": {
-      "len": "需 8 位字符",
-      "upper": "含大寫字母",
-      "lower": "含小寫字母",
-      "num": "含數字"
-    },
-    "error": {
-      "mismatch": "不一致",
-      "taken": "已被佔用",
-      "fix_errors": "請先修正表單錯誤"
-    }
-  },
   "settings": {
     "theme_title": "主題外觀",
     "theme_desc": "個性化你的視覺體驗",
@@ -91,7 +55,7 @@
     "data_desc": "備份、匯出與清除數據",
     "feedback_title": "反饋與建議",
     "feedback_desc": "告訴我們您的想法",
-    "logout": "登出",
+    "logout": "退出登錄",
     "theme": {
       "title": "個性化調色盤",
       "auto_mode": "時光流轉",
@@ -116,20 +80,6 @@
         "ember": "余燼",
         "custom": "自定義"
       }
-    },
-    "profile": {
-      "basic_info": "基本信息",
-      "nickname": "暱稱",
-      "birthday": "生日",
-      "gender": "性別",
-      "profession": "職業",
-      "hobbies": "興趣愛好",
-      "change_avatar": "點擊更換頭像",
-      "save_success": "儲存成功",
-      "age_unit": "{age}歲",
-      "select_gender": "選擇性別",
-      "select_birthday": "選擇生日",
-      "select_profession": "選擇職業"
     }
   },
   "flashback": {
@@ -155,9 +105,11 @@
     "content_placeholder": "請詳細描述您的問題或建議...",
     "submit": "提交反饋",
     "success_title": "感謝您的反饋",
-    "success_msg": "我們已經收到您的建議，將努力做得更好。"
+    "success_msg": "我們已經收到您的建議。"
   },
   "stats": {
+    "title": "統計看板",
+    "subtitle": "您的數據全覽",
     "week_num": "第 {num} 週",
     "no_data": "暫無數據",
     "total_memories": "記憶總數",
@@ -167,19 +119,12 @@
     "activity_trend": "活動趨勢",
     "unit_entries": "條",
     "unit_days": "天",
-    "unit_pics": "張"
-  },
-  "create": {
-    "story_label": "你的故事",
-    "mood_label": "當前心情",
-    "weather": {
-      "sunny": "晴天",
-      "cloudy": "多雲",
-      "rainy": "下雨",
-      "windy": "刮風",
-      "snowy": "下雪"
-    },
-    "location_placeholder": "你在哪？",
-    "placeholder": "今天發生了什麼..."
+    "unit_pics": "張",
+    "system_health": "系統健康度",
+    "vitals": {
+      "load": "載入速度",
+      "network": "網絡延遲",
+      "health": "運行狀況"
+    }
   }
 }

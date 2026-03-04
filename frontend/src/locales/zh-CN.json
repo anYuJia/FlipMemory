@@ -15,13 +15,8 @@
     "year": "年",
     "back": "返回",
     "retry": "立即重试",
-    "retrying": "重试中...",
     "return_home": "返回首页",
-    "error_occurred": "出错了",
-    "network_error": "网络连接失败",
-    "timeout_error": "请求超时",
-    "server_error": "服务器错误",
-    "retry_countdown": "{seconds}秒后自动重试..."
+    "error_occurred": "出错了"
   },
   "nav": {
     "home": "首页",
@@ -46,37 +41,6 @@
     "featured_title": "时光回顾",
     "no_featured": "还没有精选回忆，去记录一条吧",
     "record_now": "记录今天"
-  },
-  "auth": {
-    "sign_in": "登录",
-    "register": "注册",
-    "login_tab": "登录",
-    "register_tab": "加入",
-    "authenticate": "立即进入",
-    "create_account": "创建账号",
-    "username_placeholder": "用户名或邮箱",
-    "unique_username_placeholder": "唯一用户名",
-    "password_placeholder": "密码",
-    "confirm_password_placeholder": "确认密码",
-    "nickname_placeholder": "您的昵称",
-    "email_address": "邮箱地址",
-    "subtitle": "您的私人时光画廊",
-    "footer_text": "FLIPMEMORY PRO PRO",
-    "auth_failed": "认证失败",
-    "server_config": "服务器节点设置",
-    "server_config_title": "配置后端 API 地址",
-    "server_desc": "手机 App 无法连接 localhost。请输入您电脑的局域网 IP。",
-    "pwd_req": {
-      "len": "需 8 位字符",
-      "upper": "含大写字母",
-      "lower": "含小写字母",
-      "num": "含数字"
-    },
-    "error": {
-      "mismatch": "不一致",
-      "taken": "已被占用",
-      "fix_errors": "请先修正表单错误"
-    }
   },
   "settings": {
     "theme_title": "主题外观",
@@ -116,20 +80,6 @@
         "ember": "余烬",
         "custom": "自定义"
       }
-    },
-    "profile": {
-      "basic_info": "基本信息",
-      "nickname": "昵称",
-      "birthday": "生日",
-      "gender": "性别",
-      "profession": "职业",
-      "hobbies": "兴趣爱好",
-      "change_avatar": "点击更换头像",
-      "save_success": "保存成功",
-      "age_unit": "{age}岁",
-      "select_gender": "选择性别",
-      "select_birthday": "选择生日",
-      "select_profession": "选择职业"
     }
   },
   "flashback": {
@@ -158,6 +108,8 @@
     "success_msg": "我们已经收到您的建议。"
   },
   "stats": {
+    "title": "统计看板",
+    "subtitle": "您的数据全览",
     "week_num": "第 {num} 周",
     "no_data": "暂无数据",
     "total_memories": "记忆总数",
@@ -167,19 +119,12 @@
     "activity_trend": "活动趋势",
     "unit_entries": "条",
     "unit_days": "天",
-    "unit_pics": "张"
-  },
-  "create": {
-    "story_label": "你的故事",
-    "mood_label": "当前心情",
-    "weather": {
-      "sunny": "晴天",
-      "cloudy": "多云",
-      "rainy": "下雨",
-      "windy": "刮风",
-      "snowy": "下雪"
-    },
-    "location_placeholder": "你在哪？",
-    "placeholder": "今天发生了什么..."
+    "unit_pics": "张",
+    "system_health": "系统健康度",
+    "vitals": {
+      "load": "加载速度",
+      "network": "网络延迟",
+      "health": "运行状况"
+    }
   }
 }

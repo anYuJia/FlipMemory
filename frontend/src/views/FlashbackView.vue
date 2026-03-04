@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onActivated, onDeactivated } from 'vue'
+import { useRouter } from 'vue-router'
 import { Sparkles, Shuffle, ArrowLeft, ArrowRight, Clock, Heart } from 'lucide-vue-next'
 import FlipCard from '@/components/memory/FlipCard.vue'
 import { useMemoryStore } from '@/stores'
@@ -7,6 +8,7 @@ import { logger } from '@/services/logger'
 import type { Memory } from '@/types'
 import { useI18n } from 'vue-i18n'
 
+const router = useRouter()
 const memoryStore = useMemoryStore()
 const { t } = useI18n()
 
@@ -58,8 +60,7 @@ const flashbackDescription = computed(() => {
   const date = new Date(currentMemory.value.date)
   const now = new Date()
   const diffYears = now.getFullYear() - date.getFullYear()
-  if (diffYears === 1) return t('common.year') + ' 前'
-  if (diffYears > 1) return `${diffYears} ${t('common.year')} 前`
+  if (diffYears >= 1) return t('flashback.days_ago', { days: diffYears * 365 })
   return t('flashback.subtitle')
 })
 
@@ -72,7 +73,7 @@ const randomMemory = () => {
   }
 }
 
-// 使用 computed 确保语言切换时 Tab 文字即时更新
+// 核心修复：使用 computed 确保响应式翻译
 const tabs = computed(() => [
   { id: 'year', icon: Clock, label: t('flashback.tabs.year') },
   { id: 'random', icon: Shuffle, label: t('flashback.tabs.random') },
@@ -92,19 +93,14 @@ onMounted(() => {
 const scrollY = ref(0)
 onActivated(() => {
   if (scrollY.value > 0) window.scrollTo(0, scrollY.value)
-  if (flashbackMemories.value.length === 0 && !isLoading.value) {
-    loadFlashback()
-  }
 })
 onDeactivated(() => { scrollY.value = window.scrollY })
 </script>
 
 <template>
   <div class="page-container min-h-screen relative overflow-x-hidden">
-    <!-- 背景 -->
     <div class="fixed inset-0 pointer-events-none">
       <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.12] dark:opacity-[0.04]" style="background-color: var(--color-primary);" />
-      <div class="absolute top-1/4 -right-48 w-[400px] h-[400px] rounded-full blur-[100px] opacity-[0.08] dark:opacity-[0.03]" style="background-color: var(--color-accent);" />
     </div>
     
     <div class="relative max-w-lg mx-auto px-6">
@@ -112,10 +108,10 @@ onDeactivated(() => { scrollY.value = window.scrollY })
         <div class="flex items-center justify-between">
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-2">
-              <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">Memory Flashback</span>
+              <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">Recall</span>
               <div class="w-1 h-1 rounded-full bg-orange-400 opacity-60"></div>
             </div>
-            <h1 class="text-4xl font-black tracking-tighter" style="color: var(--text-primary);">{{ $t('nav.flashback') }}</h1>
+            <h1 class="text-4xl font-black tracking-tighter" style="color: var(--text-primary);">{{ t('flashback.title') }}</h1>
           </div>
           <div class="px-4 py-2 rounded-2xl card-static shadow-sm">
             <span class="text-[10px] font-black tracking-widest uppercase opacity-40" style="color: var(--text-primary);">{{ flashbackDescription }}</span>
@@ -125,7 +121,6 @@ onDeactivated(() => { scrollY.value = window.scrollY })
       
       <section class="mb-10 transition-all duration-700 delay-100" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="relative flex p-1.5 rounded-[1.5rem] card-static shadow-sm">
-          <!-- 智能滑块 -->
           <div class="absolute top-1.5 bottom-1.5 rounded-[1.1rem] transition-all duration-500 ease-out"
             :style="{
               width: 'calc((100% - 12px) / 3)',
@@ -144,14 +139,11 @@ onDeactivated(() => { scrollY.value = window.scrollY })
       </section>
       
       <section class="mb-10 transition-all duration-700 delay-200" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div v-if="currentMemory" class="h-[480px] shadow-2xl rounded-[2.5rem] overflow-hidden transition-transform duration-500 hover:scale-[1.01]">
+        <div v-if="currentMemory" class="h-[480px] shadow-2xl rounded-[2.5rem] overflow-hidden">
           <FlipCard :memory="currentMemory" />
         </div>
         <div v-else class="flex flex-col items-center justify-center py-24 card-static rounded-[2.5rem]">
-          <div class="w-16 h-16 rounded-full flex items-center justify-center bg-black/5 dark:bg-white/5 mb-4">
-            <Sparkles class="w-8 h-8 opacity-20" style="color: var(--text-primary);" />
-          </div>
-          <p class="text-sm font-bold opacity-40" style="color: var(--text-primary);">{{ $t('flashback.no_memories') }}</p>
+          <p class="text-sm font-bold opacity-40" style="color: var(--text-primary);">{{ t('flashback.no_memories') }}</p>
         </div>
       </section>
       
@@ -169,9 +161,9 @@ onDeactivated(() => { scrollY.value = window.scrollY })
           </button>
         </div>
         <div class="flex justify-center">
-          <button @click="randomMemory" class="flex items-center gap-3 px-8 py-5 rounded-[2rem] text-white font-black text-[11px] uppercase tracking-[0.2em] shadow-xl transition-all hover:scale-[1.02] active:scale-95 shadow-orange-500/20"
+          <button @click="randomMemory" class="flex items-center gap-3 px-8 py-5 rounded-[2rem] text-white font-black text-[11px] uppercase tracking-[0.25em] shadow-xl active:scale-95"
             style="background: var(--gradient-accent);">
-            <Shuffle class="w-4 h-4" /> <span>{{ $t('flashback.shuffle') }}</span>
+            <Shuffle class="w-4 h-4" /> <span>{{ t('flashback.shuffle') }}</span>
           </button>
         </div>
       </div>
