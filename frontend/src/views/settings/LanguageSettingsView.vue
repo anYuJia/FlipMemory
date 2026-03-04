@@ -3,28 +3,19 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores'
 import { ArrowLeft, Check } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 const { t, locale } = useI18n()
 const isLoaded = ref(true)
 
-const languages = [
-  { key: 'zh-CN', label: '简体中文' },
-  { key: 'zh-TW', label: '繁體中文' },
-  { key: 'ja', label: '日本語' },
-  { key: 'en', label: 'English' }
-]
+const languages = ['zh-CN', 'zh-TW', 'ja', 'en']
 
 const handleSelect = (key: string) => {
   userStore.setLocale(key)
 }
 
-const goBack = () => router.back()
-
-onMounted(() => {
-})
 </script>
 
 <template>
@@ -45,19 +36,18 @@ onMounted(() => {
     <main class="relative max-w-lg mx-auto px-6 py-4 transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
       <div class="rounded-[2.5rem] overflow-hidden card-static shadow-xl">
         <button
-          v-for="(lang, index) in languages"
-          :key="lang.key"
-          @click="handleSelect(lang.key)"
+          v-for="lang in languages"
+          :key="lang"
+          @click="handleSelect(lang)"
           class="w-full flex items-center justify-between px-8 py-6 transition-all hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98]"
         >
-          <span class="text-base font-bold tracking-tight" :class="locale === lang.key ? 'text-orange-500' : ''" style="color: var(--text-primary);">
-            {{ lang.label }}
+          <span class="text-base font-bold tracking-tight" :class="locale === lang ? 'text-orange-500' : ''" style="color: var(--text-primary);">
+            {{ t(`language.${lang}`) }}
           </span>
-          <div v-if="locale === lang.key" class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center shadow-lg animate-scale-in">
+          <div v-if="locale === lang" class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center shadow-lg animate-scale-in">
             <Check class="w-4 h-4 text-white" stroke-width="4" />
           </div>
         </button>
-        <div v-if="index !== languages.length - 1" class="mx-8 h-px bg-black/[0.03] dark:bg-white/[0.05]"></div>
       </div>
       
       <p class="mt-8 px-4 text-xs font-medium opacity-30 text-center leading-relaxed" style="color: var(--text-primary);">

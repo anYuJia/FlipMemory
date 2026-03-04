@@ -77,7 +77,7 @@ onMounted(() => {})
         </section>
 
         <section>
-          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30 mb-4 block" style="color: var(--text-primary);">Message</span>
+          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30 mb-4 block" style="color: var(--text-primary);">{{ t('feedback.message_label') }}</span>
           <div class="rounded-[2.5rem] p-6 card-static shadow-inner min-h-[280px] flex flex-col">
             <textarea
               v-model="content"

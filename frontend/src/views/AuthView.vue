@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   Mail, Lock, User, Eye, EyeOff, ArrowRight, 
-  ShieldAlert, Loader2, CheckCircle2, XCircle, Hash, Globe, WifiOff
+  ShieldAlert, Loader2, XCircle, Hash, Globe
 } from 'lucide-vue-next'
 import { useUserStore } from '@/stores'
 import api from '@/services/api'
@@ -124,7 +124,7 @@ const handleSubmit = async () => {
     router.replace('/')
   } catch (error: any) {
     console.error('Auth Error:', error)
-    errorMessage.value = error.message || '认证失败，请检查网络或配置'
+    errorMessage.value = error.message || t('auth.auth_failed')
     if (error.message?.includes('Network') || error.message?.includes('fetch')) {
       showServerConfig.value = true
     }
@@ -155,7 +155,7 @@ onUnmounted(() => {
       <header class="pt-12 pb-6 text-center transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0, transform: isLoaded ? 'translateY(0)' : 'translateY(20px)' }">
         <div class="w-20 h-20 mx-auto mb-4 rounded-[2.5rem] flex items-center justify-center text-4xl shadow-2xl bg-gradient-to-br from-orange-400 to-orange-600 animate-scale-in">📖</div>
         <h1 class="text-3xl font-black tracking-tighter" style="color: var(--text-primary);">Flip<span class="text-orange-500">Memory</span></h1>
-        <p class="text-[10px] font-black mt-1 opacity-20 uppercase tracking-[0.4em]" style="color: var(--text-primary);">RECORD EVERY MOMENT</p>
+        <p class="text-[10px] font-black mt-1 opacity-20 uppercase tracking-[0.4em]" style="color: var(--text-primary);">{{ t('auth.record_every_moment') }}</p>
       </header>
       
       <section class="flex-1 transition-all duration-700 delay-100" :style="{ opacity: isLoaded ? 1 : 0, transform: isLoaded ? 'translateY(0)' : 'translateY(20px)' }">
@@ -178,8 +178,8 @@ onUnmounted(() => {
               }"
             ></div>
             
-            <button type="button" @click="isLogin = true" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest relative z-10 transition-colors duration-300" :style="{ color: isLogin ? '#fff' : 'var(--text-primary)' }" :class="{ 'opacity-30': !isLogin }">登录</button>
-            <button type="button" @click="isLogin = false" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest relative z-10 transition-colors duration-300" :style="{ color: !isLogin ? '#fff' : 'var(--text-primary)' }" :class="{ 'opacity-30': isLogin }">注册</button>
+            <button type="button" @click="isLogin = true" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest relative z-10 transition-colors duration-300" :style="{ color: isLogin ? '#fff' : 'var(--text-primary)' }" :class="{ 'opacity-30': !isLogin }">{{ t('auth.tab_login') }}</button>
+            <button type="button" @click="isLogin = false" class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest relative z-10 transition-colors duration-300" :style="{ color: !isLogin ? '#fff' : 'var(--text-primary)' }" :class="{ 'opacity-30': isLogin }">{{ t('auth.tab_register') }}</button>
           </div>
           
           <div class="relative min-h-[380px]">
@@ -193,25 +193,25 @@ onUnmounted(() => {
                 <form @submit.prevent="handleSubmit" class="space-y-5" autocomplete="off">
                   <div v-if="!isLogin" class="input-group" :class="{ 'animate-shake': shakeFields.nickname }">
                     <div class="icon-left"><User class="w-5 h-5 opacity-20" /></div>
-                    <input v-model="formData.nickname" type="text" placeholder="您的昵称" />
+                    <input v-model="formData.nickname" type="text" :placeholder="t('auth.nickname_placeholder')" />
                   </div>
 
                   <div class="input-group" :class="{ 'animate-shake': shakeFields.username, 'focused': isFocused === 'account' }">
                     <div class="icon-left">
                       <component :is="isLogin ? User : Hash" class="w-5 h-5 opacity-20" />
                     </div>
-                    <input v-if="isLogin" v-model="formData.account" type="text" placeholder="账号 / 邮箱" @focus="isFocused = 'account'" @blur="isFocused = null" />
-                    <input v-else v-model="formData.username" type="text" placeholder="唯一用户名" />
+                    <input v-if="isLogin" v-model="formData.account" type="text" :placeholder="t('auth.account_placeholder')" @focus="isFocused = 'account'" @blur="isFocused = null" />
+                    <input v-else v-model="formData.username" type="text" :placeholder="t('auth.username_placeholder')" />
                   </div>
 
                   <div v-if="!isLogin" class="input-group" :class="{ 'animate-shake': shakeFields.email }">
                     <div class="icon-left"><Mail class="w-5 h-5 opacity-20" /></div>
-                    <input v-model="formData.email" type="email" placeholder="邮箱地址" />
+                    <input v-model="formData.email" type="email" :placeholder="t('auth.email_placeholder')" />
                   </div>
                   
                   <div class="input-group" :class="{ 'animate-shake': shakeFields.password, 'focused': isFocused === 'pass' }">
                     <div class="icon-left"><Lock class="w-5 h-5 opacity-20" /></div>
-                    <input v-model="formData.password" :type="showPassword ? 'text' : 'password'" placeholder="密码" @focus="isFocused = 'pass'" @blur="isFocused = null" />
+                    <input v-model="formData.password" :type="showPassword ? 'text' : 'password'" :placeholder="t('auth.password_placeholder')" @focus="isFocused = 'pass'" @blur="isFocused = null" />
                     <button type="button" @click="showPassword = !showPassword" class="opacity-20 hover:opacity-100 transition-opacity">
                       <component :is="showPassword ? EyeOff : Eye" class="w-4 h-4" />
                     </button>
@@ -219,14 +219,14 @@ onUnmounted(() => {
 
                   <div v-if="!isLogin" class="input-group" :class="{ 'animate-shake': shakeFields.confirmPassword, 'has-error': formData.confirmPassword && !isConfirmMatch }">
                     <div class="icon-left"><Lock class="w-5 h-5 opacity-20" /></div>
-                    <input v-model="formData.confirmPassword" :type="showPassword ? 'text' : 'password'" placeholder="确认密码" />
+                    <input v-model="formData.confirmPassword" :type="showPassword ? 'text' : 'password'" :placeholder="t('auth.confirm_password_placeholder')" />
                   </div>
                   
                   <button type="submit" :disabled="isLoading" class="submit-btn shadow-premium group">
                     <Loader2 v-if="isLoading" class="w-5 h-5 animate-spin" />
                     <template v-else>
                       <span class="flex items-center gap-3">
-                        {{ isLogin ? '立即进入' : '创建账号' }}
+                        {{ isLogin ? t('auth.submit_login') : t('auth.submit_register') }}
                         <ArrowRight class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </span>
                     </template>
@@ -236,26 +236,26 @@ onUnmounted(() => {
                 <!-- 服务器配置入口 -->
                 <button @click="showServerConfig = true" class="w-full mt-8 py-2 text-[9px] font-bold uppercase tracking-widest opacity-20 hover:opacity-100 transition-all flex items-center justify-center gap-2" style="color: var(--text-primary);">
                   <Globe class="w-3 h-3" />
-                  服务器节点设置
+                  {{ t('auth.server_settings') }}
                 </button>
               </div>
 
               <!-- 服务器配置面板 -->
               <div v-else key="config" class="w-full space-y-6">
                 <div class="text-center py-4">
-                  <h2 class="text-sm font-black" style="color: var(--text-primary);">配置后端 API 地址</h2>
-                  <p class="text-[9px] opacity-40 mt-1 uppercase tracking-widest">Android Connectivity Fix</p>
+                  <h2 class="text-sm font-black" style="color: var(--text-primary);">{{ t('auth.config_api_title') }}</h2>
+                  <p class="text-[9px] opacity-40 mt-1 uppercase tracking-widest">{{ t('auth.server_settings') }}</p>
                 </div>
                 <div class="input-group focused">
                   <Globe class="w-5 h-5 opacity-20" />
                   <input v-model="tempApiUrl" type="text" placeholder="http://192.168.x.x:3001/api" />
                 </div>
                 <div class="p-5 rounded-2xl bg-orange-500/5 border border-orange-500/10 text-[9px] font-bold leading-relaxed opacity-60" style="color: var(--text-primary);">
-                  当前应用运行在移动端，无法直接访问 localhost。请输入您电脑在局域网中的 IP 地址。
+                  {{ t('auth.config_api_hint') }}
                 </div>
                 <div class="flex gap-3 pt-4">
-                  <button @click="showServerConfig = false" class="flex-1 py-4 rounded-xl text-[10px] font-black uppercase bg-black/5 dark:bg-white/10" style="color: var(--text-primary);">取消</button>
-                  <button @click="saveServerUrl" class="flex-1 py-4 rounded-xl text-[10px] font-black uppercase bg-orange-500 text-white shadow-lg">确认修改</button>
+                  <button @click="showServerConfig = false" class="flex-1 py-4 rounded-xl text-[10px] font-black uppercase bg-black/5 dark:bg-white/10" style="color: var(--text-primary);">{{ t('common.cancel') }}</button>
+                  <button @click="saveServerUrl" class="flex-1 py-4 rounded-xl text-[10px] font-black uppercase bg-orange-500 text-white shadow-lg">{{ t('auth.save_server') }}</button>
                 </div>
               </div>
             </Transition>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { AlertTriangle, Trash2, Info } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 export interface ConfirmOptions {
   title: string
@@ -11,11 +12,12 @@ export interface ConfirmOptions {
 }
 
 const isOpen = ref(false)
+const { t } = useI18n()
 const options = ref<ConfirmOptions>({
   title: '',
   message: '',
-  confirmText: '确定',
-  cancelText: '取消',
+  confirmText: t('common.confirm'),
+  cancelText: t('common.cancel'),
   type: 'info',
 })
 
@@ -23,8 +25,8 @@ let resolvePromise: ((value: boolean) => void) | null = null
 
 const open = (opts: ConfirmOptions): Promise<boolean> => {
   options.value = {
-    confirmText: '确定',
-    cancelText: '取消',
+    confirmText: t('common.confirm'),
+    cancelText: t('common.cancel'),
     type: 'info',
     ...opts,
   }

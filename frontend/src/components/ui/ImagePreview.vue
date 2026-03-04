@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { X, ZoomIn, ZoomOut, RotateCw } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   src: string
@@ -11,6 +12,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: []
 }>()
+const { t } = useI18n()
 
 
 const scale = ref(1)
@@ -228,7 +230,7 @@ onUnmounted(() => {
         <div 
           class="absolute bottom-4 left-1/2 -translate-x-1/2 text-center text-sm text-white/60"
         >
-          双击放大 · 滚轮缩放 · 拖动平移
+          {{ t('image.preview_hint') }}
         </div>
       </div>
     </Transition>

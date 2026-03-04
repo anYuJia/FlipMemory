@@ -20,7 +20,6 @@ const userStore = useUserStore()
 const { t, locale } = useI18n()
 
 const isLoaded = ref(true)
-const carouselRef = ref<HTMLElement | null>(null)
 
 // 问候语逻辑
 const greetingKey = computed(() => {
@@ -103,13 +102,13 @@ const handleRefresh = async () => await memoryStore.fetchRecentMemories()
                 <div class="w-10 h-10 rounded-2xl flex items-center justify-center mb-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 shadow-sm">
                   <Camera class="w-5 h-5 opacity-40" style="color: var(--text-primary);" />
                 </div>
-                <span class="text-[9px] font-black opacity-30 uppercase tracking-tighter" style="color: var(--text-primary);">Photo</span>
+                <span class="text-[9px] font-black opacity-30 uppercase tracking-tighter" style="color: var(--text-primary);">{{ t('stats.photos') }}</span>
               </div>
               <div class="flex flex-col items-center">
                 <div class="w-10 h-10 rounded-2xl flex items-center justify-center mb-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 shadow-sm">
                   <span class="text-xl">😊</span>
                 </div>
-                <span class="text-[9px] font-black opacity-30 uppercase tracking-tighter" style="color: var(--text-primary);">Mood</span>
+                <span class="text-[9px] font-black opacity-30 uppercase tracking-tighter" style="color: var(--text-primary);">{{ t('create.current_mood') }}</span>
               </div>
             </div>
           </div>

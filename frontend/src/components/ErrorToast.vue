@@ -12,7 +12,7 @@
             <span class="toast-icon">❌</span>
             <div class="toast-message">
               <p class="message-text">{{ error.message }}</p>
-              <p v-if="error.code" class="message-code">错误代码: {{ error.code }}</p>
+              <p v-if="error.code" class="message-code">{{ t('error_toast.error_code', { code: error.code }) }}</p>
             </div>
           </div>
           <button
@@ -20,7 +20,7 @@
             @click="$emit('retry', error)"
             class="toast-action"
           >
-            重试
+            {{ t('error_toast.retry') }}
           </button>
           <button @click="removeError(error)" class="toast-close">✕</button>
         </div>
@@ -32,8 +32,10 @@
 <script setup lang="ts">
 import { useErrorHandler, type ErrorInfo } from '@/composables/useErrorHandler'
 import { TransitionGroup } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { errors, removeError } = useErrorHandler()
+const { t } = useI18n()
 
 defineEmits<{
   retry: [error: ErrorInfo]

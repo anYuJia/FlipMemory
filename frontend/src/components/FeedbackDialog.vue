@@ -4,14 +4,14 @@
       <div v-if="visible" class="feedback-overlay" @click.self="close">
         <div class="feedback-dialog">
           <div class="feedback-header">
-            <h2>反馈与建议</h2>
+            <h2>{{ t('feedback_dialog.title') }}</h2>
             <button @click="close" class="close-btn">✕</button>
           </div>
 
           <div class="feedback-content">
             <!-- 反馈类型 -->
             <div class="form-group">
-              <label>反馈类型</label>
+              <label>{{ t('feedback_dialog.type') }}</label>
               <div class="type-options">
                 <button
                   v-for="type in feedbackTypes"
@@ -27,10 +27,10 @@
 
             <!-- 反馈内容 -->
             <div class="form-group">
-              <label>详细描述</label>
+              <label>{{ t('feedback_dialog.content') }}</label>
               <textarea
                 v-model="form.content"
-                placeholder="请描述您的问题或建议..."
+                :placeholder="t('feedback_dialog.content_placeholder')"
                 rows="4"
                 maxlength="1000"
               ></textarea>
@@ -39,18 +39,18 @@
 
             <!-- 联系方式 -->
             <div class="form-group">
-              <label>联系方式（可选）</label>
+              <label>{{ t('feedback_dialog.contact') }}</label>
               <input
                 v-model="form.contact"
                 type="text"
-                placeholder="邮箱或其他联系方式"
+                :placeholder="t('feedback_dialog.contact_placeholder')"
                 maxlength="100"
               />
             </div>
 
             <!-- 截图 -->
             <div class="form-group">
-              <label>截图（可选）</label>
+              <label>{{ t('feedback_dialog.screenshot') }}</label>
               <div class="screenshot-area">
                 <input
                   type="file"
@@ -61,14 +61,14 @@
                 />
                 <button
                   v-if="!form.screenshot"
-                  @click="$refs.fileInput.click()"
+                  @click="fileInput?.click()"
                   class="upload-btn"
                 >
                   <span>📷</span>
-                  <span>添加截图</span>
+                  <span>{{ t('feedback_dialog.add_screenshot') }}</span>
                 </button>
                 <div v-else class="screenshot-preview">
-                  <img :src="form.screenshot" alt="截图预览" />
+                  <img :src="form.screenshot" :alt="t('feedback_dialog.preview_alt')" />
                   <button @click="removeScreenshot" class="remove-btn">✕</button>
                 </div>
               </div>
@@ -78,19 +78,19 @@
             <div class="form-group">
               <label class="checkbox-label">
                 <input type="checkbox" v-model="form.includeDeviceInfo" />
-                <span>包含设备信息（帮助我们更好地定位问题）</span>
+                <span>{{ t('feedback_dialog.include_device_info') }}</span>
               </label>
             </div>
           </div>
 
           <div class="feedback-footer">
-            <button @click="close" class="btn btn-secondary">取消</button>
+            <button @click="close" class="btn btn-secondary">{{ t('common.cancel') }}</button>
             <button
               @click="submit"
               class="btn btn-primary"
               :disabled="!canSubmit || isSubmitting"
             >
-              {{ isSubmitting ? '提交中...' : '提交反馈' }}
+              {{ isSubmitting ? t('feedback_dialog.submit_loading') : t('feedback_dialog.submit') }}
             </button>
           </div>
         </div>
@@ -102,6 +102,7 @@
 <script setup lang="ts">
 import { ref, computed, reactive } from 'vue'
 import { logger } from '@/services/logger'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   visible: boolean
@@ -128,12 +129,13 @@ interface FeedbackData {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+const { t } = useI18n()
 
 const feedbackTypes = [
-  { value: 'bug', label: '问题反馈', icon: '🐛' },
-  { value: 'feature', label: '功能建议', icon: '💡' },
-  { value: 'improvement', label: '体验优化', icon: '✨' },
-  { value: 'other', label: '其他', icon: '📝' },
+  { value: 'bug', label: t('feedback_dialog.types.bug'), icon: '🐛' },
+  { value: 'feature', label: t('feedback_dialog.types.feature'), icon: '💡' },
+  { value: 'improvement', label: t('feedback_dialog.types.improvement'), icon: '✨' },
+  { value: 'other', label: t('feedback_dialog.types.other'), icon: '📝' },
 ]
 
 const form = reactive({
@@ -162,7 +164,7 @@ function onFileSelect(event: Event) {
 
   // 检查文件大小（最大 5MB）
   if (file.size > 5 * 1024 * 1024) {
-    alert('图片大小不能超过 5MB')
+    alert(t('feedback_dialog.image_too_large'))
     return
   }
 
@@ -225,7 +227,7 @@ async function submit() {
     close()
   } catch (error) {
     logger.error('Failed to submit feedback', 'FeedbackDialog', error)
-    alert('提交失败，请稍后重试')
+    alert(t('feedback_dialog.submit_failed'))
   } finally {
     isSubmitting.value = false
   }

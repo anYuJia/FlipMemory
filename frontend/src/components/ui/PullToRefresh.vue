@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, onActivated, onDeactivated } from 'vue'
 import { RefreshCw } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
   refresh: []
@@ -14,13 +15,13 @@ const props = withDefaults(defineProps<{
   disabled: false,
 })
 
-const containerRef = ref<HTMLElement | null>(null)
 const isPulling = ref(false)
 const isRefreshing = ref(false)
 const pullDistance = ref(0)
 const startY = ref(0)
 const canPull = ref(false)
 let listenersBound = false
+const { t } = useI18n()
 
 const handleTouchStart = (e: TouchEvent) => {
   if (props.disabled || isRefreshing.value) return
@@ -108,7 +109,7 @@ onDeactivated(unbindListeners)
 </script>
 
 <template>
-  <div ref="containerRef" class="relative">
+  <div class="relative">
     <!-- 下拉指示器 -->
     <div 
       class="fixed top-0 left-0 right-0 z-50 flex items-center justify-center transition-all duration-300"
@@ -133,7 +134,7 @@ onDeactivated(unbindListeners)
           class="text-sm font-medium"
           :style="{ color: pullDistance >= props.threshold ? 'var(--color-primary)' : 'var(--text-muted)' }"
         >
-          {{ isRefreshing ? '刷新中...' : pullDistance >= props.threshold ? '释放刷新' : '下拉刷新' }}
+          {{ isRefreshing ? t('pull_to_refresh.refreshing') : pullDistance >= props.threshold ? t('pull_to_refresh.release') : t('pull_to_refresh.pull') }}
         </span>
       </div>
     </div>

@@ -3,75 +3,37 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, Fingerprint, Lock, Shield } from 'lucide-vue-next'
 import { useToast } from '@/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const toast = useToast()
+const { t } = useI18n()
 
 const isLoaded = ref(true)
-const showPinInput = ref(false)
-const pinCode = ref(['', '', '', ''])
-const pinInputRefs = ref<HTMLInputElement[]>([])
 
 // 模拟隐私锁状态
 const privacyLockEnabled = ref(false)
 const useBiometric = ref(false)
 
-// 验证 PIN
-const validatePin = () => {
-  const pin = pinCode.value.join('')
-  if (pin.length === 4) {
-    if (!privacyLockEnabled.value) {
-      // 设置 PIN
-      privacyLockEnabled.value = true
-      toast.success('隐私锁已开启')
-      showPinInput.value = false
-    }
-  }
-}
-
-// PIN 输入处理
-const handlePinInput = (index: number, event: Event) => {
-  const input = event.target as HTMLInputElement
-  const value = input.value.replace(/\D/g, '')
-  
-  if (value && value[0]) {
-    pinCode.value[index] = value[0]
-    if (index < 3) {
-      pinInputRefs.value[index + 1]?.focus()
-    } else {
-      validatePin()
-    }
-  }
-}
-
-const handlePinKeydown = (index: number, event: KeyboardEvent) => {
-  if (event.key === 'Backspace' && !pinCode.value[index] && index > 0) {
-    pinInputRefs.value[index - 1]?.focus()
-  }
-}
-
 // 切换隐私锁
 const togglePrivacyLock = () => {
   if (privacyLockEnabled.value) {
     privacyLockEnabled.value = false
-    toast.info('隐私锁已关闭')
+    toast.info(t('settings.privacy.disabled_toast'))
   } else {
-    showPinInput.value = true
-    pinCode.value = ['', '', '', '']
-    setTimeout(() => {
-      pinInputRefs.value[0]?.focus()
-    }, 100)
+    privacyLockEnabled.value = true
+    toast.success(t('settings.privacy.enabled_toast'))
   }
 }
 
 // 切换生物识别
 const toggleBiometric = () => {
   if (!privacyLockEnabled.value) {
-    toast.warning('请先开启隐私锁')
+    toast.warning(t('settings.privacy.enable_first'))
     return
   }
   useBiometric.value = !useBiometric.value
-  toast.success(useBiometric.value ? '已开启面容 ID' : '已关闭面容 ID')
+  toast.success(useBiometric.value ? t('settings.privacy.biometric_on') : t('settings.privacy.biometric_off'))
 }
 
 const goBack = () => {
@@ -103,7 +65,7 @@ onMounted(() => {})
         <button @click="goBack" class="btn-back">
           <ArrowLeft class="w-5 h-5" />
         </button>
-        <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">隐私安全</h1>
+        <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">{{ t('settings.privacy.title') }}</h1>
       </div>
     </header>
     
@@ -130,16 +92,15 @@ onMounted(() => {})
           />
         </div>
         <h2 class="text-lg font-black mb-1" style="color: var(--text-primary);">
-          {{ privacyLockEnabled ? '隐私保护已开启' : '保护你的私密记忆' }}
+          {{ privacyLockEnabled ? t('settings.privacy.enabled') : t('settings.privacy.disabled') }}
         </h2>
         <p class="text-[10px] font-bold opacity-40 uppercase tracking-widest" style="color: var(--text-primary);">
-          {{ privacyLockEnabled ? 'Security Active' : 'Lock your personal records' }}
+          {{ privacyLockEnabled ? t('settings.privacy.enabled_sub') : t('settings.privacy.disabled_sub') }}
         </p>
       </div>
       
       <!-- 设置选项 -->
       <div 
-        v-if="!showPinInput"
         class="space-y-3"
         :class="{ 'animate-slide-up delay-100': isLoaded }"
         :style="{ opacity: isLoaded ? 1 : 0 }"
@@ -155,8 +116,8 @@ onMounted(() => {})
               <Lock class="w-6 h-6 text-green-500" />
             </div>
             <div>
-              <span class="font-black text-sm" style="color: var(--text-primary);">应用锁</span>
-              <p class="text-[9px] font-bold opacity-40 uppercase tracking-tighter" style="color: var(--text-primary);">PIN Protection</p>
+              <span class="font-black text-sm" style="color: var(--text-primary);">{{ t('settings.privacy.app_lock') }}</span>
+              <p class="text-[9px] font-bold opacity-40 uppercase tracking-tighter" style="color: var(--text-primary);">{{ t('settings.privacy.pin_protection') }}</p>
             </div>
           </div>
           
@@ -188,8 +149,8 @@ onMounted(() => {})
               <Fingerprint class="w-6 h-6 text-blue-500" />
             </div>
             <div>
-              <span class="font-black text-sm" style="color: var(--text-primary);">面容 ID / 指纹</span>
-              <p class="text-[9px] font-bold opacity-40 uppercase tracking-tighter" style="color: var(--text-primary);">Biometric Unlock</p>
+              <span class="font-black text-sm" style="color: var(--text-primary);">{{ t('settings.privacy.biometric') }}</span>
+              <p class="text-[9px] font-bold opacity-40 uppercase tracking-tighter" style="color: var(--text-primary);">{{ t('settings.privacy.biometric_unlock') }}</p>
             </div>
           </div>
           
@@ -219,7 +180,7 @@ onMounted(() => {})
         :style="{ opacity: isLoaded ? 1 : 0 }"
       >
         <p class="text-[11px] font-medium leading-relaxed opacity-40" style="color: var(--text-primary);">
-          开启隐私锁后，每次打开应用都需要验证身份。请牢记你的 PIN 码，忘记 PIN 码将无法访问应用。
+          {{ t('settings.privacy.note') }}
         </p>
       </div>
     </div>

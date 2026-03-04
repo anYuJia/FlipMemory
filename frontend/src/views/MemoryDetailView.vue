@@ -2,9 +2,9 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMemoryStore } from '@/stores'
-import { ArrowLeft, Edit3, Trash2, Share2, MapPin, Camera, Cloud } from 'lucide-vue-next'
+import { ArrowLeft, Edit3, Trash2, Share2, MapPin, Camera } from 'lucide-vue-next'
 import FlipCard from '@/components/memory/FlipCard.vue'
-import { MoodEmoji, MoodLabel, type MoodType } from '@/types/memory'
+import { MoodEmoji, type MoodType } from '@/types/memory'
 import { useConfirm } from '@/composables/useConfirm'
 import { useI18n } from 'vue-i18n'
 
@@ -12,7 +12,7 @@ const route = useRoute()
 const router = useRouter()
 const memoryStore = useMemoryStore()
 const { confirm } = useConfirm()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const date = route.params.date as string
 const memory = computed(() => memoryStore.memories.get(date))
@@ -21,12 +21,8 @@ const isLoaded = ref(true)
 
 const formattedDate = computed(() => {
   const d = new Date(date)
-  return d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })
+  return d.toLocaleDateString(locale.value, { month: 'long', day: 'numeric', weekday: 'long' })
 })
-
-const photoTakenAt = computed(() => memory.value?.photos?.[0]?.takenAt)
-const weatherIcons: Record<string, any> = { sunny: Cloud } // 简写
-const weatherLabels: Record<string, string> = { sunny: '晴天', cloudy: '阴天' }
 
 const handleEdit = () => router.push({ name: 'create-memory', params: { id: memory.value?.id }, query: { date } })
 const handleDelete = async () => {
@@ -37,13 +33,12 @@ const handleDelete = async () => {
 }
 
 const handleShare = () => { /* 分享逻辑 */ }
-const formatPhotoTime = (dateStr: string) => new Date(dateStr).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
 const goBack = () => router.back()
 
 onMounted(async () => {
   if (!memory.value) {
     isLoading.value = true
-    await memoryStore.fetchMemoryByDate(date)
+    await memoryStore.fetchMemory(date)
     isLoading.value = false
   }
 })
@@ -61,7 +56,7 @@ onMounted(async () => {
           <ArrowLeft class="w-5 h-5 opacity-40" style="color: var(--text-primary);" />
         </button>
         <div class="flex flex-col items-center">
-          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">Memory</span>
+          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ t('route.memory_detail') }}</span>
           <h1 class="text-sm font-black tracking-tight mt-0.5" style="color: var(--text-primary);">{{ formattedDate }}</h1>
         </div>
         <button @click="handleShare" class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90">
@@ -99,9 +94,9 @@ onMounted(async () => {
               <div class="font-black tracking-tight text-lg" style="color: var(--text-primary);">{{ formattedDate }}</div>
             </div>
             <div v-if="memory.mood" class="flex flex-col items-end gap-1">
-              <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">Mood</span>
+              <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ t('create.current_mood') }}</span>
               <div class="flex items-center gap-2">
-                <span class="text-xs font-bold opacity-60" style="color: var(--text-primary);">{{ MoodLabel[memory.mood as MoodType] }}</span>
+                <span class="text-xs font-bold opacity-60" style="color: var(--text-primary);">{{ t(`mood.${memory.mood}`) }}</span>
                 <span class="text-2xl drop-shadow-sm">{{ MoodEmoji[memory.mood as MoodType] }}</span>
               </div>
             </div>

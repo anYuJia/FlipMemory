@@ -4,8 +4,10 @@ import { useRouter } from 'vue-router'
 import { Plus } from 'lucide-vue-next'
 import CreateMenu from './CreateMenu.vue'
 import { processPhoto, formatDateToString } from '@/utils/imageProcessor'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
+const { t } = useI18n()
 const showMenu = ref(false)
 const isProcessing = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
@@ -85,7 +87,7 @@ const handleFileSelect = async (event: Event) => {
 
   } catch (error) {
     console.error('Failed to process photo:', error)
-    alert('照片处理失败，请重试')
+    alert(t('common.failed'))
   } finally {
     isProcessing.value = false
     // 清空 input

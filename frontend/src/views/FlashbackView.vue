@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onActivated, onDeactivated } from 'vue'
-import { useRouter } from 'vue-router'
-import { Sparkles, Shuffle, ArrowLeft, ArrowRight, Clock, Heart } from 'lucide-vue-next'
+import { Shuffle, ArrowLeft, ArrowRight, Clock, Heart } from 'lucide-vue-next'
 import FlipCard from '@/components/memory/FlipCard.vue'
 import { useMemoryStore } from '@/stores'
 import { logger } from '@/services/logger'
 import type { Memory } from '@/types'
 import { useI18n } from 'vue-i18n'
 
-const router = useRouter()
 const memoryStore = useMemoryStore()
 const { t } = useI18n()
 
@@ -108,7 +106,7 @@ onDeactivated(() => { scrollY.value = window.scrollY })
         <div class="flex items-center justify-between">
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-2">
-              <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">Recall</span>
+              <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('nav.flashback') }}</span>
               <div class="w-1 h-1 rounded-full bg-orange-400 opacity-60"></div>
             </div>
             <h1 class="text-4xl font-black tracking-tighter" style="color: var(--text-primary);">{{ t('flashback.title') }}</h1>

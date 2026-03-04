@@ -5,7 +5,7 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, onActivated, onDeactivated } from 'vue'
+import { ref, onMounted, onActivated, onDeactivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search } from 'lucide-vue-next'
 import { useMemoryStore } from '@/stores'
@@ -48,7 +48,7 @@ const goToSearch = () => router.push({ name: 'search' })
         <div class="flex flex-col gap-1">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">Timeline Calendar</span>
+              <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('nav.calendar') }}</span>
               <div class="w-1 h-1 rounded-full bg-orange-400 opacity-60"></div>
             </div>
             <button @click="goToSearch" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 shadow-sm active:scale-90">

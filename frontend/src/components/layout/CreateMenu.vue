@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { PenLine, ImageIcon } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   show: boolean
 }
 
 const props = defineProps<Props>()
+const { t } = useI18n()
 const emit = defineEmits<{
   close: []
   selectRecord: []
@@ -79,8 +81,8 @@ const handleAlbum = () => {
                 <PenLine class="w-7 h-7 text-white" />
               </div>
               <div class="flex-1 text-left">
-                <div class="font-black tracking-tight" style="color: var(--text-primary);">记录记忆</div>
-                <div class="text-[11px] font-bold opacity-30 uppercase tracking-wider mt-0.5" style="color: var(--text-primary);">New story</div>
+                <div class="font-black tracking-tight" style="color: var(--text-primary);">{{ t('create_menu.record_memory') }}</div>
+                <div class="text-[11px] font-bold opacity-30 uppercase tracking-wider mt-0.5" style="color: var(--text-primary);">{{ t('create_menu.new_story') }}</div>
               </div>
             </button>
             
@@ -99,8 +101,8 @@ const handleAlbum = () => {
                 <ImageIcon class="w-7 h-7 text-white" />
               </div>
               <div class="flex-1 text-left">
-                <div class="font-black tracking-tight" style="color: var(--text-primary);">相册导入</div>
-                <div class="text-[11px] font-bold opacity-30 uppercase tracking-wider mt-0.5" style="color: var(--text-primary);">From gallery</div>
+                <div class="font-black tracking-tight" style="color: var(--text-primary);">{{ t('create_menu.import_album') }}</div>
+                <div class="text-[11px] font-bold opacity-30 uppercase tracking-wider mt-0.5" style="color: var(--text-primary);">{{ t('create_menu.from_gallery') }}</div>
               </div>
             </button>
           </div>
@@ -111,7 +113,7 @@ const handleAlbum = () => {
             class="w-full py-5 rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-lg card-static active:scale-95"
             style="color: var(--text-primary);"
           >
-            Cancel
+            {{ t('create_menu.cancel') }}
           </button>
         </div>
       </div>

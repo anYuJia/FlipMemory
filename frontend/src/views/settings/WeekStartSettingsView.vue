@@ -3,15 +3,17 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, Check } from 'lucide-vue-next'
 import { useUserStore } from '@/stores'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const userStore = useUserStore()
+const { t } = useI18n()
 
 const isLoaded = ref(true)
 
-const options: Array<{ value: 0 | 1; label: string; description: string }> = [
-  { value: 0, label: '周日', description: '以周日作为每周第一天' },
-  { value: 1, label: '周一', description: '以周一作为每周第一天' },
+const options = [
+  { value: 0 as const, labelKey: 'settings.week_start.sunday', descriptionKey: 'settings.week_start.sunday_desc' },
+  { value: 1 as const, labelKey: 'settings.week_start.monday', descriptionKey: 'settings.week_start.monday_desc' },
 ]
 
 const selectStartOfWeek = (value: 0 | 1) => {
@@ -53,7 +55,7 @@ onMounted(() => {})
           >
             <ArrowLeft class="w-5 h-5" style="color: var(--text-secondary);" />
           </button>
-          <h1 class="text-lg font-semibold" style="color: var(--text-primary);">周起始日</h1>
+          <h1 class="text-lg font-semibold" style="color: var(--text-primary);">{{ t('settings.week_start.title') }}</h1>
         </div>
       </div>
     </header>
@@ -66,7 +68,7 @@ onMounted(() => {})
         :class="{ 'animate-fade-in': isLoaded }"
         :style="{ opacity: isLoaded ? 1 : 0 }"
       >
-        选择日历的周起始日
+        {{ t('settings.week_start.subtitle') }}
       </p>
       
       <!-- 选项 -->
@@ -98,9 +100,9 @@ onMounted(() => {})
                 class="font-medium"
                 :style="{ color: userStore.settings.startOfWeek === option.value ? 'var(--color-primary)' : 'var(--text-primary)' }"
               >
-                {{ option.label }}
+                {{ t(option.labelKey) }}
               </span>
-              <p class="text-sm mt-0.5" style="color: var(--text-muted);">{{ option.description }}</p>
+              <p class="text-sm mt-0.5" style="color: var(--text-muted);">{{ t(option.descriptionKey) }}</p>
             </div>
             
             <!-- 选中标记 -->
@@ -130,7 +132,7 @@ onMounted(() => {})
         :style="{ opacity: isLoaded ? 1 : 0 }"
       >
         <p class="text-sm" style="color: var(--text-muted);">
-          此设置将影响日历视图中每周的起始日。中国习惯使用周一，西方国家习惯使用周日。
+          {{ t('settings.week_start.note') }}
         </p>
       </div>
     </div>

@@ -6,6 +6,7 @@
 import { ref, watch } from 'vue'
 import { useOffline } from '@/composables/useOffline'
 import { WifiOff, RefreshCw, X } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 const props = withDefaults(defineProps<{
   dismissible?: boolean
@@ -22,6 +23,7 @@ const {
   hasPendingSync,
   triggerSync,
 } = useOffline()
+const { t } = useI18n()
 
 const isDismissed = ref(false)
 
@@ -59,11 +61,11 @@ const handleSync = async () => {
     >
       <div class="banner-content">
         <WifiOff class="w-4 h-4 flex-shrink-0" />
-        <span class="banner-text">当前处于离线模式</span>
+        <span class="banner-text">{{ t('offline_banner.offline_mode') }}</span>
         
         <!-- 待同步数量 -->
         <span v-if="pendingOperationsCount > 0" class="pending-badge">
-          {{ pendingOperationsCount }} 条待同步
+          {{ t('offline_banner.pending_sync', { count: pendingOperationsCount }) }}
         </span>
       </div>
       
@@ -72,7 +74,7 @@ const handleSync = async () => {
         v-if="dismissible"
         @click="handleDismiss"
         class="dismiss-btn"
-        aria-label="关闭提示"
+        :aria-label="t('offline_banner.close')"
       >
         <X class="w-4 h-4" />
       </button>
@@ -91,7 +93,7 @@ const handleSync = async () => {
           :class="{ 'animate-spin': isSyncing }" 
         />
         <span class="banner-text">
-          {{ isSyncing ? '正在同步...' : `有 ${pendingOperationsCount} 条记录待同步` }}
+          {{ isSyncing ? t('offline_banner.syncing') : t('offline_banner.pending_records', { count: pendingOperationsCount }) }}
         </span>
         
         <!-- 同步按钮 -->
@@ -100,7 +102,7 @@ const handleSync = async () => {
           @click="handleSync"
           class="sync-btn"
         >
-          立即同步
+          {{ t('offline_banner.sync_now') }}
         </button>
       </div>
       
@@ -109,7 +111,7 @@ const handleSync = async () => {
         v-if="dismissible && !isSyncing"
         @click="handleDismiss"
         class="dismiss-btn"
-        aria-label="关闭提示"
+        :aria-label="t('offline_banner.close')"
       >
         <X class="w-4 h-4" />
       </button>

@@ -6,9 +6,13 @@ import CalendarCell from './CalendarCell.vue'
 import { useI18n } from 'vue-i18n'
 
 const memoryStore = useMemoryStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
-const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const weekDays = computed(() => {
+  const fmt = new Intl.DateTimeFormat(locale.value, { weekday: 'short' })
+  const base = new Date(Date.UTC(2024, 0, 7))
+  return Array.from({ length: 7 }, (_, i) => fmt.format(new Date(base.getTime() + i * 86400000)))
+})
 
 const isCurrentRealMonth = computed(() => {
   const now = new Date()
@@ -75,7 +79,7 @@ watch(() => memoryStore.currentMonth, async (newMonth) => {
       
       <div class="flex flex-col items-center gap-1">
         <h2 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">
-          {{ memoryStore.currentMonth.month }}月
+          {{ t('calendar.month_label', { month: memoryStore.currentMonth.month }) }}
         </h2>
         
         <button 
@@ -99,7 +103,7 @@ watch(() => memoryStore.currentMonth, async (newMonth) => {
     <!-- 星期标题 -->
     <div class="grid grid-cols-7 mb-4">
       <div 
-        v-for="day in weekDays" 
+        v-for="day in weekDays"
         :key="day"
         class="text-center text-[10px] font-black py-2 tracking-[0.2em] uppercase opacity-20"
         style="color: var(--text-primary);"

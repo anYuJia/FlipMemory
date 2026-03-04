@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import {
   ChevronLeft, ChevronRight, Activity, Zap, ShieldCheck, 
-  Clock, HardDrive, BarChart3
+  Clock
 } from 'lucide-vue-next'
 import { useMemoryStore } from '@/stores'
 import { MoodEmoji } from '@/types/memory'
@@ -11,7 +10,6 @@ import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
 import { useI18n } from 'vue-i18n'
 import { performanceMonitor } from '@/services/performanceMonitor'
 
-const router = useRouter()
 const memoryStore = useMemoryStore()
 const { t, locale } = useI18n()
 

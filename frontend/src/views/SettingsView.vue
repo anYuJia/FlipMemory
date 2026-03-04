@@ -5,21 +5,18 @@ import { useUserStore } from '@/stores'
 import { useOffline } from '@/composables/useOffline'
 import { confirmLogout } from '@/composables/useConfirm'
 import SyncStatusIndicator from '@/components/SyncStatusIndicator.vue'
-import FeedbackDialog from '@/components/FeedbackDialog.vue'
 import {
-  Bell, Lock, Globe, ChevronRight, Moon, Sun, Smartphone, LogOut,
-  Cloud, HardDrive, Trash2, MessageSquare, Shield, Database, UserCircle
+  Globe, ChevronRight, Moon, Sun, Smartphone, LogOut,
+  MessageSquare, Shield, Database
 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const userStore = useUserStore()
 const { t, locale } = useI18n()
-const { totalPendingCount, syncStatusText, cacheStats, refreshCacheStats, clearSyncedCache } = useOffline()
+const { refreshCacheStats } = useOffline()
 
 const isLoaded = ref(true)
-const isClearingCache = ref(false)
-const showFeedbackDialog = ref(false)
 
 const themeIcon = { light: Sun, dark: Moon, system: Smartphone }
 
@@ -29,15 +26,11 @@ const currentThemeLabel = computed(() => {
   return t(`settings.theme.${theme}`)
 })
 
-const languages = [
-  { key: 'zh-CN', label: '简体中文' },
-  { key: 'zh-TW', label: '繁體中文' },
-  { key: 'ja', label: '日本語' },
-  { key: 'en', label: 'English' }
-]
+const languages = ['zh-CN', 'zh-TW', 'ja', 'en']
 
 const currentLanguageLabel = computed(() => {
-  return languages.find(l => l.key === locale.value)?.label || 'English'
+  const current = languages.find(key => key === locale.value) || 'en'
+  return t(`language.${current}`)
 })
 
 const handleLogout = async () => {
@@ -58,7 +51,7 @@ onMounted(() => {
       <header class="pt-16 pb-8 safe-area-top transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="flex flex-col gap-1">
           <div class="flex items-center gap-2">
-            <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">Preferences</span>
+            <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('nav.settings') }}</span>
             <div class="w-1 h-1 rounded-full bg-orange-400 opacity-60 shadow-[0_0_8px_var(--color-primary)]"></div>
           </div>
           <h1 class="text-4xl font-black tracking-tighter" style="color: var(--text-primary);">{{ t('nav.settings') }}</h1>
@@ -71,7 +64,7 @@ onMounted(() => {
           <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-orange-400 rounded-full blur-[60px] opacity-[0.05] group-hover:opacity-10 transition-opacity"></div>
           <div class="relative flex items-center gap-5">
             <div class="w-16 h-16 rounded-[1.5rem] flex items-center justify-center text-2xl overflow-hidden shadow-xl border-2 border-white/50 dark:border-white/10" style="background: var(--gradient-accent);">
-              <img v-if="userStore.profile?.avatarUrl" :src="userStore.profile.avatarUrl" class="w-full h-full object-cover" />
+              <img v-if="userStore.profile?.avatar" :src="userStore.profile.avatar" class="w-full h-full object-cover" />
               <span v-else class="drop-shadow-md">👤</span>
             </div>
             <div class="flex-1 text-left">

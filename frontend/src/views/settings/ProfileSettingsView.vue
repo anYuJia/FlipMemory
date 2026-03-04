@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores'
 import { 
   ArrowLeft, Camera, User, Calendar as CalendarIcon, 
-  UserRound, Briefcase, Heart, Check, Loader2, Sparkles
+  Loader2, UserCircle
 } from 'lucide-vue-next'
 import { useToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
@@ -12,27 +12,19 @@ import { useI18n } from 'vue-i18n'
 const router = useRouter()
 const userStore = useUserStore()
 const toast = useToast()
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
-const isLoaded = ref(true)
 const isSaving = ref(false)
 const showSuccess = ref(false)
 
 // 表单数据
 const formData = ref({
   nickname: userStore.profile?.nickname || '',
-  gender: userStore.profile?.gender || '',
+  gender: (userStore.profile?.gender || null) as 'male' | 'female' | 'other' | null,
   birthday: userStore.profile?.birthday || '',
   profession: userStore.profile?.profession || '',
-  hobbies: [...(userStore.profile?.hobbies || [])]
+  interests: [...(userStore.profile?.interests || [])]
 })
-
-// 性别选项
-const genderOptions = computed(() => [
-  { value: 'male', label: t('common.all'), icon: UserRound, color: '#3b82f6' }, // 简化处理，实际应使用更准确词条
-  { value: 'female', label: t('common.all'), icon: UserRound, color: '#ec4899' },
-  { value: 'other', label: t('common.none'), icon: Sparkles, color: '#8b5cf6' }
-])
 
 const age = computed(() => {
   if (!formData.value.birthday) return 0
@@ -86,7 +78,7 @@ const goBack = () => router.back()
       <section class="flex flex-col items-center">
         <div class="relative group">
           <div class="w-32 h-32 rounded-[3rem] overflow-hidden border-4 border-white dark:border-white/10 shadow-2xl relative">
-            <img v-if="userStore.profile?.avatarUrl" :src="userStore.profile.avatarUrl" class="w-full h-full object-cover" />
+            <img v-if="userStore.profile?.avatar" :src="userStore.profile.avatar" class="w-full h-full object-cover" />
             <div v-else class="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center text-4xl">👤</div>
             <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
               <Camera class="w-8 h-8 text-white" />

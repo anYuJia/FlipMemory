@@ -28,8 +28,8 @@
     <!-- 错误状态 -->
     <div v-if="hasError" class="error-placeholder">
       <span class="error-icon">📷</span>
-      <span class="error-text">加载失败</span>
-      <button v-if="retryable" @click="retry" class="retry-btn">重试</button>
+      <span class="error-text">{{ t('image.load_failed') }}</span>
+      <button v-if="retryable" @click="retry" class="retry-btn">{{ t('image.retry') }}</button>
     </div>
 
     <!-- 加载进度 -->
@@ -41,6 +41,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   src: string
@@ -61,6 +62,7 @@ const props = withDefaults(defineProps<Props>(), {
   lazy: true,
   threshold: 0.1,
 })
+const { t } = useI18n()
 
 const emit = defineEmits<{
   load: []

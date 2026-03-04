@@ -4,13 +4,13 @@
       <div v-if="isOpen && conflictData" class="conflict-dialog-overlay" @click.self="handleClose">
         <div class="conflict-dialog">
           <div class="dialog-header">
-            <h2>数据冲突</h2>
+            <h2>{{ t('conflict.title') }}</h2>
             <button @click="handleClose" class="close-btn">✕</button>
           </div>
 
           <div class="dialog-content">
             <p class="conflict-message">
-              检测到本地数据与服务器数据不一致，请选择保留哪个版本：
+              {{ t('conflict.message') }}
             </p>
 
             <div class="versions-container">
@@ -26,10 +26,10 @@
                     v-model="selectedStrategy"
                     id="conflict-local"
                   />
-                  <label for="conflict-local">保留本地版本</label>
+                  <label for="conflict-local">{{ t('conflict.keep_local') }}</label>
                 </div>
                 <div class="version-content">
-                  <p class="version-time">修改时间: {{ formatTime(conflictData.localTimestamp) }}</p>
+                  <p class="version-time">{{ t('conflict.modified_time', { time: formatTime(conflictData.localTimestamp) }) }}</p>
                   <pre class="version-data">{{ formatData(conflictData.localVersion) }}</pre>
                 </div>
               </div>
@@ -46,10 +46,10 @@
                     v-model="selectedStrategy"
                     id="conflict-remote"
                   />
-                  <label for="conflict-remote">保留服务器版本</label>
+                  <label for="conflict-remote">{{ t('conflict.keep_remote') }}</label>
                 </div>
                 <div class="version-content">
-                  <p class="version-time">修改时间: {{ formatTime(conflictData.remoteTimestamp) }}</p>
+                  <p class="version-time">{{ t('conflict.modified_time', { time: formatTime(conflictData.remoteTimestamp) }) }}</p>
                   <pre class="version-data">{{ formatData(conflictData.remoteVersion) }}</pre>
                 </div>
               </div>
@@ -66,18 +66,18 @@
                     v-model="selectedStrategy"
                     id="conflict-merge"
                   />
-                  <label for="conflict-merge">合并两个版本</label>
+                  <label for="conflict-merge">{{ t('conflict.merge') }}</label>
                 </div>
                 <div class="version-content">
-                  <p class="version-desc">自动合并两个版本的数据</p>
+                  <p class="version-desc">{{ t('conflict.merge_desc') }}</p>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="dialog-actions">
-            <button @click="handleClose" class="btn btn-secondary">取消</button>
-            <button @click="handleResolve" class="btn btn-primary">确认</button>
+            <button @click="handleClose" class="btn btn-secondary">{{ t('common.cancel') }}</button>
+            <button @click="handleResolve" class="btn btn-primary">{{ t('common.confirm') }}</button>
           </div>
         </div>
       </div>
@@ -89,13 +89,15 @@
 import { ref } from 'vue'
 import { useConflictDialog } from '@/composables/useConflictDialog'
 import type { ConflictResolutionStrategy } from '@/services/conflictResolver'
+import { useI18n } from 'vue-i18n'
 
 const { isOpen, conflictData, resolveConflict, closeConflictDialog } = useConflictDialog()
+const { t, locale } = useI18n()
 
 const selectedStrategy = ref<ConflictResolutionStrategy>('merge')
 
 function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleString('zh-CN')
+  return new Date(timestamp).toLocaleString(locale.value)
 }
 
 function formatData(data: any): string {

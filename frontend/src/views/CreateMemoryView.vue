@@ -1,21 +1,19 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMemoryStore } from '@/stores'
 import { ArrowLeft, Camera, Image, X, Check, Sparkles, Edit3, MapPin, Sun, Cloud, CloudRain, Wind, Snowflake, Loader2 } from 'lucide-vue-next'
-import { MoodEmoji, MoodLabel, type MoodType } from '@/types/memory'
+import { MoodEmoji, type MoodType } from '@/types/memory'
 import { logger } from '@/services/logger'
 import { imageProcessor } from '@/utils/imageProcessor'
 import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
 const router = useRouter()
-const memoryStore = useMemoryStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const isLoaded = ref(true)
 const isSubmitting = ref(false)
-const date = (route.query.date as string) || new Date().toISOString().split('T')[0]
+const date = typeof route.query.date === 'string' ? route.query.date : (new Date().toISOString().split('T')[0] ?? '')
 const isEdit = computed(() => !!route.params.id)
 
 const content = ref('')
@@ -25,19 +23,18 @@ const weather = ref('')
 const photoFile = ref<File | null>(null)
 const photoPreview = ref<string | null>(null)
 
-const moods: MoodType[] = ['happy', 'sad', 'angry', 'neutral', 'excited', 'tired']
+const moods: MoodType[] = ['happy', 'sad', 'angry', 'calm', 'excited', 'tired']
 const weatherOptions = [
-  { id: 'sunny', icon: Sun, label: '晴' },
-  { id: 'cloudy', icon: Cloud, label: '阴' },
-  { id: 'rainy', icon: CloudRain, label: '雨' },
-  { id: 'windy', icon: Wind, label: '风' },
-  { id: 'snowy', icon: Snowflake, label: '雪' }
+  { id: 'sunny', icon: Sun },
+  { id: 'cloudy', icon: Cloud },
+  { id: 'rainy', icon: CloudRain },
+  { id: 'windy', icon: Wind },
+  { id: 'snowy', icon: Snowflake }
 ]
 
 const formattedDate = computed(() => {
   const d = new Date(date)
-  const locale = localStorage.getItem('locale') || 'zh-CN'
-  return d.toLocaleDateString(locale, { month: 'long', day: 'numeric', weekday: 'long' })
+  return d.toLocaleDateString(locale.value, { month: 'long', day: 'numeric', weekday: 'long' })
 })
 
 const handlePhotoSelect = async (e: Event) => {
@@ -146,7 +143,7 @@ const goBack = () => router.back()
         <div class="flex gap-4 overflow-x-auto pb-4 hide-scrollbar -mx-2 px-2">
           <button v-for="m in moods" :key="m" @click="selectMood(m)" class="flex-shrink-0 flex flex-col items-center gap-3 transition-all duration-500" :style="{ transform: mood === m ? 'scale(1.1) translateY(-4px)' : 'scale(1)', opacity: mood && mood !== m ? '0.3' : '1' }">
             <div class="w-16 h-16 rounded-[1.5rem] flex items-center justify-center text-3xl shadow-sm transition-all" :style="{ background: mood === m ? 'var(--gradient-accent)' : 'var(--bg-tertiary)' }">{{ MoodEmoji[m] }}</div>
-            <span class="text-[10px] font-black tracking-widest uppercase opacity-40" style="color: var(--text-primary);">{{ MoodLabel[m] }}</span>
+            <span class="text-[10px] font-black tracking-widest uppercase opacity-40" style="color: var(--text-primary);">{{ t(`mood.${m}`) }}</span>
           </button>
         </div>
       </section>

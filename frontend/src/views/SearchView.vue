@@ -7,7 +7,7 @@ export default {
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, X, ArrowLeft, TrendingUp, Sun, Cloud, Loader2, XCircle, CheckCircle2 } from 'lucide-vue-next'
+import { Search, X, ArrowLeft, TrendingUp } from 'lucide-vue-next'
 import { useMemoryStore } from '@/stores'
 import { MoodEmoji, type MoodType } from '@/types/memory'
 import { sanitizeText } from '@/utils/xssSecurity'
@@ -15,7 +15,7 @@ import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const memoryStore = useMemoryStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const isLoaded = ref(true)
 const searchQuery = ref('')
@@ -23,15 +23,20 @@ const debouncedSearchQuery = ref('')
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const isFocused = ref(false)
 
-const weatherIcons: Record<string, any> = { sunny: Sun, cloudy: Cloud }
-
 watch(searchQuery, (newVal) => {
   const timeout = setTimeout(() => { debouncedSearchQuery.value = newVal }, 300)
   return () => clearTimeout(timeout)
 })
 
 const searchHistory = ref<string[]>(JSON.parse(localStorage.getItem('searchHistory') || '[]'))
-const hotTags = ['开心', '旅行', '美食', '工作', '周末', '朋友']
+const hotTags = computed(() => [
+  t('search.hot_tags.happy'),
+  t('search.hot_tags.travel'),
+  t('search.hot_tags.food'),
+  t('search.hot_tags.work'),
+  t('search.hot_tags.weekend'),
+  t('search.hot_tags.friends')
+])
 
 const searchResults = computed(() => {
   const query = debouncedSearchQuery.value.trim().toLowerCase()
@@ -92,7 +97,7 @@ const highlightMatch = (text: string, query: string) => {
 }
 
 const truncateText = (text: string, length = 100) => text.length > length ? text.substring(0, length) + '...' : text
-const formatDate = (dateStr: string) => new Date(dateStr).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
+const formatDate = (dateStr: string) => new Date(dateStr).toLocaleDateString(locale.value, { month: 'short', day: 'numeric' })
 
 onMounted(() => {
   nextTick(() => searchInputRef.value?.focus())
@@ -128,7 +133,7 @@ onMounted(() => {
         <section v-if="searchHistory.length > 0" class="mb-10">
           <div class="flex items-center justify-between mb-4">
             <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ $t('search.recent_searches') }}</span>
-            <button @click="clearHistory" class="text-[10px] font-bold tracking-widest uppercase text-red-400 opacity-60 hover:opacity-100 transition-opacity">Clear</button>
+            <button @click="clearHistory" class="text-[10px] font-bold tracking-widest uppercase text-red-400 opacity-60 hover:opacity-100 transition-opacity">{{ t('search.clear') }}</button>
           </div>
           <div class="flex flex-wrap gap-2.5">
             <button v-for="history in searchHistory" :key="history" @click="useHistory(history)" class="px-5 py-2.5 rounded-full text-[11px] font-bold tracking-wide uppercase transition-all bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 shadow-sm opacity-60 hover:opacity-100 active:scale-95" style="color: var(--text-primary);">{{ history }}</button>

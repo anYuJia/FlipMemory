@@ -6,11 +6,13 @@ import { useToast } from '@/composables/useToast'
 import { logger } from '@/services/logger'
 import { db } from '@/services/db'
 import { useUserStore, useOfflineStore } from '@/stores'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const toast = useToast()
 const userStore = useUserStore()
 const offlineStore = useOfflineStore()
+const { t } = useI18n()
 
 const isLoaded = ref(true)
 const isExporting = ref(false)
@@ -54,10 +56,10 @@ const exportData = async () => {
     a.click()
     URL.revokeObjectURL(url)
 
-    toast.success(`导出成功！共 ${memories.length} 条记忆`)
+    toast.success(t('settings.data.export_success', { count: memories.length }))
   } catch (error) {
     logger.error('Export failed', 'DataManagement', error)
-    toast.error('导出失败，请重试')
+    toast.error(t('settings.data.export_failed'))
   } finally {
     isExporting.value = false
   }
@@ -65,8 +67,8 @@ const exportData = async () => {
 
 // 清除数据
 const clearData = async () => {
-  if (deleteConfirmText.value !== '确认删除') {
-    toast.warning('请输入"确认删除"以确认操作')
+  if (deleteConfirmText.value !== t('settings.data.confirm_word')) {
+    toast.warning(t('settings.data.confirm_input_hint', { word: t('settings.data.confirm_word') }))
     return
   }
 
@@ -80,7 +82,7 @@ const clearData = async () => {
     // 登出用户
     userStore.logout()
 
-    toast.success('所有数据已清除')
+    toast.success(t('settings.data.clear_success'))
     showDeleteConfirm.value = false
 
     // 跳转到登录页
@@ -89,7 +91,7 @@ const clearData = async () => {
     }, 1000)
   } catch (error) {
     logger.error('Clear data failed', 'DataManagement', error)
-    toast.error('清除失败，请重试')
+    toast.error(t('settings.data.clear_failed'))
   }
 }
 
@@ -122,7 +124,7 @@ onMounted(() => {})
         <button @click="goBack" class="btn-back">
           <ArrowLeft class="w-5 h-5" />
         </button>
-        <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">数据管理</h1>
+        <h1 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">{{ t('settings.data.title') }}</h1>
       </div>
     </header>
     
@@ -136,14 +138,14 @@ onMounted(() => {})
       >
         <div class="flex items-center gap-2 mb-4 opacity-40" style="color: var(--text-primary);">
           <Download class="w-4 h-4" />
-          <span class="text-[10px] font-black uppercase tracking-[0.2em]">Backup & Export</span>
+          <span class="text-[10px] font-black uppercase tracking-[0.2em]">{{ t('settings.data.backup_export') }}</span>
         </div>
         
         <div 
           class="p-6 rounded-[2rem] card-static"
         >
           <p class="text-[11px] font-medium leading-relaxed opacity-40 mb-6" style="color: var(--text-primary);">
-            将你的所有记忆导出为备份文件，可用于数据迁移或恢复。
+            {{ t('settings.data.desc') }}
           </p>
           
           <!-- 导出格式选择 -->
@@ -158,7 +160,7 @@ onMounted(() => {})
               }"
             >
               <FileJson class="w-5 h-5" />
-              <span class="text-[10px] font-black uppercase tracking-widest">JSON 格式</span>
+              <span class="text-[10px] font-black uppercase tracking-widest">{{ t('settings.data.json_format') }}</span>
             </button>
             <button
               @click="exportFormat = 'images'"
@@ -170,7 +172,7 @@ onMounted(() => {})
               }"
             >
               <FileImage class="w-5 h-5" />
-              <span class="text-[10px] font-black uppercase tracking-widest">含照片</span>
+              <span class="text-[10px] font-black uppercase tracking-widest">{{ t('settings.data.with_photos') }}</span>
             </button>
           </div>
           
@@ -181,7 +183,7 @@ onMounted(() => {})
             style="background: var(--gradient-accent);"
           >
             <span v-if="isExporting" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
-            <span v-else>{{ isExporting ? '导出中...' : '启动导出任务' }}</span>
+            <span v-else>{{ isExporting ? t('settings.data.exporting') : t('settings.data.start_export') }}</span>
           </button>
         </div>
       </section>
@@ -193,7 +195,7 @@ onMounted(() => {})
       >
         <div class="flex items-center gap-2 mb-4 text-red-500 opacity-60">
           <AlertTriangle class="w-4 h-4" />
-          <span class="text-[10px] font-black uppercase tracking-[0.2em]">Danger Zone</span>
+          <span class="text-[10px] font-black uppercase tracking-[0.2em]">{{ t('settings.data.danger_zone') }}</span>
         </div>
         
         <div 
@@ -206,9 +208,9 @@ onMounted(() => {})
               <Trash2 class="w-6 h-6 text-red-500" />
             </div>
             <div>
-              <h3 class="font-black text-sm text-red-500">重置本地数据库</h3>
+              <h3 class="font-black text-sm text-red-500">{{ t('settings.data.reset_db') }}</h3>
               <p class="text-[10px] font-medium leading-relaxed opacity-60 mt-1" style="color: var(--text-primary);">
-                永久删除所有记忆、照片和设置。此操作不可恢复，系统将强制登出并清空所有缓存。
+                {{ t('settings.data.reset_desc') }}
               </p>
             </div>
           </div>
@@ -217,7 +219,7 @@ onMounted(() => {})
             @click="showDeleteConfirm = true"
             class="w-full py-4 rounded-2xl font-black text-[11px] text-red-500 uppercase tracking-[0.25em] transition-all active:scale-95 bg-red-500/10 border border-red-500/20"
           >
-            清除所有本地数据
+            {{ t('settings.data.clear_all') }}
           </button>
         </div>
       </section>
@@ -250,18 +252,18 @@ onMounted(() => {})
             </div>
             
             <h3 class="text-xl font-black text-center mb-2 text-red-500 tracking-tighter">
-              确定要重置吗？
+              {{ t('settings.data.confirm_reset') }}
             </h3>
             
             <p class="text-[11px] font-medium text-center mb-6 opacity-60 leading-relaxed" style="color: var(--text-primary);">
-              此操作将物理性地删除您在这台设备上留下的所有印记，且无法通过任何手段找回。
+              {{ t('settings.data.confirm_desc') }}
             </p>
             
             <div class="mb-6">
               <input
                 v-model="deleteConfirmText"
                 type="text"
-                placeholder="输入“确认删除”"
+                :placeholder="t('settings.data.input_placeholder')"
                 class="w-full px-5 py-3 rounded-xl outline-none text-center text-xs font-black bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10"
                 style="color: var(--text-primary);"
               />
@@ -273,15 +275,15 @@ onMounted(() => {})
                 class="flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-black/5 dark:bg-white/5"
                 style="color: var(--text-secondary);"
               >
-                取消
+                {{ t('common.cancel') }}
               </button>
               <button
                 @click="clearData"
-                :disabled="deleteConfirmText !== '确认删除'"
+                :disabled="deleteConfirmText !== t('settings.data.confirm_word')"
                 class="flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white transition-all disabled:opacity-30"
                 style="background: linear-gradient(135deg, #ef4444, #dc2626);"
               >
-                删除
+                {{ t('common.delete') }}
               </button>
             </div>
           </div>
