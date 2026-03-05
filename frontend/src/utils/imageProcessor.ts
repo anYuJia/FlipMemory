@@ -39,6 +39,17 @@ export interface CompressedPhoto {
 }
 
 /**
+ * 清理文件名中的非法字符
+ */
+export function sanitizeFilename(name: string): string {
+    // 只保留字母、数字、点、下划线、减号
+    return name
+        .replace(/[^\w\.\-]/gi, '_')
+        .replace(/_{2,}/g, '_')
+        .replace(/^_|_$/g, '') // 移除首尾下划线
+}
+
+/**
  * 从图片文件中提取 EXIF 数据
  */
 export async function extractExifData(file: File): Promise<PhotoExifData> {
@@ -56,7 +67,6 @@ export async function extractExifData(file: File): Promise<PhotoExifData> {
     try {
         // 读取 EXIF 数据
         const exif = await exifr.parse(file, {
-            // 需要的 EXIF 标签
             pick: [
                 'DateTimeOriginal',
                 'CreateDate',
@@ -70,25 +80,17 @@ export async function extractExifData(file: File): Promise<PhotoExifData> {
                 'ExifImageWidth',
                 'ExifImageHeight',
             ],
-            // 自动解析 GPS 坐标为十进制度数
             translateValues: true,
         })
 
         if (exif) {
-            // 拍摄时间
             exifData.takenAt = exif.DateTimeOriginal || exif.CreateDate || exif.ModifyDate || null
-
-            // GPS 坐标
             if (exif.GPSLatitude !== undefined && exif.GPSLongitude !== undefined) {
                 exifData.latitude = exif.GPSLatitude
                 exifData.longitude = exif.GPSLongitude
             }
-
-            // 相机信息
             exifData.cameraMake = exif.Make || null
             exifData.cameraModel = exif.Model || null
-
-            // 尺寸
             exifData.width = exif.ExifImageWidth || exif.ImageWidth || null
             exifData.height = exif.ExifImageHeight || exif.ImageHeight || null
         }
@@ -101,28 +103,17 @@ export async function extractExifData(file: File): Promise<PhotoExifData> {
 
 /**
  * 使用反向地理编码获取位置名称
- * 使用 OpenStreetMap Nominatim API（免费）
  */
 export async function reverseGeocode(latitude: number, longitude: number): Promise<string | null> {
     try {
         const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=14&addressdetails=1`,
-            {
-                headers: {
-                    'User-Agent': 'FlipMemory/1.0',
-                },
-            }
+            { headers: { 'User-Agent': 'FlipMemory/1.0' } }
         )
-
         if (!response.ok) return null
-
         const data = await response.json()
-
-        // 构建位置名称
         const address = data.address
         if (!address) return null
-
-        // 优先级: 区县 > 城市 > 省份
         const parts: string[] = []
         if (address.city || address.town || address.county) {
             parts.push(address.city || address.town || address.county)
@@ -130,7 +121,6 @@ export async function reverseGeocode(latitude: number, longitude: number): Promi
         if (address.district || address.suburb) {
             parts.push(address.district || address.suburb)
         }
-
         return parts.length > 0 ? parts.join(' · ') : null
     } catch (error) {
         console.warn('Failed to reverse geocode:', error)
@@ -140,9 +130,6 @@ export async function reverseGeocode(latitude: number, longitude: number): Promi
 
 /**
  * 压缩图片到指定大小以内
- * @param file 原始文件
- * @param maxSizeKB 最大大小（KB）
- * @param maxQuality 初始质量（0-1）
  */
 export async function compressImage(
     file: File,
@@ -160,40 +147,27 @@ export async function compressImage(
         }
 
         img.onload = async () => {
-            // 保持原始分辨率
             canvas.width = img.width
             canvas.height = img.height
-
-            // 绘制图片
             ctx.drawImage(img, 0, 0)
 
-            // 二分法查找最佳质量
             let quality = maxQuality
             let minQuality = 0.1
             let blob: Blob | null = null
             const maxSizeBytes = maxSizeKB * 1024
 
-            // 最多尝试 10 次
             for (let i = 0; i < 10; i++) {
                 blob = await new Promise<Blob | null>((res) => {
                     canvas.toBlob(res, 'image/jpeg', quality)
                 })
-
                 if (!blob) {
                     reject(new Error('Failed to create blob'))
                     return
                 }
-
-                if (blob.size <= maxSizeBytes) {
-                    // 已经足够小了
-                    break
-                }
-
-                // 需要继续压缩
+                if (blob.size <= maxSizeBytes) break
                 if (quality > minQuality) {
-                    quality = quality * 0.8 // 每次降低 20%
+                    quality = quality * 0.8
                 } else {
-                    // 已经是最低质量了
                     break
                 }
             }
@@ -203,25 +177,21 @@ export async function compressImage(
                 return
             }
 
-            // 生成新文件名
             const originalName = file.name.replace(/\.[^.]+$/, '')
-            const newFileName = `${originalName}.jpg`
+            const safeName = sanitizeFilename(originalName) || 'photo'
+            const newFileName = `${safeName}.jpg`
 
             resolve(new File([blob], newFileName, { type: 'image/jpeg' }))
         }
 
-        img.onerror = () => {
-            reject(new Error('Failed to load image'))
-        }
+        img.onerror = () => reject(new Error('Failed to load image'))
 
-        // 读取文件
         const reader = new FileReader()
         reader.onload = (e) => {
-            img.src = e.target?.result as string
+            const result = e.target?.result
+            if (typeof result === 'string') img.src = result
         }
-        reader.onerror = () => {
-            reject(new Error('Failed to read file'))
-        }
+        reader.onerror = () => reject(new Error('Failed to read file'))
         reader.readAsDataURL(file)
     })
 }
@@ -230,24 +200,16 @@ export async function compressImage(
  * 处理照片：提取 EXIF + 压缩
  */
 export async function processPhoto(file: File): Promise<CompressedPhoto> {
-    // 1. 先提取 EXIF（压缩前提取，因为压缩会丢失 EXIF）
     const exif = await extractExifData(file)
-
-    // 2. 如果有 GPS 坐标，获取位置名称
     if (exif.latitude && exif.longitude) {
         exif.location = await reverseGeocode(exif.latitude, exif.longitude)
     }
-
-    // 3. 压缩图片
     const compressedFile = await compressImage(file, 300)
-
-    // 4. 如果 EXIF 中没有尺寸，从图片中获取
     if (!exif.width || !exif.height) {
         const dimensions = await getImageDimensions(file)
         exif.width = dimensions.width
         exif.height = dimensions.height
     }
-
     return {
         file: compressedFile,
         exif,
@@ -263,11 +225,16 @@ export async function processPhoto(file: File): Promise<CompressedPhoto> {
 function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
     return new Promise((resolve, reject) => {
         const img = new Image()
+        const objectUrl = URL.createObjectURL(file)
         img.onload = () => {
+            URL.revokeObjectURL(objectUrl)
             resolve({ width: img.width, height: img.height })
         }
-        img.onerror = reject
-        img.src = URL.createObjectURL(file)
+        img.onerror = () => {
+            URL.revokeObjectURL(objectUrl)
+            reject(new Error('Failed to load image for dimensions'))
+        }
+        img.src = objectUrl
     })
 }
 

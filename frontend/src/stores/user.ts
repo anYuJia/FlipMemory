@@ -144,7 +144,10 @@ export const useUserStore = defineStore('user', () => {
 
     function logout() {
         user.value = null; profile.value = null; accessToken.value = null
-        localStorage.clear(); removeToken(); window.location.reload()
+        // Selectively remove auth-related keys, preserve theme/language/settings
+        const authKeys = ['accessToken', 'refreshToken', 'tokenExpiry', 'userInfo', 'userProfile', 'userSettings', 'flipMemory_lastSyncTime']
+        authKeys.forEach(key => localStorage.removeItem(key))
+        removeToken(); window.location.reload()
     }
 
     return {

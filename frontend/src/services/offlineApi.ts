@@ -6,6 +6,7 @@ import { db, generateTempId, type LocalMemory, type LocalCalendarDay, type SyncS
 import api from '@/services/api'
 import { useOfflineStore } from '@/stores/offline'
 import { AppError, logError } from '@/utils/errorHandler'
+import { formatDateToString } from '@/utils/dateFormatter'
 import type { Memory, CalendarDay, CreateMemoryInput, MoodType } from '@/types'
 
 /**
@@ -355,24 +356,28 @@ export const offlineApi = {
             if (offlineStore.isOnline && !offlineStore.offlineModeEnabled) {
                 try {
                     const memories = await api.memories.getRecent(limit)
-
-                    // 缓存到本地
-                    const localMemories = memories.map((m: Memory) => toLocalMemory(m))
-                    await offlineStore.bulkSaveMemories(localMemories)
-
-                    return memories
+                    
+                    if (Array.isArray(memories)) {
+                        // 异步缓存到本地，不阻塞主流程
+                        const localMemories = memories.map((m: Memory) => toLocalMemory(m))
+                        offlineStore.bulkSaveMemories(localMemories).catch(err => {
+                            console.error('[OfflineAPI] Failed to cache recent memories:', err)
+                        })
+                        return memories
+                    }
                 } catch (error) {
-                    console.warn('[OfflineAPI] Failed to fetch recent memories, falling back to cache:', error)
+                    console.warn('[OfflineAPI] Failed to fetch recent memories from server, falling back to local cache:', error)
                 }
             }
 
-            // 从本地获取最近的记忆
+            // 从本地获取最近的记忆 (IndexedDB 作为兜底)
             const localMemories = await db.memories
                 .orderBy('date')
                 .reverse()
                 .limit(limit)
                 .toArray()
 
+            console.log(`[OfflineAPI] Retrieved ${localMemories.length} memories from local cache`)
             return localMemories.map(toServerMemory)
         },
 
@@ -445,7 +450,7 @@ export const offlineApi = {
             // 本地计算回顾数据
             const today = new Date()
             const yearAgoDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
-            const yearAgoStr = yearAgoDate.toISOString().split('T')[0]
+            const yearAgoStr = formatDateToString(yearAgoDate)
 
             let yearAgoMemory = null
             if (yearAgoStr) {

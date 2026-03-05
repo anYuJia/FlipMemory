@@ -5,6 +5,7 @@
 import { db, generateTempId, type PendingPhoto, type UploadStatus } from '@/services/db'
 import api from '@/services/api'
 import { useOfflineStore } from '@/stores/offline'
+import { buildStorageUrl } from '@/utils/urlBuilder'
 
 /**
  * 图片上传结果
@@ -22,7 +23,8 @@ export interface PhotoUploadResult {
  * 离线图片上传服务
  */
 class OfflinePhotoService {
-    private isUploading = false
+    private uploadPromise: Promise<{ success: number; failed: number; total: number }> | null = null
+    private blobUrlRegistry = new Map<string, string>()
 
     /**
      * 保存图片（离线优先）
@@ -91,9 +93,6 @@ class OfflinePhotoService {
         }
     }
 
-    /**
-     * 上传图片到服务器
-     */
     private async uploadToServer(
         file: File | Blob,
         filename: string,
@@ -104,8 +103,14 @@ class OfflinePhotoService {
             height?: number | null
         }
     ): Promise<PhotoUploadResult> {
-        // 1. 获取预签名上传 URL
-        const { uploadUrl, key } = await api.upload.getPresignedUrl(filename, mimeType)
+        // 关键防护：清理文件名并强制确保带有 .jpg 后缀
+        // 移除现有后缀以便重新添加
+        const nameWithoutExt = filename.replace(/\.[^.]+$/, '')
+        const safeBaseName = nameWithoutExt.replace(/[^\w\.\-]/gi, '_') || 'photo'
+        const safeFilename = `${safeBaseName}.jpg`
+
+        // 1. 获取预签名上传 URL (使用清理并标准化后的文件名)
+        const { uploadUrl, key } = await api.upload.getPresignedUrl(safeFilename, mimeType)
 
         // 2. 上传到存储服务
         const uploadResponse = await fetch(uploadUrl, {
@@ -121,18 +126,18 @@ class OfflinePhotoService {
         }
 
         // 3. 确认上传完成
-        const { photo } = await api.upload.confirm(key, {
+        const processed = await api.upload.confirm(key, {
             takenAt: metadata?.takenAt,
             width: metadata?.width,
             height: metadata?.height,
         })
 
         return {
-            id: photo.id,
-            key,
-            originalUrl: photo.originalUrl,
-            thumbnailUrl: photo.thumbnailUrl,
-            mediumUrl: photo.mediumUrl,
+            id: processed.originalKey,
+            key: processed.originalKey,
+            originalUrl: buildStorageUrl(processed.originalKey),
+            thumbnailUrl: buildStorageUrl(processed.thumbnailKey),
+            mediumUrl: buildStorageUrl(processed.mediumKey),
             isLocal: false,
         }
     }
@@ -145,9 +150,8 @@ class OfflinePhotoService {
         failed: number
         total: number
     }> {
-        if (this.isUploading) {
-            console.log('[OfflinePhotoService] Already uploading...')
-            return { success: 0, failed: 0, total: 0 }
+        if (this.uploadPromise) {
+            return this.uploadPromise
         }
 
         const offlineStore = useOfflineStore()
@@ -156,9 +160,7 @@ class OfflinePhotoService {
             return { success: 0, failed: 0, total: 0 }
         }
 
-        this.isUploading = true
-
-        try {
+        this.uploadPromise = (async () => {
             const pendingPhotos = await db.pendingPhotos
                 .where('uploadStatus')
                 .anyOf(['pending', 'failed'])
@@ -212,8 +214,12 @@ class OfflinePhotoService {
             }
 
             return { success, failed, total: pendingPhotos.length }
+        })()
+
+        try {
+            return await this.uploadPromise
         } finally {
-            this.isUploading = false
+            this.uploadPromise = null
         }
     }
 
@@ -227,6 +233,9 @@ class OfflinePhotoService {
     ): Promise<void> {
         const memory = await db.memories.get(memoryDate)
         if (!memory) return
+
+        // Revoke blob URL for the old local photo
+        this.revokeUrl(tempId)
 
         // 找到并更新对应的临时图片
         const updatedPhotos = memory.photos.map(p => {
@@ -281,11 +290,38 @@ class OfflinePhotoService {
      * 获取本地图片的 Blob URL
      */
     async getLocalPhotoUrl(photoId: string): Promise<string | null> {
+        // Reuse existing blob URL if available
+        const existing = this.blobUrlRegistry.get(photoId)
+        if (existing) return existing
+
         const photo = await db.pendingPhotos.get(photoId)
         if (photo) {
-            return URL.createObjectURL(photo.blob)
+            const url = URL.createObjectURL(photo.blob)
+            this.blobUrlRegistry.set(photoId, url)
+            return url
         }
         return null
+    }
+
+    /**
+     * Revoke a specific blob URL by photo ID
+     */
+    revokeUrl(id: string): void {
+        const url = this.blobUrlRegistry.get(id)
+        if (url) {
+            URL.revokeObjectURL(url)
+            this.blobUrlRegistry.delete(id)
+        }
+    }
+
+    /**
+     * Revoke all tracked blob URLs
+     */
+    revokeAllUrls(): void {
+        for (const url of this.blobUrlRegistry.values()) {
+            URL.revokeObjectURL(url)
+        }
+        this.blobUrlRegistry.clear()
     }
 
     /**

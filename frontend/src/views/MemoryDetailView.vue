@@ -24,7 +24,7 @@ const formattedDate = computed(() => {
   return d.toLocaleDateString(locale.value, { month: 'long', day: 'numeric', weekday: 'long' })
 })
 
-const handleEdit = () => router.push({ name: 'create-memory', params: { id: memory.value?.id }, query: { date } })
+const handleEdit = () => router.push({ name: 'edit-memory', params: { date } })
 const handleDelete = async () => {
   if (await confirm({ title: t('common.delete'), message: t('detail.delete_confirm') })) {
     await memoryStore.deleteMemory(date)

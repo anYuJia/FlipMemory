@@ -17,6 +17,7 @@ export function formatDateToString(date: Date): string {
  */
 export function formatDateTime(date: Date | string): string {
     const d = typeof date === 'string' ? new Date(date) : date
+    if (isNaN(d.getTime())) return 'Invalid Date'
     const year = d.getFullYear()
     const month = String(d.getMonth() + 1).padStart(2, '0')
     const day = String(d.getDate()).padStart(2, '0')
@@ -31,6 +32,7 @@ export function formatDateTime(date: Date | string): string {
  */
 export function formatRelativeTime(date: Date | string): string {
     const d = typeof date === 'string' ? new Date(date) : date
+    if (isNaN(d.getTime())) return 'Invalid Date'
     const now = new Date()
     const diffMs = now.getTime() - d.getTime()
     const diffSecs = Math.floor(diffMs / 1000)
@@ -52,6 +54,7 @@ export function formatRelativeTime(date: Date | string): string {
  */
 export function formatMonthDay(date: Date | string): string {
     const d = typeof date === 'string' ? new Date(date) : date
+    if (isNaN(d.getTime())) return 'Invalid Date'
     const month = String(d.getMonth() + 1).padStart(2, '0')
     const day = String(d.getDate()).padStart(2, '0')
     return `${month}-${day}`
@@ -62,6 +65,7 @@ export function formatMonthDay(date: Date | string): string {
  */
 export function formatChineseDate(date: Date | string): string {
     const d = typeof date === 'string' ? new Date(date) : date
+    if (isNaN(d.getTime())) return 'Invalid Date'
     const year = d.getFullYear()
     const month = d.getMonth() + 1
     const day = d.getDate()
@@ -73,7 +77,7 @@ export function formatChineseDate(date: Date | string): string {
  */
 export function parseDate(dateStr: string): Date {
     const [year = 1970, month = 1, day = 1] = dateStr.split('-').map(Number)
-    return new Date(year, month - 1, day)
+    return new Date(Date.UTC(year, month - 1, day))
 }
 
 /**
@@ -97,6 +101,11 @@ export function getYesterdayString(): string {
  */
 export function getYearAgoString(): string {
     const yearAgo = new Date()
+    const originalMonth = yearAgo.getMonth()
     yearAgo.setFullYear(yearAgo.getFullYear() - 1)
+    // Handle leap year edge case (e.g., Feb 29 → Mar 1)
+    if (yearAgo.getMonth() !== originalMonth) {
+        yearAgo.setDate(0) // Go to last day of previous month (Feb 28)
+    }
     return formatDateToString(yearAgo)
 }
