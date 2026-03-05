@@ -101,10 +101,14 @@ export class MemoryService {
         const { date, photoKeys, photos, tags, ...data } = input
 
         // 构建照片创建数据
+        const derivePhotoKeys = (key: string) => {
+            const thumbnailKey = key.replace('/original/', '/thumbnail/')
+            const mediumKey = key.replace('/original/', '/medium/')
+            return { originalKey: key, thumbnailKey, mediumKey }
+        }
+
         const photoCreateData = photos?.map((p, index) => ({
-            originalKey: p.key,
-            thumbnailKey: p.key, // 暂时使用原图
-            mediumKey: p.key,    // 暂时使用原图
+            ...derivePhotoKeys(p.key),
             takenAt: p.takenAt ? new Date(p.takenAt) : null,
             latitude: p.latitude ?? null,
             longitude: p.longitude ?? null,
@@ -112,104 +116,106 @@ export class MemoryService {
             height: p.height ?? null,
             order: index,
         })) ?? photoKeys?.map((key, index) => ({
-            originalKey: key,
-            thumbnailKey: key,
-            mediumKey: key,
+            ...derivePhotoKeys(key),
             order: index,
         }))
 
-        // 检查是否已存在记忆
-        const existingMemory = await prisma.memory.findUnique({
-            where: {
-                userId_date: {
-                    userId,
-                    date: new Date(date),
-                },
-            },
-            include: {
-                photos: true,
-            },
-        })
-
-        if (existingMemory) {
-            // 更新现有记忆
-            // 如果有新照片，先删除旧照片
-            if (photoCreateData && photoCreateData.length > 0) {
-                await prisma.photo.deleteMany({
-                    where: { memoryId: existingMemory.id },
-                })
-            }
-
-            const memory = await prisma.memory.update({
+        // Use transaction to prevent race conditions on concurrent creates for same date
+        const result = await prisma.$transaction(async (tx) => {
+            // 检查是否已存在记忆
+            const existingMemory = await tx.memory.findUnique({
                 where: {
                     userId_date: {
                         userId,
                         date: new Date(date),
                     },
                 },
-                data: {
-                    ...data,
-                    photos: photoCreateData
-                        ? {
-                            create: photoCreateData,
-                        }
-                        : undefined,
-                },
                 include: {
                     photos: true,
                 },
             })
 
-            return {
-                ...memory,
-                date: memory.date.toISOString().split('T')[0],
-                photos: memory.photos.map((p) => ({
-                    id: p.id,
-                    originalUrl: this.getPhotoUrl(p.originalKey),
-                    thumbnailUrl: this.getPhotoUrl(p.thumbnailKey),
-                    mediumUrl: this.getPhotoUrl(p.mediumKey),
-                    takenAt: p.takenAt?.toISOString() || null,
-                    width: p.width,
-                    height: p.height,
-                    order: p.order,
-                })),
-            }
-        } else {
-            // 创建新记忆
-            const memory = await prisma.memory.create({
-                data: {
-                    userId,
-                    date: new Date(date),
-                    ...data,
-                    photos: photoCreateData
-                        ? {
-                            create: photoCreateData,
-                        }
-                        : undefined,
-                },
-                include: {
-                    photos: true,
-                },
-            })
+            if (existingMemory) {
+                // 更新现有记忆
+                if (photoCreateData && photoCreateData.length > 0) {
+                    await tx.photo.deleteMany({
+                        where: { memoryId: existingMemory.id },
+                    })
+                }
 
-            return {
-                ...memory,
-                date: memory.date.toISOString().split('T')[0],
-                photos: memory.photos.map((p) => ({
-                    id: p.id,
-                    originalUrl: this.getPhotoUrl(p.originalKey),
-                    thumbnailUrl: this.getPhotoUrl(p.thumbnailKey),
-                    mediumUrl: this.getPhotoUrl(p.mediumKey),
-                    takenAt: p.takenAt?.toISOString() || null,
-                    width: p.width,
-                    height: p.height,
-                    order: p.order,
-                })),
+                const memory = await tx.memory.update({
+                    where: {
+                        userId_date: {
+                            userId,
+                            date: new Date(date),
+                        },
+                    },
+                    data: {
+                        ...data,
+                        photos: photoCreateData
+                            ? {
+                                create: photoCreateData,
+                            }
+                            : undefined,
+                    },
+                    include: {
+                        photos: true,
+                    },
+                })
+
+                return {
+                    ...memory,
+                    date: memory.date.toISOString().split('T')[0],
+                    photos: memory.photos.map((p) => ({
+                        id: p.id,
+                        originalUrl: this.getPhotoUrl(p.originalKey),
+                        thumbnailUrl: this.getPhotoUrl(p.thumbnailKey),
+                        mediumUrl: this.getPhotoUrl(p.mediumKey),
+                        takenAt: p.takenAt?.toISOString() || null,
+                        width: p.width,
+                        height: p.height,
+                        order: p.order,
+                    })),
+                }
+            } else {
+                // 创建新记忆
+                const memory = await tx.memory.create({
+                    data: {
+                        userId,
+                        date: new Date(date),
+                        ...data,
+                        photos: photoCreateData
+                            ? {
+                                create: photoCreateData,
+                            }
+                            : undefined,
+                    },
+                    include: {
+                        photos: true,
+                    },
+                })
+
+                return {
+                    ...memory,
+                    date: memory.date.toISOString().split('T')[0],
+                    photos: memory.photos.map((p) => ({
+                        id: p.id,
+                        originalUrl: this.getPhotoUrl(p.originalKey),
+                        thumbnailUrl: this.getPhotoUrl(p.thumbnailKey),
+                        mediumUrl: this.getPhotoUrl(p.mediumKey),
+                        takenAt: p.takenAt?.toISOString() || null,
+                        width: p.width,
+                        height: p.height,
+                        order: p.order,
+                    })),
+                }
             }
-        }
+        })
 
         // 创建/更新后清除缓存
         await this.invalidateUserCache(userId)
+
+        return result
     }
 
     // 更新记忆
@@ -268,7 +274,24 @@ export class MemoryService {
         // 清除缓存
         await this.invalidateUserCache(userId)
 
-        // TODO: 异步删除 MinIO 中的照片文件
+        // Clean up MinIO photo objects
+        if (memory.photos.length > 0) {
+            const photoKeys = memory.photos.flatMap(p => [
+                p.originalKey,
+                p.thumbnailKey,
+                p.mediumKey,
+            ])
+            try {
+                await Promise.all(
+                    photoKeys.map(key =>
+                        minioClient.removeObject(env.minio.bucket, key)
+                    )
+                )
+            } catch (err) {
+                // Log but don't fail the delete operation
+                console.error('Failed to clean up MinIO objects:', err)
+            }
+        }
 
         return true
     }
@@ -290,15 +313,15 @@ export class MemoryService {
             include: { photos: true },
         })
 
-        // 随机记忆 - 使用 PostgreSQL 的 RANDOM()
-        const randomMemories = await prisma.$queryRawUnsafe(`
+        // 随机记忆 - 使用安全参数化查询
+        const randomMemories = await prisma.$queryRaw<any[]>`
             SELECT m.*, 
                    (SELECT json_agg(p.*) FROM photos p WHERE p."memoryId" = m.id) as photos
             FROM memories m
-            WHERE m."userId" = $1
+            WHERE m."userId" = ${userId}
             ORDER BY RANDOM()
             LIMIT 5
-        `, userId) as any[]
+        `
 
         return {
             yearAgo: yearAgoMemory
@@ -382,7 +405,7 @@ export class MemoryService {
             }
         })
 
-        // 趋势数据 - 优化：使用更高效的查询
+        // 趋势数据 - 优化：使用安全参数化查询
         let trend: { label: string, count: number }[] = []
 
         if (range === 'all') {
@@ -390,13 +413,13 @@ export class MemoryService {
             const startYear = now.getFullYear() - 4
             const years = Array.from({ length: 5 }, (_, i) => startYear + i)
 
-            const results = await prisma.$queryRawUnsafe(`
+            const results = await prisma.$queryRaw<any[]>`
                 SELECT CAST(EXTRACT(YEAR FROM date) AS TEXT) as label, CAST(COUNT(*) AS INTEGER) as count
                 FROM memories
-                WHERE "userId" = $1 AND EXTRACT(YEAR FROM date) >= $2
+                WHERE "userId" = ${userId} AND EXTRACT(YEAR FROM date) >= ${startYear}
                 GROUP BY label
                 ORDER BY label ASC
-            `, userId, startYear) as { label: string, count: number }[]
+            `
 
             trend = years.map(y => ({
                 label: y.toString(),
@@ -405,13 +428,13 @@ export class MemoryService {
         } else if (range === 'year') {
             // 月度趋势: 该年 12 个月
             const months = Array.from({ length: 12 }, (_, i) => i + 1)
-            const results = await prisma.$queryRawUnsafe(`
+            const results = await prisma.$queryRaw<any[]>`
                 SELECT CAST(EXTRACT(MONTH FROM date) AS TEXT) as label, CAST(COUNT(*) AS INTEGER) as count
                 FROM memories
-                WHERE "userId" = $1 AND EXTRACT(YEAR FROM date) = $2
+                WHERE "userId" = ${userId} AND EXTRACT(YEAR FROM date) = ${targetYear}
                 GROUP BY label
                 ORDER BY label::int ASC
-            `, userId, targetYear) as { label: string, count: number }[]
+            `
 
             trend = months.map(m => ({
                 label: `${m}月`,
@@ -531,7 +554,7 @@ export class MemoryService {
     }
 
     // 搜索记忆
-    async searchMemories(userId: string, query?: string, mood?: string, from?: string, to?: string, limit = 20) {
+    async searchMemories(userId: string, query?: string, mood?: string, from?: string, to?: string, limit = 20, skip = 0) {
         const where: any = { userId }
 
         // 关键词搜索
@@ -554,6 +577,7 @@ export class MemoryService {
         const memories = await prisma.memory.findMany({
             where,
             take: limit,
+            skip,
             orderBy: { date: 'desc' },
             include: {
                 photos: { take: 1 },
@@ -573,10 +597,11 @@ export class MemoryService {
     }
 
     // 获取最近记忆
-    async getRecentMemories(userId: string, limit = 10) {
+    async getRecentMemories(userId: string, limit = 10, offset = 0) {
         const memories = await prisma.memory.findMany({
             where: { userId },
             take: limit,
+            skip: offset,
             orderBy: { date: 'desc' },
             include: {
                 photos: { orderBy: { order: 'asc' } },

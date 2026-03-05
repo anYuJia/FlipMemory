@@ -114,6 +114,7 @@ model Photo {
 
   @@index([memoryId])
   @@index([memoryId, order])          // 排序查询优化
+  @@index([memoryId, takenAt])        // 按记忆+拍摄时间查询
   @@index([takenAt])                  // 按拍摄时间查询
   @@map("photos")
 }
