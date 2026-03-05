@@ -4,8 +4,8 @@
  * 处理离线缓存和后台同步
  */
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
-import { registerRoute, NavigationRoute } from 'workbox-routing'
-import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies'
+import { registerRoute } from 'workbox-routing'
+import { NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { CacheableResponsePlugin } from 'workbox-cacheable-response'
 
@@ -26,9 +26,9 @@ const CACHE_NAMES = {
 }
 
 // ===== API 请求缓存策略 =====
-// 使用 NetworkFirst 策略：优先网络，网络失败时使用缓存
+// Only cache GET requests with NetworkFirst; POST/PUT/DELETE pass through to network
 registerRoute(
-    ({ url }) => url.pathname.startsWith('/api/'),
+    ({ url, request }) => url.pathname.startsWith('/api/') && request.method === 'GET',
     new NetworkFirst({
         cacheName: CACHE_NAMES.API,
         networkTimeoutSeconds: 10, // 10秒超时后使用缓存
@@ -70,15 +70,16 @@ registerRoute(
     })
 )
 
-// ===== 静态资源缓存策略 (JS/CSS/Fonts) =====
+// ===== 静态资源缓存策略 (CSS/Fonts, 不含 JS) =====
+// JS chunk 由 precacheAndRoute 管理，无需额外缓存，避免版本冲突
 registerRoute(
     ({ request, url }) => {
-        return request.destination === 'script' ||
-            request.destination === 'style' ||
+        return (request.destination === 'style' ||
             request.destination === 'font' ||
-            url.pathname.match(/\.(js|css|woff2?|ttf|eot)$/i)
+            url.pathname.match(/\.(css|woff2?|ttf|eot)$/i)) &&
+            !url.pathname.match(/\.[a-f0-9]{8,}\.js$/i)
     },
-    new CacheFirst({ // 静态代码和字体使用 CacheFirst，因为它们通常带有哈希后缀
+    new StaleWhileRevalidate({
         cacheName: CACHE_NAMES.STATIC,
         plugins: [
             new CacheableResponsePlugin({
@@ -93,86 +94,19 @@ registerRoute(
 )
 
 // ===== 导航请求处理 =====
-// SPA 应用的导航请求都返回 index.html
-const navigationHandler = async () => {
-    const cache = await caches.open('navigation-cache')
-    const cachedResponse = await cache.match('/index.html')
-
-    if (cachedResponse) {
-        return cachedResponse
-    }
-
-    try {
-        const response = await fetch('/index.html')
-        if (response.ok) {
-            cache.put('/index.html', response.clone())
-        }
-        return response
-    } catch {
-        // 如果网络请求失败且没有缓存，返回一个基本的离线页面
-        return new Response(
-            `<!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>FlipMemory - 离线</title>
-          <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              display: flex; 
-              justify-content: center; 
-              align-items: center; 
-              min-height: 100vh;
-              margin: 0;
-              background: linear-gradient(135deg, #fef3e2, #fde6d3);
-              color: #333;
-            }
-            .container { 
-              text-align: center; 
-              padding: 2rem;
-            }
-            h1 { 
-              font-size: 3rem; 
-              margin-bottom: 1rem;
-            }
-            p { 
-              color: #666; 
-              margin-bottom: 2rem;
-            }
-            button {
-              padding: 12px 24px;
-              font-size: 1rem;
-              background: linear-gradient(135deg, #fb923c, #f97316);
-              color: white;
-              border: none;
-              border-radius: 12px;
-              cursor: pointer;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>🎴</h1>
-            <h2>FlipMemory</h2>
-            <p>当前处于离线状态，请检查网络连接</p>
-            <button onclick="location.reload()">重试</button>
-          </div>
-        </body>
-      </html>`,
-            {
-                headers: { 'Content-Type': 'text/html' },
-            }
-        )
-    }
-}
-
-// 注册导航路由
-const navigationRoute = new NavigationRoute(navigationHandler, {
-    // 排除 API 请求
-    denylist: [/^\/api\//],
-})
-registerRoute(navigationRoute)
+// SPA 导航请求优先网络，离线回退缓存，避免长期使用旧的 index.html
+registerRoute(
+    ({ request, url }) => request.mode === 'navigate' && !url.pathname.startsWith('/api/'),
+    new NetworkFirst({
+        cacheName: 'navigation-cache',
+        networkTimeoutSeconds: 5,
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            }),
+        ],
+    })
+)
 
 // ===== Service Worker 生命周期事件 =====
 

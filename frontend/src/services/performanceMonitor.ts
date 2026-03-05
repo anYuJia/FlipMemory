@@ -28,6 +28,9 @@ class PerformanceMonitor {
     private marks: Map<string, number> = new Map()
     private apiDurations: number[] = []
     private errorCount: number = 0
+    private errorHandler = () => { this.errorCount++ }
+    private rejectionHandler = () => { this.errorCount++ }
+    private memoryIntervalId: ReturnType<typeof setInterval> | null = null
 
     /**
      * 初始化性能监控
@@ -37,10 +40,23 @@ class PerformanceMonitor {
         this.measureWebVitals()
         this.measurePageLoadTime()
         this.monitorMemory()
-        
+
         // 监听全局错误以计算健康度
-        window.addEventListener('error', () => { this.errorCount++ })
-        window.addEventListener('unhandledrejection', () => { this.errorCount++ })
+        window.addEventListener('error', this.errorHandler)
+        window.addEventListener('unhandledrejection', this.rejectionHandler)
+    }
+
+    /**
+     * 销毁性能监控，清理所有事件监听和定时器
+     */
+    destroy() {
+        if (typeof window === 'undefined') return
+        window.removeEventListener('error', this.errorHandler)
+        window.removeEventListener('unhandledrejection', this.rejectionHandler)
+        if (this.memoryIntervalId !== null) {
+            clearInterval(this.memoryIntervalId)
+            this.memoryIntervalId = null
+        }
     }
 
     /**
@@ -83,7 +99,7 @@ class PerformanceMonitor {
 
     private monitorMemory() {
         if ('memory' in performance) {
-            setInterval(() => {
+            this.memoryIntervalId = setInterval(() => {
                 const memory = (performance as any).memory
                 this.metrics.memoryUsage = Math.round(memory.usedJSHeapSize / 1048576)
             }, 10000)

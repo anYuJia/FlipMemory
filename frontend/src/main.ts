@@ -5,6 +5,42 @@ import App from './App.vue'
 import i18n from './i18n'
 import './style.css'
 
+// 1. 全局资源加载失败捕获 (兜底 ChunkLoadError)
+window.addEventListener('error', (event) => {
+    const target = event.target as any
+    if (target && (target.tagName === 'LINK' || target.tagName === 'SCRIPT')) {
+        const url = target.src || target.href
+        if (url && (url.includes('/css/') || url.includes('/js/') || url.includes('/views/'))) {
+            console.error('检测到静态资源加载失败，尝试强制刷新页面:', url)
+            
+            // 避免无限刷新
+            const key = 'static-resource-reload'
+            const lastReload = sessionStorage.getItem(key)
+            const now = Date.now()
+            
+            if (!lastReload || now - Number(lastReload) > 10000) {
+                sessionStorage.setItem(key, String(now))
+                
+                // 通知 SW 清理
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' })
+                }
+                
+                // 清理所有缓存
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        Promise.all(names.map(name => caches.delete(name))).finally(() => {
+                            location.reload()
+                        })
+                    })
+                } else {
+                    location.reload()
+                }
+            }
+        }
+    }
+}, true) // 使用捕获模式以监听资源加载失败
+
 // 性能监控与错误追踪
 import { performanceMonitor } from './services/performanceMonitor'
 import { initSentry } from './services/sentry'

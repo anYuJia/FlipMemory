@@ -28,6 +28,7 @@ export const useOfflineStore = defineStore('offline', () => {
 
     // 同步状态
     const isSyncing = ref(false)
+    let syncPromise: Promise<boolean> | null = null
     const syncProgress = ref(0)
     const lastSyncTime = useStorage<number | null>('flipMemory_lastSyncTime', null)
     const pendingOperationsCount = ref(0)
@@ -39,6 +40,8 @@ export const useOfflineStore = defineStore('offline', () => {
 
     // 初始化状态
     const isInitialized = ref(false)
+    let swListenerRegistered = false
+    let watcherCleanups: (() => void)[] = []
 
     // ===== 计算属性 =====
 
@@ -78,28 +81,36 @@ export const useOfflineStore = defineStore('offline', () => {
      */
     async function init() {
         if (isInitialized.value) return
+        isInitialized.value = true
+
+        // Clean up previous watchers if re-initializing
+        watcherCleanups.forEach(cleanup => cleanup())
+        watcherCleanups = []
 
         try {
             // 更新待同步数量
             await updatePendingCount()
 
             // 监听网络状态变化
-            watch(isOnline, async (online) => {
+            const stopOnlineWatcher = watch(isOnline, async (online) => {
                 if (online && hasPendingSync.value && !offlineModeEnabled.value) {
                     // 网络恢复且有待同步数据，自动开始同步
                     await syncPendingOperations()
                 }
             })
+            watcherCleanups.push(stopOnlineWatcher)
 
             // 监听手动离线模式开关：用户关闭离线模式后，若在线则立即补同步
-            watch(offlineModeEnabled, async (enabled) => {
+            const stopOfflineWatcher = watch(offlineModeEnabled, async (enabled) => {
                 if (!enabled && isOnline.value && hasPendingSync.value) {
                     await syncPendingOperations()
                 }
             })
+            watcherCleanups.push(stopOfflineWatcher)
 
             // 监听来自 Service Worker 的同步消息
-            if ('serviceWorker' in navigator) {
+            if ('serviceWorker' in navigator && !swListenerRegistered) {
+                swListenerRegistered = true
                 navigator.serviceWorker.addEventListener('message', (event) => {
                     if (event.data?.type === 'SYNC_TRIGGERED') {
                         syncPendingOperations()
@@ -112,9 +123,13 @@ export const useOfflineStore = defineStore('offline', () => {
                 await syncPendingOperations()
             }
 
+            // Clean up expired cache after initialization
+            await cleanupExpiredCache()
+
             isInitialized.value = true
             logger.info('离线 Store 初始化完成', LOG_CONTEXT)
         } catch (error) {
+            isInitialized.value = false
             logger.error('离线 Store 初始化失败', LOG_CONTEXT, error)
         }
     }
@@ -171,7 +186,11 @@ export const useOfflineStore = defineStore('offline', () => {
      * 同步所有待处理的操作（包括图片上传）
      */
     async function syncPendingOperations(): Promise<boolean> {
-        if (isSyncing.value || !isOnline.value) {
+        if (syncPromise) {
+            return syncPromise
+        }
+
+        if (!isOnline.value) {
             return false
         }
 
@@ -179,7 +198,7 @@ export const useOfflineStore = defineStore('offline', () => {
         syncError.value = null
         syncProgress.value = 0
 
-        try {
+        syncPromise = (async () => {
             // 第一步：上传待处理的图片
             const photoResult = await offlinePhotoService.uploadPendingPhotos()
             logger.info(`图片上传完成: ${photoResult.success}/${photoResult.total} 成功`, LOG_CONTEXT)
@@ -232,11 +251,16 @@ export const useOfflineStore = defineStore('offline', () => {
             logger.info(`同步完成: ${totalSuccess} 成功, ${totalFailed} 失败`, LOG_CONTEXT)
 
             return totalFailed === 0
+        })()
+
+        try {
+            return await syncPromise
         } catch (error) {
             syncError.value = error instanceof Error ? error.message : '同步失败'
             logger.error('同步失败', LOG_CONTEXT, error)
             return false
         } finally {
+            syncPromise = null
             isSyncing.value = false
             syncProgress.value = 0
         }
@@ -359,6 +383,14 @@ export const useOfflineStore = defineStore('offline', () => {
      */
     async function saveLocalMemory(memory: LocalMemory): Promise<void> {
         try {
+            // Check storage quota before saving
+            if (navigator.storage?.estimate) {
+                const { usage = 0, quota = 0 } = await navigator.storage.estimate()
+                if (quota > 0 && usage / quota > 0.9) {
+                    logger.warn('Storage quota nearly full, cleaning up cache', LOG_CONTEXT)
+                    await cleanupExpiredCache()
+                }
+            }
             await db.memories.put(memory)
         } catch (error) {
             logger.error('保存本地记忆失败', LOG_CONTEXT, error)

@@ -19,11 +19,18 @@ const RETRY_CONFIG = {
 }
 
 // 清除 token 并跳转到登录页
+let isHandlingUnauthorized = false
 function handleUnauthorized() {
+    if (isHandlingUnauthorized) return
+    isHandlingUnauthorized = true
     removeToken()
     // 使用 Vue Router 跳转到登录页面
     if (router.currentRoute.value.name !== 'auth') {
-        router.push({ name: 'auth' })
+        router.push({ name: 'auth' }).finally(() => {
+            isHandlingUnauthorized = false
+        })
+    } else {
+        isHandlingUnauthorized = false
     }
 }
 
@@ -111,18 +118,23 @@ async function request<T>(
             headers,
         })
 
-        const json = (await response.json()) as ApiResponse<T>
         const duration = performance.now() - startTime
 
         // 记录 API 响应时间
         performanceMonitor.recordApiCall(endpoint, duration)
 
-        // 处理 401 未授权错误
+        // 处理 401 未授权错误 — check BEFORE parsing JSON
         if (response.status === 401) {
-            logger.warn('Unauthorized response, redirecting to login', 'API')
-            handleUnauthorized()
-            throw new AppError(i18n.global.t('errors.token_expired'), 401, json, false)
+            // 如果是登录或注册接口，不触发全局 401 处理（跳转登录页），由业务逻辑自行捕获
+            const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register')
+            if (!isAuthEndpoint) {
+                logger.warn('Unauthorized response, redirecting to login', 'API')
+                handleUnauthorized()
+            }
+            throw new AppError(i18n.global.t('errors.token_expired'), 401, null, false)
         }
+
+        const json = (await response.json()) as ApiResponse<T>
 
         if (!response.ok || json.code !== 0) {
             logger.warn(`API Error: ${endpoint} - ${json.message || response.status}`, 'API', { code: json.code })
@@ -135,7 +147,7 @@ async function request<T>(
             )
         }
 
-        return json.data
+        return json.data as T
     } catch (error) {
         // 检查是否应该重试
         if (shouldRetry(error, retryCount)) {
@@ -150,15 +162,14 @@ async function request<T>(
         }
 
         // 处理网络错误和超时
+        if (error instanceof DOMException && error.name === 'AbortError') {
+            logger.warn('Request timeout', 'API', { endpoint })
+            throw new AppError(i18n.global.t('common.timeout_error'), 408, error, true)
+        }
+
         if (error instanceof TypeError) {
-            if (error.message.includes('Failed to fetch')) {
-                logger.error('Network connection failed', 'API', { endpoint })
-                throw new AppError(i18n.global.t('common.network_error'), 0, error, true)
-            }
-            if (error.message.includes('AbortError')) {
-                logger.warn('Request timeout', 'API', { endpoint })
-                throw new AppError(i18n.global.t('common.timeout_error'), 408, error, true)
-            }
+            logger.error('Network connection failed', 'API', { endpoint })
+            throw new AppError(i18n.global.t('common.network_error'), 0, error, true)
         }
 
         // 其他错误
@@ -276,6 +287,8 @@ export const api = {
             date: string
             content?: string
             mood?: string
+            location?: string
+            weather?: string
             photoKeys?: string[]
             tags?: string[]
         }) => request<any>('/memories', {
@@ -342,7 +355,14 @@ export const api = {
             }),
 
         confirm: (key: string, metadata?: PhotoMetadata) =>
-            request<{ photo: any }>('/upload/complete', {
+            request<{
+                originalKey: string
+                thumbnailKey: string
+                mediumKey: string
+                width: number
+                height: number
+                takenAt?: string | null
+            }>('/upload/complete', {
                 method: 'POST',
                 body: JSON.stringify({ key, ...metadata }),
             }),

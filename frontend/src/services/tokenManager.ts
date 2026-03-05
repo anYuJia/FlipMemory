@@ -68,6 +68,7 @@ export function isTokenExpired(): boolean {
     const storage = getStorage()
     const expiry = storage.getItem(TOKEN_EXPIRY_KEY)
 
+    // 如果没有过期时间记录，但 Token 存在，则认为没有过期（由服务端 401 保证安全）
     if (!expiry) {
         return false
     }

@@ -7,7 +7,7 @@ export * from './user'
 export interface ApiResponse<T = unknown> {
     code: number
     message?: string
-    data: T
+    data: T | null
 }
 
 export interface PaginatedResponse<T> {
