@@ -56,8 +56,12 @@ const handleClick = () => {
 </script>
 
 <template>
-  <div 
+  <div
+    v-memo="[date, hasMemory, isToday, isSelected]"
     class="calendar-cell"
+    role="gridcell"
+    tabindex="0"
+    :aria-label="`${day}, ${hasMemory ? 'has memory' : 'no memory'}`"
     :class="{
       'is-other-month': !isCurrentMonth,
       'has-memory': hasMemory && isCurrentMonth,
@@ -66,6 +70,8 @@ const handleClick = () => {
       'is-weekend': isWeekend && isCurrentMonth,
     }"
     @click="handleClick"
+    @keydown.enter="handleClick"
+    @keydown.space.prevent="handleClick"
   >
     <!-- 今日光环效果 -->
     <div v-if="isToday && isCurrentMonth && !isSelected" class="today-glow" />

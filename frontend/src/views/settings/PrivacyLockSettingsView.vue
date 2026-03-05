@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { safeBack } from '@/router'
 import { ArrowLeft, Fingerprint, Lock, Shield } from 'lucide-vue-next'
 import { useToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
@@ -37,7 +38,7 @@ const toggleBiometric = () => {
 }
 
 const goBack = () => {
-  router.back()
+  safeBack()
 }
 
 onMounted(() => {})
@@ -49,11 +50,11 @@ onMounted(() => {})
     <div class="fixed inset-0 pointer-events-none overflow-hidden">
       <div 
         class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-60"
-        style="background: var(--glow-primary);"
+        style="background: var(--color-primary);"
       />
       <div 
         class="absolute top-1/3 -right-48 w-[400px] h-[400px] rounded-full blur-[100px] opacity-40"
-        style="background: var(--glow-secondary);"
+        style="background: var(--color-accent);"
       />
     </div>
     

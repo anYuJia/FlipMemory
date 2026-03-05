@@ -204,7 +204,21 @@ const toggleBarSelection = (index: number) => {
             <div class="w-1 h-4 rounded-full bg-orange-400"></div>
             <h3 class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('stats.mood_dist') }}</h3>
           </div>
-          <div class="space-y-5">
+          
+          <div v-if="isLoadingStats" class="space-y-6">
+            <div v-for="i in 3" :key="i" class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 animate-pulse"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-2 w-24 bg-black/5 dark:bg-white/5 rounded animate-pulse"></div>
+                <div class="h-2 bg-black/5 dark:bg-white/5 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+          <div v-else-if="moodDistribution.length === 0" class="py-10 flex flex-col items-center justify-center opacity-30">
+            <Activity class="w-10 h-10 mb-2" />
+            <p class="text-[10px] font-black uppercase tracking-widest">{{ t('stats.no_data') }}</p>
+          </div>
+          <div v-else class="space-y-5">
             <div v-for="item in moodDistribution" :key="item.mood" class="flex items-center gap-4">
               <div class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center justify-center text-xl border border-black/5 dark:border-white/10">{{ MoodEmoji[item.mood as keyof typeof MoodEmoji] }}</div>
               <div class="flex-1 flex flex-col gap-2">
@@ -226,14 +240,36 @@ const toggleBarSelection = (index: number) => {
             <div class="w-1 h-4 rounded-full bg-blue-500"></div>
             <h3 class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('stats.activity_trend') }}</h3>
           </div>
-          <div class="flex-1 flex items-end justify-between gap-3 pt-8 relative pb-2 px-2">
+          <div v-if="isLoadingStats" class="flex-1 flex items-end justify-between gap-3 pt-8 pb-2 px-2">
+            <div v-for="i in 7" :key="i" class="flex-1 bg-black/5 dark:bg-white/5 rounded-t-xl animate-pulse" :style="{ height: `${20 + Math.random() * 60}%` }"></div>
+          </div>
+          <div v-else-if="trendData.length === 0 || trendData.every(t => t.count === 0)" class="flex-1 flex flex-col items-center justify-center opacity-30">
+            <Zap class="w-10 h-10 mb-2" />
+            <p class="text-[10px] font-black uppercase tracking-widest">{{ t('stats.no_trend_data') }}</p>
+          </div>
+          <div v-else class="flex-1 flex items-end justify-between gap-2 pt-10 relative pb-2 px-1">
             <div v-for="(item, index) in trendData" :key="item.label" class="flex-1 flex flex-col items-center cursor-pointer group h-full justify-end" @click="toggleBarSelection(index)">
-              <div class="mb-2 px-2 py-1 rounded-lg bg-black dark:bg-white text-white dark:text-black text-[9px] font-black tracking-tighter transition-all"
-                :class="selectedBarIndex === index && item.count > 0 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'">{{ item.count }}</div>
-              <div class="w-full rounded-t-xl transition-all duration-700"
-                :style="{ background: selectedBarIndex === index ? 'var(--color-primary)' : 'var(--border-primary)', height: item.count > 0 ? `${Math.max((item.count / maxTrendCount) * 100, 15)}%` : '6px', opacity: selectedBarIndex === index ? '1' : (item.count > 0 ? '0.6' : '0.2') }">
+              <!-- 数量标签：始终显示（如果大于0） -->
+              <div 
+                v-if="item.count > 0"
+                class="mb-1.5 text-[8px] font-black tracking-tighter transition-all duration-500"
+                :style="{ 
+                  color: selectedBarIndex === index ? 'var(--color-primary)' : 'var(--text-primary)',
+                  opacity: selectedBarIndex === index ? '1' : '0.4',
+                  transform: selectedBarIndex === index ? 'scale(1.2)' : 'scale(1)'
+                }"
+              >
+                {{ item.count }}
               </div>
-              <span class="text-[8px] font-black tracking-tighter uppercase mt-4" style="color: var(--text-primary);" :style="{ opacity: selectedBarIndex === index ? '1' : '0.3' }">{{ item.label }}</span>
+              
+              <div class="w-full rounded-t-lg transition-all duration-700"
+                :style="{ 
+                  background: selectedBarIndex === index ? 'var(--color-primary)' : 'var(--border-primary)', 
+                  height: item.count > 0 ? `${Math.max((item.count / maxTrendCount) * 100, 15)}%` : '4px', 
+                  opacity: selectedBarIndex === index ? '1' : (item.count > 0 ? '0.6' : '0.2') 
+                }">
+              </div>
+              <span class="text-[7px] font-black tracking-tighter uppercase mt-3" style="color: var(--text-primary);" :style="{ opacity: selectedBarIndex === index ? '1' : '0.25' }">{{ item.label }}</span>
             </div>
           </div>
         </div>
@@ -273,13 +309,4 @@ const toggleBarSelection = (index: number) => {
   border: 1px solid var(--card-border);
   backdrop-filter: blur(24px) saturate(180%);
 }
-.btn-back {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-.btn-back:active { transform: scale(0.9); }
 </style>

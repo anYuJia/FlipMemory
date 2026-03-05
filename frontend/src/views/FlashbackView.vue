@@ -137,7 +137,13 @@ onDeactivated(() => { scrollY.value = window.scrollY })
       </section>
       
       <section class="mb-10 transition-all duration-700 delay-200" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div v-if="currentMemory" class="h-[480px] shadow-2xl rounded-[2.5rem] overflow-hidden">
+        <div v-if="isLoading" class="h-[480px] flex items-center justify-center card-static rounded-[2.5rem]">
+          <div class="flex flex-col items-center gap-4">
+            <div class="w-12 h-12 border-4 border-orange-400/20 border-t-orange-400 rounded-full animate-spin"></div>
+            <p class="text-[10px] font-black uppercase tracking-widest opacity-40">{{ t('common.loading') }}</p>
+          </div>
+        </div>
+        <div v-else-if="currentMemory" class="h-[480px] shadow-2xl rounded-[2.5rem] overflow-hidden">
           <FlipCard :memory="currentMemory" />
         </div>
         <div v-else class="flex flex-col items-center justify-center py-24 card-static rounded-[2.5rem]">

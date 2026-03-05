@@ -193,34 +193,39 @@ onUnmounted(() => {
                 
                 <form @submit.prevent="handleSubmit" class="space-y-5" autocomplete="off">
                   <div v-if="!isLogin" class="input-group" :class="{ 'animate-shake': shakeFields.nickname }">
+                    <label for="nickname" class="sr-only">{{ t('auth.nickname_placeholder') }}</label>
                     <div class="icon-left"><User class="w-5 h-5 opacity-20" /></div>
-                    <input v-model="formData.nickname" type="text" :placeholder="t('auth.nickname_placeholder')" />
+                    <input id="nickname" v-model="formData.nickname" type="text" :placeholder="t('auth.nickname_placeholder')" />
                   </div>
 
                   <div class="input-group" :class="{ 'animate-shake': shakeFields.username, 'focused': isFocused === 'account' }">
+                    <label :for="isLogin ? 'account' : 'username'" class="sr-only">{{ isLogin ? t('auth.account_placeholder') : t('auth.username_placeholder') }}</label>
                     <div class="icon-left">
                       <component :is="isLogin ? User : Hash" class="w-5 h-5 opacity-20" />
                     </div>
-                    <input v-if="isLogin" v-model="formData.account" type="text" :placeholder="t('auth.account_placeholder')" @focus="isFocused = 'account'" @blur="isFocused = null" />
-                    <input v-else v-model="formData.username" type="text" :placeholder="t('auth.username_placeholder')" />
+                    <input v-if="isLogin" id="account" v-model="formData.account" type="text" :placeholder="t('auth.account_placeholder')" @focus="isFocused = 'account'" @blur="isFocused = null" />
+                    <input v-else id="username" v-model="formData.username" type="text" :placeholder="t('auth.username_placeholder')" />
                   </div>
 
                   <div v-if="!isLogin" class="input-group" :class="{ 'animate-shake': shakeFields.email }">
+                    <label for="email" class="sr-only">{{ t('auth.email_placeholder') }}</label>
                     <div class="icon-left"><Mail class="w-5 h-5 opacity-20" /></div>
-                    <input v-model="formData.email" type="email" :placeholder="t('auth.email_placeholder')" />
+                    <input id="email" v-model="formData.email" type="email" :placeholder="t('auth.email_placeholder')" />
                   </div>
                   
                   <div class="input-group" :class="{ 'animate-shake': shakeFields.password, 'focused': isFocused === 'pass' }">
+                    <label for="password" class="sr-only">{{ t('auth.password_placeholder') }}</label>
                     <div class="icon-left"><Lock class="w-5 h-5 opacity-20" /></div>
-                    <input v-model="formData.password" :type="showPassword ? 'text' : 'password'" :placeholder="t('auth.password_placeholder')" @focus="isFocused = 'pass'" @blur="isFocused = null" />
-                    <button type="button" @click="showPassword = !showPassword" class="opacity-20 hover:opacity-100 transition-opacity">
+                    <input id="password" v-model="formData.password" :type="showPassword ? 'text' : 'password'" :placeholder="t('auth.password_placeholder')" @focus="isFocused = 'pass'" @blur="isFocused = null" />
+                    <button type="button" @click="showPassword = !showPassword" class="opacity-20 hover:opacity-100 transition-opacity" :aria-label="showPassword ? 'Hide password' : 'Show password'">
                       <component :is="showPassword ? EyeOff : Eye" class="w-4 h-4" />
                     </button>
                   </div>
 
                   <div v-if="!isLogin" class="input-group" :class="{ 'animate-shake': shakeFields.confirmPassword, 'has-error': formData.confirmPassword && !isConfirmMatch }">
+                    <label for="confirmPassword" class="sr-only">{{ t('auth.confirm_password_placeholder') }}</label>
                     <div class="icon-left"><Lock class="w-5 h-5 opacity-20" /></div>
-                    <input v-model="formData.confirmPassword" :type="showPassword ? 'text' : 'password'" :placeholder="t('auth.confirm_password_placeholder')" />
+                    <input id="confirmPassword" v-model="formData.confirmPassword" :type="showPassword ? 'text' : 'password'" :placeholder="t('auth.confirm_password_placeholder')" />
                   </div>
                   
                   <button type="submit" :disabled="isLoading" class="submit-btn shadow-premium group">

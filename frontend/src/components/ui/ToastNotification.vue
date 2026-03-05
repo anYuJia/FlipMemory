@@ -83,7 +83,7 @@ defineExpose({ show, success, error, warning, info, remove })
         <div
           v-for="toast in toasts"
           :key="toast.id"
-          class="flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl pointer-events-auto min-w-[280px] max-w-[90vw]"
+          class="flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl pointer-events-auto min-w-0 w-[min(320px,calc(100vw-2rem))] mx-auto"
           style="backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);"
           :style="{
             background: colorMap[toast.type].bg,

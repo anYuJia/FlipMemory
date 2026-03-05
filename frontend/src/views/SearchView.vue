@@ -1,17 +1,16 @@
-<script lang="ts">
-export default {
-  name: 'SearchView'
-}
-</script>
-
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { safeBack } from '@/router'
 import { Search, X, ArrowLeft, TrendingUp } from 'lucide-vue-next'
 import { useMemoryStore } from '@/stores'
 import { MoodEmoji, type MoodType } from '@/types/memory'
 import { sanitizeText } from '@/utils/xssSecurity'
 import { useI18n } from 'vue-i18n'
+
+defineOptions({
+  name: 'SearchView'
+})
 
 const router = useRouter()
 const memoryStore = useMemoryStore()
@@ -23,8 +22,14 @@ const debouncedSearchQuery = ref('')
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const isFocused = ref(false)
 
+const isSearching = ref(false)
+
 watch(searchQuery, (newVal) => {
-  const timeout = setTimeout(() => { debouncedSearchQuery.value = newVal }, 300)
+  isSearching.value = true
+  const timeout = setTimeout(() => { 
+    debouncedSearchQuery.value = newVal
+    isSearching.value = false
+  }, 300)
   return () => clearTimeout(timeout)
 })
 
@@ -42,8 +47,11 @@ const searchResults = computed(() => {
   const query = debouncedSearchQuery.value.trim().toLowerCase()
   if (!query) return []
   const results: any[] = []
-  const memories = Array.from(memoryStore.memories.entries())
-  for (const [date, memory] of memories) {
+  // Ensure we are iterating over a Map entries
+  const memoriesMap = (memoryStore.memories as unknown) as Map<string, any>
+  const memoriesArr = Array.from(memoriesMap.entries())
+  
+  for (const [date, memory] of memoriesArr) {
     if (memory.content?.toLowerCase().includes(query) || date.includes(query)) {
       results.push({
         date,
@@ -87,7 +95,7 @@ const clearSearch = () => {
 }
 
 const viewMemory = (date: string) => router.push({ name: 'memory-detail', params: { date } })
-const goBack = () => router.back()
+const goBack = () => safeBack()
 
 const highlightMatch = (text: string, query: string) => {
   if (!query) return sanitizeText(text)
@@ -114,7 +122,7 @@ onMounted(() => {
     <header class="sticky top-0 z-40 safe-area-top pt-6 pb-4 px-6">
       <div class="max-w-lg mx-auto">
         <div class="flex items-center gap-3 p-2 rounded-full bg-white/60 dark:bg-white/10 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-lg transition-all" :class="{ 'ring-4 ring-orange-400/20 scale-[1.02]': isFocused }">
-          <button @click="goBack" class="btn-back border-none bg-transparent shadow-none w-10 h-10">
+          <button @click="goBack" class="btn-back">
             <ArrowLeft class="w-5 h-5" />
           </button>
           
@@ -152,42 +160,48 @@ onMounted(() => {
       </div>
       
       <div v-else class="pt-6">
-        <div class="flex items-center gap-2 mb-8">
-          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ $t('search.found') }}</span>
-          <span class="text-xl font-black tracking-tighter text-gradient">{{ searchResults.length }}</span>
-          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ $t('search.memories_count') }}</span>
+        <div v-if="isSearching" class="flex flex-col items-center justify-center py-20">
+          <div class="w-10 h-10 border-4 border-orange-400/20 border-t-orange-400 rounded-full animate-spin mb-4"></div>
+          <p class="text-[10px] font-black uppercase tracking-widest opacity-40">{{ t('common.searching') || 'Searching...' }}</p>
         </div>
-        
-        <div class="space-y-4 pb-32">
-          <div v-for="(result, index) in searchResults" :key="result.date" @click="viewMemory(result.date)" class="group relative p-5 rounded-[2rem] cursor-pointer transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] card-static overflow-hidden shadow-sm" :style="{ animationDelay: `${index * 40}ms` }">
-            <div class="absolute inset-0 bg-gradient-to-br from-orange-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-            <div class="relative flex gap-5 items-center">
-              <div class="flex-shrink-0">
-                <img v-if="result.photoUrl" :src="result.photoUrl" class="w-16 h-16 rounded-[1.25rem] object-cover shadow-md" />
-                <div v-else class="w-16 h-16 rounded-[1.25rem] flex items-center justify-center text-3xl bg-black/5 dark:bg-white/5 shadow-inner">{{ result.mood ? MoodEmoji[result.mood as MoodType] : '📝' }}</div>
-              </div>
-              <div class="flex-1 min-w-0 py-1">
-                <div class="flex items-center gap-3 mb-2">
-                  <span class="text-[10px] font-black tracking-widest uppercase opacity-40" style="color: var(--text-primary);">{{ formatDate(result.date) }}</span>
-                  <div class="flex items-center gap-1.5 opacity-60">
-                    <span v-if="result.mood" class="text-xs">{{ MoodEmoji[result.mood as MoodType] }}</span>
-                  </div>
+        <div v-else>
+          <div class="flex items-center gap-2 mb-8">
+            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ $t('search.found') }}</span>
+            <span class="text-xl font-black tracking-tighter text-gradient">{{ searchResults.length }}</span>
+            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ $t('search.memories_count') }}</span>
+          </div>
+          
+          <div class="space-y-4 pb-32">
+            <div v-for="(result, index) in searchResults" :key="result.date" @click="viewMemory(result.date)" class="group relative p-5 rounded-[2rem] cursor-pointer transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] card-static overflow-hidden shadow-sm" :style="{ animationDelay: `${index * 40}ms` }">
+              <div class="absolute inset-0 bg-gradient-to-br from-orange-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+              <div class="relative flex gap-5 items-center">
+                <div class="flex-shrink-0">
+                  <img v-if="result.photoUrl" :src="result.photoUrl" class="w-16 h-16 rounded-[1.25rem] object-cover shadow-md" />
+                  <div v-else class="w-16 h-16 rounded-[1.25rem] flex items-center justify-center text-3xl bg-black/5 dark:bg-white/5 shadow-inner">{{ result.mood ? MoodEmoji[result.mood as MoodType] : '📝' }}</div>
                 </div>
-                <p class="text-sm font-medium leading-relaxed opacity-80 line-clamp-2" style="color: var(--text-primary);" v-html="highlightMatch(truncateText(result.content || '...'), searchQuery)" />
+                <div class="flex-1 min-w-0 py-1">
+                  <div class="flex items-center gap-3 mb-2">
+                    <span class="text-[10px] font-black tracking-widest uppercase opacity-40" style="color: var(--text-primary);">{{ formatDate(result.date) }}</span>
+                    <div class="flex items-center gap-1.5 opacity-60">
+                      <span v-if="result.mood" class="text-xs">{{ MoodEmoji[result.mood as MoodType] }}</span>
+                    </div>
+                  </div>
+                  <p class="text-sm font-medium leading-relaxed opacity-80 line-clamp-2" style="color: var(--text-primary);" v-html="highlightMatch(truncateText(result.content || '...'), searchQuery)" />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div v-if="searchResults.length === 0" class="flex flex-col items-center justify-center py-20">
-          <div class="relative w-32 h-32 mb-8">
-            <div class="absolute inset-0 bg-gray-200 dark:bg-gray-800 rounded-full blur-[40px] opacity-50" />
-            <div class="relative w-full h-full rounded-full border border-black/5 dark:border-white/10 flex items-center justify-center bg-white/50 dark:bg-white/5 backdrop-blur-md">
-              <Search class="w-10 h-10 opacity-20" style="color: var(--text-primary);" />
+          
+          <div v-if="searchResults.length === 0" class="flex flex-col items-center justify-center py-20">
+            <div class="relative w-32 h-32 mb-8">
+              <div class="absolute inset-0 bg-gray-200 dark:bg-gray-800 rounded-full blur-[40px] opacity-50" />
+              <div class="relative w-full h-full rounded-full border border-black/5 dark:border-white/10 flex items-center justify-center bg-white/50 dark:bg-white/5 backdrop-blur-md">
+                <Search class="w-10 h-10 opacity-20" style="color: var(--text-primary);" />
+              </div>
             </div>
+            <h3 class="text-xl font-black tracking-tight mb-2" style="color: var(--text-primary);">{{ $t('search.no_results') }}</h3>
+            <p class="text-[10px] font-black opacity-40 tracking-[0.2em] uppercase text-center max-w-[200px] leading-relaxed" style="color: var(--text-primary);">{{ $t('search.no_results_sub', { query: searchQuery }) }}</p>
           </div>
-          <h3 class="text-xl font-black tracking-tight mb-2" style="color: var(--text-primary);">{{ $t('search.no_results') }}</h3>
-          <p class="text-[10px] font-black opacity-40 tracking-[0.2em] uppercase text-center max-w-[200px] leading-relaxed" style="color: var(--text-primary);">{{ $t('search.no_results_sub', { query: searchQuery }) }}</p>
         </div>
       </div>
     </main>

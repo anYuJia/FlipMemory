@@ -108,9 +108,10 @@ const fileToBase64 = (file: File): Promise<string> => {
 
 <template>
   <!-- 悬浮添加按钮 -->
-  <button 
+  <button
     @click="openMenu"
     :disabled="isProcessing"
+    aria-label="Create new memory"
     class="fab-button group fixed z-50 flex items-center justify-center transition-all duration-300"
     style="right: 1.5rem; bottom: 15%;"
   >

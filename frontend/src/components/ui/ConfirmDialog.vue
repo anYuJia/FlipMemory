@@ -68,6 +68,33 @@ const confirmButtonStyle = {
 }
 
 defineExpose({ open })
+
+const dialogRef = ref<HTMLElement | null>(null)
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    cancel()
+    return
+  }
+  // Focus trap: keep Tab within dialog
+  if (e.key === 'Tab' && dialogRef.value) {
+    const focusable = dialogRef.value.querySelectorAll<HTMLElement>('button, [tabindex]:not([tabindex="-1"])')
+    if (focusable.length === 0) return
+    const first = focusable[0] as HTMLElement | undefined
+    const last = focusable[focusable.length - 1] as HTMLElement | undefined
+    if (e.shiftKey) {
+      if (document.activeElement === first && last) {
+        e.preventDefault()
+        last.focus()
+      }
+    } else {
+      if (document.activeElement === last && first) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+  }
+}
 </script>
 
 <template>
@@ -78,10 +105,11 @@ defineExpose({ open })
       enter-from-class="opacity-0"
       leave-to-class="opacity-0"
     >
-      <div 
+      <div
         v-if="isOpen"
         class="fixed inset-0 z-[9998] flex items-center justify-center p-5"
         @click.self="cancel"
+        @keydown="handleKeydown"
       >
         <!-- 背景遮罩 -->
         <div 
@@ -96,8 +124,13 @@ defineExpose({ open })
           enter-from-class="opacity-0 scale-95 translate-y-4"
           leave-to-class="opacity-0 scale-95 translate-y-4"
         >
-          <div 
+          <div
             v-if="isOpen"
+            ref="dialogRef"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="confirm-dialog-title"
+            aria-describedby="confirm-dialog-message"
             class="relative w-full max-w-[320px] p-6 rounded-3xl"
             style="background: var(--card-bg); box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
           >
@@ -114,7 +147,8 @@ defineExpose({ open })
             </div>
             
             <!-- 标题 -->
-            <h3 
+            <h3
+              id="confirm-dialog-title"
               class="text-lg font-bold text-center mb-2"
               style="color: var(--text-primary);"
             >
@@ -122,7 +156,8 @@ defineExpose({ open })
             </h3>
             
             <!-- 消息 -->
-            <p 
+            <p
+              id="confirm-dialog-message"
               class="text-sm text-center mb-6 leading-relaxed"
               style="color: var(--text-tertiary);"
             >

@@ -2,6 +2,8 @@
 import { useRouter, useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { Home, Calendar, Sparkles, BarChart3, Settings } from 'lucide-vue-next'
+import { Capacitor } from '@capacitor/core'
+import { Haptics, ImpactStyle } from '@capacitor/haptics'
 
 const router = useRouter()
 const route = useRoute()
@@ -19,7 +21,20 @@ const mainPages = ['home', 'calendar', 'flashback', 'stats', 'settings']
 const showNav = computed(() => mainPages.includes(route.name as string))
 
 const isActive = (name: string) => route.name === name
-const navigate = (name: string) => router.push({ name })
+const navigate = async (name: string) => {
+  if (route.name === name) return
+  
+  // 触觉反馈
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await Haptics.impact({ style: ImpactStyle.Light })
+    } catch (e) {
+      // 忽略不支持的情况
+    }
+  }
+  
+  router.push({ name })
+}
 
 // 当前激活索引 (用于确定滑块位置)
 const activeIndex = computed(() => {
@@ -35,7 +50,7 @@ const activeIndex = computed(() => {
     enter-from-class="translate-y-20 opacity-0"
     leave-to-class="translate-y-20 opacity-0"
   >
-    <nav v-if="showNav" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2.5rem)] max-md:w-[calc(100%-2rem)] max-w-md">
+    <nav v-if="showNav" role="navigation" aria-label="Main navigation" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2.5rem)] max-md:w-[calc(100%-2rem)] max-w-md pb-[env(safe-area-inset-bottom)]">
       <!-- 1. 统一导航底色背景 -->
       <div class="absolute inset-0 rounded-[2.2rem] shadow-2xl backdrop-blur-3xl saturate-[180%] border border-white/10 dark:border-white/5" style="background: var(--nav-bg);" />
       
@@ -59,10 +74,13 @@ const activeIndex = computed(() => {
         </div>
 
         <!-- 3. 按钮层：覆盖在滑块上方 -->
-        <button 
-          v-for="item in navItems" 
-          :key="item.name" 
-          @click="navigate(item.name)" 
+        <button
+          v-for="item in navItems"
+          :key="item.name"
+          @click="navigate(item.name)"
+          role="tab"
+          :aria-selected="isActive(item.name)"
+          :aria-label="$t(item.label)"
           class="relative flex flex-col items-center justify-center flex-1 h-full transition-all active:scale-90 group z-10"
         >
           <div class="relative transition-transform duration-300 group-hover:-translate-y-1">

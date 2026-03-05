@@ -20,7 +20,7 @@ const isCurrentRealMonth = computed(() => {
          memoryStore.currentMonth.month === now.getMonth() + 1
 })
 
-const getCalendarGrid = () => {
+const getCalendarGrid = computed(() => {
   const { year, month } = memoryStore.currentMonth
   const firstDayOfMonth = new Date(year, month - 1, 1).getDay()
   const daysInMonth = new Date(year, month, 0).getDate()
@@ -49,7 +49,7 @@ const getCalendarGrid = () => {
   }
   
   return grid
-}
+})
 
 const goToToday = () => {
   const now = new Date()
@@ -115,7 +115,7 @@ watch(() => memoryStore.currentMonth, async (newMonth) => {
     <!-- 日历网格 -->
     <div class="grid grid-cols-7 gap-3">
       <CalendarCell
-        v-for="item in getCalendarGrid()"
+        v-for="item in getCalendarGrid"
         :key="item.date"
         :date="item.date"
         :day="item.day"

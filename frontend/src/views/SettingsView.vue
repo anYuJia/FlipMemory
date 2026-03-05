@@ -117,7 +117,7 @@ onMounted(() => {
       <!-- 安全与数据 -->
       <section class="mb-6 transition-all duration-700 delay-300" :style="{ opacity: isLoaded ? 1 : 0 }">
         <div class="rounded-[2.2rem] overflow-hidden card-static shadow-sm">
-          <button @click="router.push({ name: 'settings-privacy' })" class="w-full flex items-center gap-4 px-6 py-5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+          <button @click="router.push({ name: 'settings-privacy-lock' })" class="w-full flex items-center gap-4 px-6 py-5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
             <div class="w-10 h-10 rounded-2xl flex items-center justify-center bg-green-500/10">
               <Shield class="w-5 h-5 text-green-500" />
             </div>

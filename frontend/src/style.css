@@ -46,12 +46,12 @@
   --text-tertiary: rgba(255, 255, 255, 0.4);
   --text-muted: rgba(255, 255, 255, 0.2);
   
-  /* 暗色玻璃材质 */
-  --card-bg: rgba(25, 25, 35, 0.75);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --nav-bg: rgba(15, 15, 20, 0.85);
-  --border-primary: rgba(255, 255, 255, 0.1);
-  --hover-bg: rgba(255, 255, 255, 0.05);
+  /* 暗色玻璃材质：增加背景不透明度 */
+  --card-bg: rgba(25, 25, 35, 0.85);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --nav-bg: rgba(15, 15, 20, 0.9);
+  --border-primary: rgba(255, 255, 255, 0.12);
+  --hover-bg: rgba(255, 255, 255, 0.08);
 }
 
 body {
@@ -115,14 +115,14 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background-color: transparent; /* 设为透明 */
+  border: none; /* 移除边框 */
   color: var(--text-primary);
-  backdrop-filter: blur(20px);
+  -webkit-tap-highlight-color: transparent;
 }
 .btn-back:active {
-  transform: scale(0.9);
-  background-color: var(--bg-elevated);
+  transform: scale(0.85);
+  background-color: var(--hover-bg); /* 点击时仅显示微小的背景反馈 */
 }
 
 .text-gradient {

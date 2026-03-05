@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { MapPin, Sun, Cloud, CloudRain, Wind, Snowflake, Heart, Calendar } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { MapPin, Sun, Cloud, CloudRain, Wind, Snowflake, Heart, Calendar, Camera } from 'lucide-vue-next'
 import type { Memory } from '@/types'
 import { MoodEmoji, type MoodType } from '@/types/memory'
 import { useI18n } from 'vue-i18n'
@@ -40,23 +40,46 @@ const formattedDate = computed(() => {
 const formattedYear = computed(() => {
   return new Date(props.memory.date).getFullYear()
 })
+
+const isFlipped = ref(false)
+const imageError = ref(false)
+const toggleFlip = () => { isFlipped.value = !isFlipped.value }
+const handleImageError = () => { imageError.value = true }
 </script>
 
 <template>
-  <div class="flip-card-container group">
-    <div class="flip-card-inner">
+  <div
+    class="flip-card-container group"
+    role="button"
+    tabindex="0"
+    :aria-label="`Memory from ${formattedDate} ${formattedYear}`"
+    @click="toggleFlip"
+    @keydown.enter="toggleFlip"
+  >
+    <div class="flip-card-inner" :class="{ 'is-flipped': isFlipped }">
       <!-- 正面：艺廊级照片呈现 -->
-      <div class="flip-card-front relative overflow-hidden">
-        <div class="absolute inset-0 bg-slate-200 dark:bg-slate-800 animate-pulse" v-if="!memory.photos?.[0]"></div>
+      <div class="flip-card-front relative overflow-hidden bg-slate-100 dark:bg-slate-900">
+        <!-- 占位状态：无照片、加载中或加载失败 -->
+        <div 
+          class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900" 
+          v-if="!memory.photos?.[0] || imageError"
+        >
+          <div class="flex flex-col items-center gap-2 opacity-20">
+            <Camera class="w-10 h-10" />
+            <span class="text-[8px] font-black uppercase tracking-widest">{{ t('image.load_failed') }}</span>
+          </div>
+        </div>
+
         <img 
-          v-if="memory.photos?.[0]"
-          :src="memory.photos[0].thumbnailUrl || memory.photos[0].originalUrl" 
+          v-if="memory.photos?.[0] && !imageError" 
+          :src="memory.photos[0].mediumUrl || memory.photos[0].originalUrl" 
           class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           loading="lazy"
+          decoding="async"
+          @error="handleImageError"
         />
-        
-        <!-- 渐变遮罩 -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
+
+        <!-- 渐变遮罩 -->        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
         
         <!-- 底部信息 -->
         <div class="absolute bottom-0 inset-x-0 p-6 flex items-end justify-between">
@@ -108,20 +131,23 @@ const formattedYear = computed(() => {
 
 <style scoped>
 .flip-card-container {
-  perspective: 1000px;
+  perspective: 2000px; /* 增加视距，让 3D 效果更自然 */
   width: 100%;
   height: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .flip-card-inner {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); /* 使用更平滑的曲线 */
   transform-style: preserve-3d;
+  will-change: transform; /* 强制开启 GPU 硬件加速 */
 }
 
-.group:hover .flip-card-inner {
+/* 翻转状态 */
+.flip-card-inner.is-flipped {
   transform: rotateY(180deg);
 }
 
@@ -129,13 +155,26 @@ const formattedYear = computed(() => {
   position: absolute;
   width: 100%;
   height: 100%;
-  -webkit-backface-visibility: hidden;
+  -webkit-backface-visibility: hidden; /* 必须：隐藏背面 */
   backface-visibility: hidden;
   border-radius: 2.5rem;
   overflow: hidden;
+  transform: translateZ(0); /* 提升渲染层级 */
+}
+
+.flip-card-front {
+  z-index: 2;
+  background-color: var(--bg-tertiary);
 }
 
 .flip-card-back {
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(1px); /* 关键：微调 Z 轴防止层级闪烁 */
+  background-color: var(--card-bg);
+  backdrop-filter: blur(20px);
+}
+
+/* 优化：翻转过程中减少复杂阴影计算 */
+.flip-card-inner.is-flipped .flip-card-back {
+  box-shadow: none;
 }
 </style>
