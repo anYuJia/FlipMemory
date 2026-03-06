@@ -23,7 +23,7 @@ export async function uploadRoutes(app: FastifyInstance) {
                 parsed.data.mimeType
             )
 
-            app.log.info(`Generated presigned URL for user ${request.userId}, key: ${result.key}, url: ${result.uploadUrl}`)
+            app.log.info(`Generated presigned URL for user ${request.userId}, key: ${result.key}`)
 
             return success(reply, result)
         } catch (err) {

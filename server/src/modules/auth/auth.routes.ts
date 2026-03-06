@@ -3,10 +3,11 @@ import { authService } from './auth.service.js'
 import { registerSchema, loginSchema } from './auth.schema.js'
 import { success, error } from '../../shared/utils/response.js'
 import { authMiddleware } from '../../shared/middleware/auth.js'
+import { createEndpointRateLimit } from '../../shared/middleware/rateLimit.js'
 
 export async function authRoutes(app: FastifyInstance) {
     // 注册
-    app.post('/register', async (request, reply) => {
+    app.post('/register', { preHandler: [createEndpointRateLimit('register')] }, async (request, reply) => {
         try {
             const parsed = registerSchema.safeParse(request.body)
 
@@ -28,7 +29,7 @@ export async function authRoutes(app: FastifyInstance) {
     })
 
     // 登录
-    app.post('/login', async (request, reply) => {
+    app.post('/login', { preHandler: [createEndpointRateLimit('login')] }, async (request, reply) => {
         try {
             const parsed = loginSchema.safeParse(request.body)
 
@@ -61,8 +62,8 @@ export async function authRoutes(app: FastifyInstance) {
         }
     })
 
-    // 检查用户名可用性
-    app.get('/check-username', async (request, reply) => {
+    // 检查用户名可用性（限流防枚举）
+    app.get('/check-username', { preHandler: [createEndpointRateLimit('login')] }, async (request, reply) => {
         try {
             const { username } = request.query as { username: string }
             if (!username) {

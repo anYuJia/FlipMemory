@@ -17,10 +17,10 @@ export function initRedis(): Redis {
     }
 
     redisClient = new Redis({
-        host: env.redis?.host || 'localhost',
-        port: env.redis?.port || 6379,
-        password: env.redis?.password,
-        db: env.redis?.db || 0,
+        host: env.redis.host,
+        port: env.redis.port,
+        password: env.redis.password,
+        db: env.redis.db,
         retryStrategy: (times) => {
             const delay = Math.min(times * 50, 2000)
             return delay

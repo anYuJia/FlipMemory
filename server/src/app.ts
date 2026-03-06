@@ -8,6 +8,8 @@ import { uploadRoutes } from './modules/upload/upload.routes.js'
 import { userRoutes } from './modules/user/user.routes.js'
 import { registerSecurityHeaders, sanitizeBodyMiddleware } from './shared/middleware/security.js'
 import { registerRateLimit } from './shared/middleware/rateLimit.js'
+import { prisma } from './shared/config/index.js'
+import { getRedis } from './shared/config/redis.js'
 
 export async function buildApp() {
     const app = Fastify({
@@ -24,8 +26,8 @@ export async function buildApp() {
             : true,
     })
 
-    // 安全头 (暂时禁用以排查 CORS 问题)
-    // registerSecurityHeaders(app)
+    // 安全头
+    registerSecurityHeaders(app)
 
     // 请求体清理（XSS 防护）
     app.addHook('preHandler', sanitizeBodyMiddleware)
@@ -55,9 +57,37 @@ export async function buildApp() {
         },
     })
 
-    // Health check
+    // Health check（验证核心依赖）
     app.get('/health', async () => {
-        return { status: 'ok', timestamp: new Date().toISOString() }
+        const checks: Record<string, string> = {}
+
+        // 检查数据库
+        try {
+            await prisma.$queryRaw`SELECT 1`
+            checks.database = 'ok'
+        } catch {
+            checks.database = 'error'
+        }
+
+        // 检查 Redis
+        const redis = getRedis()
+        if (redis) {
+            try {
+                await redis.ping()
+                checks.redis = 'ok'
+            } catch {
+                checks.redis = 'error'
+            }
+        } else {
+            checks.redis = 'not_configured'
+        }
+
+        const allOk = Object.values(checks).every(v => v === 'ok' || v === 'not_configured')
+        return {
+            status: allOk ? 'ok' : 'degraded',
+            timestamp: new Date().toISOString(),
+            checks,
+        }
     })
 
     // API 路由

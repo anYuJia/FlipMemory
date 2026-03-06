@@ -15,29 +15,13 @@ export const securityHeaders = {
     'X-Frame-Options': 'DENY',
 
     // XSS 防护
-    'X-XSS-Protection': '1; mode=block',
-
-    // 强制 HTTPS
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+    'X-XSS-Protection': '0',
 
     // 引用策略
     'Referrer-Policy': 'strict-origin-when-cross-origin',
 
     // 权限策略
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self)',
-
-    // 内容安全策略
-    'Content-Security-Policy': [
-        "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-        "style-src 'self' 'unsafe-inline'",
-        "img-src 'self' data: blob: https:",
-        "font-src 'self' data:",
-        "connect-src 'self' https: wss:",
-        "frame-ancestors 'none'",
-        "base-uri 'self'",
-        "form-action 'self'",
-    ].join('; '),
 }
 
 /**

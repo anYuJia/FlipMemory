@@ -2,30 +2,30 @@ import { Client } from 'minio'
 import { env } from './env.js'
 
 /**
- * 外部客户端：使用公网 IP
- * 专门用于生成 presignedUrl，让手机和浏览器能访问
+ * 外部客户端：使用公网地址
+ * 专门用于生成 presignedUrl，让手机和浏览器能从公网访问
  */
 export const minioClient = new Client({
-    endPoint: '139.199.55.169',
-    port: 9002,
+    endPoint: env.minio.publicEndpoint,
+    port: env.minio.publicPort,
     useSSL: false,
     accessKey: env.minio.accessKey,
     secretKey: env.minio.secretKey,
 })
 
 /**
- * 内部客户端：使用 Docker 内部域名
- * 专门用于后端内部处理图片（下载、上传缩略图），速度更快
+ * 内部客户端：使用 Docker 内部域名和 9000 原始端口
+ * 专门用于后端内部处理图片，速度快
  */
 export const internalMinioClient = new Client({
     endPoint: 'minio',
-    port: 9000,
+    port: 9000, // 容器内部依然是 9000
     useSSL: false,
     accessKey: env.minio.accessKey,
     secretKey: env.minio.secretKey,
 })
 
-// 导出别名以保持向后兼容
+// 导出别名保持兼容
 export { internalMinioClient as publicMinioClient }
 
 // 公开只读策略
@@ -58,7 +58,7 @@ export async function ensureBucket() {
         console.warn(`⚠️ Failed to set bucket policy:`, err)
     }
 
-    // 设置 CORS
+    // 设置 CORS（使用内部客户端执行）
     try {
         const corsConfig = {
             CORSRules: [
@@ -71,11 +71,12 @@ export async function ensureBucket() {
                 }
             ]
         }
+        // 尝试设置 CORS
         if ((internalMinioClient as any).setBucketCors) {
             await (internalMinioClient as any).setBucketCors(bucket, corsConfig)
             console.log(`✅ Bucket ${bucket} CORS configured`)
         }
     } catch (err) {
-        console.warn(`⚠️ Failed to set CORS policy:`, err)
+        console.warn(`⚠️ Failed to set CORS policy via SDK:`, err)
     }
 }

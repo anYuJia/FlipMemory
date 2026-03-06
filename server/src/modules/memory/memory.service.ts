@@ -490,32 +490,35 @@ export class MemoryService {
             })
         }
         else if (range === 'month') {
-            // 每周趋势: 该月 4-5 周
+            // 每月趋势: 改为每日，以便看清高度
             const daysInMonth = new Date(targetYear, targetMonth, 0).getDate()
-            const weeks = Math.ceil(daysInMonth / 7)
-
+            
             const results = await prisma.memory.findMany({
                 where: {
                     userId,
                     date: {
                         gte: new Date(targetYear, targetMonth - 1, 1),
-                        lte: new Date(targetYear, targetMonth, 0),
+                        lte: new Date(targetYear, targetMonth, 0, 23, 59, 59, 999),
                     }
                 },
                 select: { date: true }
             })
 
-            const counts = new Array(weeks).fill(0)
-            results.forEach(m => {
-                const day = m.date.getDate()
-                const weekIdx = Math.floor((day - 1) / 7)
-                if (weekIdx < weeks) counts[weekIdx]++
+            trend = Array.from({ length: daysInMonth }, (_, i) => {
+                const day = i + 1
+                const dateStr = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                const count = results.filter(r => {
+                    const d = new Date(r.date)
+                    return d.getFullYear() === targetYear && 
+                           (d.getMonth() + 1) === targetMonth && 
+                           d.getDate() === day
+                }).length
+                
+                return {
+                    label: day.toString(),
+                    count
+                }
             })
-
-            trend = counts.map((c, i) => ({
-                label: `第${i + 1}周`,
-                count: c
-            }))
         } else if (range === 'week') {
             // 每日趋势: 该周 7 天
             const daysShort = ['日', '一', '二', '三', '四', '五', '六']
@@ -707,8 +710,8 @@ export class MemoryService {
 
     // 生成照片 URL
     private getPhotoUrl(key: string): string {
-        // 使用公网 IP 供外部访问
-        return `http://139.199.55.169:9002/${env.minio.bucket}/${key}`
+        const proto = env.minio.useSSL ? 'https' : 'http'
+        return `${proto}://${env.minio.publicEndpoint}:${env.minio.publicPort}/${env.minio.bucket}/${key}`
     }
 }
 

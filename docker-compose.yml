@@ -19,6 +19,8 @@ services:
       MINIO_ACCESS_KEY: pyu
       MINIO_SECRET_KEY: pyu01234
       MINIO_BUCKET: flipmemory
+      MINIO_PUBLIC_ENDPOINT: 139.199.55.169
+      MINIO_PUBLIC_PORT: 9002
       JWT_SECRET: flipmemory_secret_key_2026
     depends_on:
       postgres:

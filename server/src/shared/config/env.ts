@@ -17,6 +17,13 @@ const envSchema = z.object({
     MINIO_SECRET_KEY: z.string(),
     MINIO_BUCKET: z.string().default('flipmemory'),
     MINIO_USE_SSL: z.string().default('false'),
+    MINIO_PUBLIC_ENDPOINT: z.string().default(''),
+    MINIO_PUBLIC_PORT: z.string().default(''),
+
+    REDIS_HOST: z.string().default('localhost'),
+    REDIS_PORT: z.string().default('6379'),
+    REDIS_PASSWORD: z.string().default(''),
+    REDIS_DB: z.string().default('0'),
 
     FRONTEND_URL: z.string().default('http://localhost:3000'),
 })
@@ -49,6 +56,15 @@ export const env = {
         secretKey: parsed.data.MINIO_SECRET_KEY,
         bucket: parsed.data.MINIO_BUCKET,
         useSSL: parsed.data.MINIO_USE_SSL === 'true',
+        publicEndpoint: parsed.data.MINIO_PUBLIC_ENDPOINT || parsed.data.MINIO_ENDPOINT,
+        publicPort: parseInt(parsed.data.MINIO_PUBLIC_PORT || parsed.data.MINIO_PORT, 10),
+    },
+
+    redis: {
+        host: parsed.data.REDIS_HOST,
+        port: parseInt(parsed.data.REDIS_PORT, 10),
+        password: parsed.data.REDIS_PASSWORD || undefined,
+        db: parseInt(parsed.data.REDIS_DB, 10),
     },
 
     frontendUrl: parsed.data.FRONTEND_URL,
