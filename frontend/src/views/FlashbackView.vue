@@ -5,9 +5,11 @@ import FlipCard from '@/components/memory/FlipCard.vue'
 import { useMemoryStore } from '@/stores'
 import type { Memory } from '@/types'
 import { useI18n } from 'vue-i18n'
+import { useToast } from '@/composables/useToast'
 
 const { t } = useI18n()
 const memoryStore = useMemoryStore()
+const toast = useToast()
 
 const yearAgoMemory = ref<Memory | null>(null)
 const randomMemories = ref<Memory[]>([])
@@ -41,6 +43,9 @@ async function loadFlashback() {
       currentIndex.value = 0
     }
   } finally {
+    if (memoryStore.error) {
+      toast.error(memoryStore.error)
+    }
     isLoading.value = false
     setTimeout(() => { isLoaded.value = true }, 300)
   }

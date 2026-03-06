@@ -13,11 +13,13 @@ import FloatingAddButton from '@/components/layout/FloatingAddButton.vue'
 import FlipCard from '@/components/memory/FlipCard.vue'
 import { ChevronRight, Camera, Heart, ArrowRight, Sun, Moon, Sparkles } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const memoryStore = useMemoryStore()
 const userStore = useUserStore()
 const { t, locale } = useI18n()
+const toast = useToast()
 
 // 状态控制
 const isInitialLoading = ref(true)
@@ -59,6 +61,9 @@ const refreshData = async () => {
     memoryStore.fetchRecentMemories(),
     memoryStore.fetchCalendarData(year, month)
   ])
+  if (memoryStore.error) {
+    toast.error(memoryStore.error)
+  }
 }
 
 onMounted(async () => {

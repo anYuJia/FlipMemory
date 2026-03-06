@@ -7,9 +7,11 @@ import {
 import { useMemoryStore } from '@/stores'
 import { MoodEmoji, type MoodType } from '@/types/memory'
 import { useI18n } from 'vue-i18n'
+import { useToast } from '@/composables/useToast'
 
 const { t } = useI18n()
 const memoryStore = useMemoryStore()
+const toast = useToast()
 
 // 状态
 const selectedRange = ref('month')
@@ -50,6 +52,9 @@ async function loadStats() {
       stats.value = data
     }
   } finally {
+    if (memoryStore.error) {
+      toast.error(memoryStore.error)
+    }
     isLoadingStats.value = false
   }
 }

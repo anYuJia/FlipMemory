@@ -49,7 +49,10 @@ const handlePhotoSelect = async (e: Event) => {
     const processed = await imageProcessor.compress(file)
     photoFile.value = processed
     photoPreview.value = URL.createObjectURL(processed)
-  } catch (err) { logger.error('Failed to process image', 'CreateView', err) }
+  } catch (err) {
+    logger.error('Failed to process image', 'CreateView', err)
+    toast.error(t('common.failed'))
+  }
 }
 
 const removePhoto = () => { photoFile.value = null; photoPreview.value = null }

@@ -178,7 +178,7 @@ export const useMemoryStore = defineStore('memory', () => {
         } catch (e) {
             error.value = e instanceof Error ? e.message : '更新失败'
             logger.error(`更新记忆失败: ${date}`, LOG_CONTEXT, e)
-            return null
+            throw e
         } finally {
             isLoading.value = false
         }
@@ -203,7 +203,7 @@ export const useMemoryStore = defineStore('memory', () => {
         } catch (e) {
             error.value = e instanceof Error ? e.message : '删除失败'
             logger.error(`删除记忆失败: ${date}`, LOG_CONTEXT, e)
-            return false
+            throw e
         } finally {
             isLoading.value = false
         }

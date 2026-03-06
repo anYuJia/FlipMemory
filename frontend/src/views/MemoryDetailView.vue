@@ -9,6 +9,7 @@ import {
 import FlipCard from '@/components/memory/FlipCard.vue'
 import { MoodEmoji, type MoodType } from '@/types/memory'
 import { useConfirm } from '@/composables/useConfirm'
+import { useToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 import { safeBack } from '@/router'
 
@@ -16,6 +17,7 @@ const route = useRoute()
 const router = useRouter()
 const memoryStore = useMemoryStore()
 const { confirm } = useConfirm()
+const toast = useToast()
 const { t, locale } = useI18n()
 
 const date = route.params.date as string
@@ -44,13 +46,18 @@ const formattedMonthYear = computed(() => {
 const handleEdit = () => router.push({ name: 'edit-memory', params: { date } })
 
 const handleDelete = async () => {
-  if (await confirm({ 
-    title: t('common.delete'), 
+  if (await confirm({
+    title: t('common.delete'),
     message: t('detail.delete_confirm'),
     type: 'danger'
   })) {
-    await memoryStore.deleteMemory(date)
-    router.replace('/')
+    try {
+      await memoryStore.deleteMemory(date)
+      toast.success(t('common.success'))
+      router.replace('/')
+    } catch (err: any) {
+      toast.error(err.message || t('common.failed'))
+    }
   }
 }
 
@@ -61,6 +68,9 @@ onMounted(async () => {
   if (!memory.value) {
     isLoading.value = true
     await memoryStore.fetchMemory(date)
+    if (memoryStore.error) {
+      toast.error(memoryStore.error)
+    }
     isLoading.value = false
   }
   setTimeout(() => { isVisible.value = true }, 100)
