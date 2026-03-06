@@ -89,8 +89,9 @@ async function request<T>(
 ): Promise<T> {
     const startTime = performance.now()
 
-    // 检查 token 是否过期
-    if (isTokenExpired()) {
+    // 检查 token 是否过期（跳过 auth 端点，它们不需要 token）
+    const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register')
+    if (!isAuthEndpoint && isTokenExpired()) {
         logger.warn('Token expired, redirecting to login', 'API')
         handleUnauthorized()
         throw new AppError(i18n.global.t('errors.token_expired'), 401, null, false)
@@ -123,14 +124,23 @@ async function request<T>(
         // 记录 API 响应时间
         performanceMonitor.recordApiCall(endpoint, duration)
 
-        // 处理 401 未授权错误 — check BEFORE parsing JSON
+        // 处理 401 未授权错误
         if (response.status === 401) {
-            // 如果是登录或注册接口，不触发全局 401 处理（跳转登录页），由业务逻辑自行捕获
             const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register')
-            if (!isAuthEndpoint) {
-                logger.warn('Unauthorized response, redirecting to login', 'API')
-                handleUnauthorized()
+
+            // Auth 端点 401：解析服务器返回的真实错误信息（如"密码错误"）
+            if (isAuthEndpoint) {
+                let serverMessage = i18n.global.t('auth.auth_failed')
+                try {
+                    const json = await response.json()
+                    serverMessage = json.message || serverMessage
+                } catch {}
+                throw new AppError(serverMessage, 401, null, false)
             }
+
+            // 非 auth 端点 401：token 失效，跳转登录
+            logger.warn('Unauthorized response, redirecting to login', 'API')
+            handleUnauthorized()
             throw new AppError(i18n.global.t('errors.token_expired'), 401, null, false)
         }
 

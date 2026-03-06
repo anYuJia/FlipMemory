@@ -97,6 +97,8 @@
     "config_api_hint": "モバイル端末では localhost に直接アクセスできません。LAN 内の IP を入力してください。",
     "save_server": "保存",
     "auth_failed": "認証に失敗しました。ネットワークまたは設定を確認してください。",
+    "login_success": "おかえりなさい",
+    "register_success": "アカウントが作成されました",
     "record_every_moment": "すべての瞬間を記録"
   },
   "settings": {

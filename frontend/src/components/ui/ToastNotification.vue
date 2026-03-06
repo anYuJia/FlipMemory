@@ -1,16 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-vue-next'
+import { useToast } from '@/composables/useToast'
 
-export interface Toast {
-  id: number
-  type: 'success' | 'error' | 'warning' | 'info'
-  message: string
-  duration?: number
-}
-
-const toasts = ref<Toast[]>([])
-let toastId = 0
+const { toasts, remove } = useToast()
 
 const iconMap = {
   success: CheckCircle,
@@ -41,34 +33,6 @@ const colorMap = {
     text: '#3b82f6',
   },
 }
-
-const show = (type: Toast['type'], message: string, duration = 3000) => {
-  const id = ++toastId
-  toasts.value.push({ id, type, message, duration })
-  
-  if (duration > 0) {
-    setTimeout(() => {
-      remove(id)
-    }, duration)
-  }
-  
-  return id
-}
-
-const remove = (id: number) => {
-  const index = toasts.value.findIndex(t => t.id === id)
-  if (index > -1) {
-    toasts.value.splice(index, 1)
-  }
-}
-
-const success = (message: string, duration?: number) => show('success', message, duration)
-const error = (message: string, duration?: number) => show('error', message, duration)
-const warning = (message: string, duration?: number) => show('warning', message, duration)
-const info = (message: string, duration?: number) => show('info', message, duration)
-
-// 暴露方法给外部使用
-defineExpose({ show, success, error, warning, info, remove })
 </script>
 
 <template>

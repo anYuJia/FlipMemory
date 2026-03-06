@@ -97,6 +97,8 @@
     "config_api_hint": "If running on mobile, localhost is not reachable. Enter your LAN IP.",
     "save_server": "Save",
     "auth_failed": "Authentication failed. Check network or server config.",
+    "login_success": "Welcome back",
+    "register_success": "Account created successfully",
     "record_every_moment": "Record Every Moment"
   },
   "settings": {

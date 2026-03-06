@@ -97,6 +97,8 @@
     "config_api_hint": "行動裝置無法直接存取 localhost，請輸入你電腦在區域網路中的 IP。",
     "save_server": "確認修改",
     "auth_failed": "驗證失敗，請檢查網路或設定",
+    "login_success": "歡迎回來",
+    "register_success": "時光之門已開啟",
     "record_every_moment": "記錄每個瞬間"
   },
   "settings": {
