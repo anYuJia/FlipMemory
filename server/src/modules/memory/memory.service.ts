@@ -1,5 +1,5 @@
 import { prisma, env, minioClient } from '../../shared/config/index.js'
-import { cacheService } from '../../shared/config/redis.js'
+import { cacheService, CacheTTL } from '../../shared/config/redis.js'
 import type { CreateMemoryInput, UpdateMemoryInput } from './memory.schema.js'
 
 export class MemoryService {
@@ -53,8 +53,8 @@ export class MemoryService {
                 : null,
         }))
 
-        // 缓存结果（5分钟）
-        await cacheService.set(cacheKey, result, 300)
+        // 缓存结果（1小时，写入时自动清除）
+        await cacheService.set(cacheKey, result, CacheTTL.CALENDAR)
         return result
     }
 
@@ -490,35 +490,23 @@ export class MemoryService {
             })
         }
         else if (range === 'month') {
-            // 每月趋势: 改为每日，以便看清高度
+            // 每日趋势：用 SQL 直接按天聚合
             const daysInMonth = new Date(targetYear, targetMonth, 0).getDate()
-            
-            const results = await prisma.memory.findMany({
-                where: {
-                    userId,
-                    date: {
-                        gte: new Date(targetYear, targetMonth - 1, 1),
-                        lte: new Date(targetYear, targetMonth, 0, 23, 59, 59, 999),
-                    }
-                },
-                select: { date: true }
-            })
 
-            trend = Array.from({ length: daysInMonth }, (_, i) => {
-                const day = i + 1
-                const dateStr = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-                const count = results.filter(r => {
-                    const d = new Date(r.date)
-                    return d.getFullYear() === targetYear && 
-                           (d.getMonth() + 1) === targetMonth && 
-                           d.getDate() === day
-                }).length
-                
-                return {
-                    label: day.toString(),
-                    count
-                }
-            })
+            const results = await prisma.$queryRaw<{ day: number; count: number }[]>`
+                SELECT EXTRACT(DAY FROM date)::int AS day, COUNT(*)::int AS count
+                FROM memories
+                WHERE "userId" = ${userId}
+                  AND date >= ${new Date(targetYear, targetMonth - 1, 1)}
+                  AND date <= ${new Date(targetYear, targetMonth, 0)}
+                GROUP BY EXTRACT(DAY FROM date)
+            `
+
+            const countMap = new Map(results.map(r => [r.day, r.count]))
+            trend = Array.from({ length: daysInMonth }, (_, i) => ({
+                label: (i + 1).toString(),
+                count: countMap.get(i + 1) || 0,
+            }))
         } else if (range === 'week') {
             // 每日趋势: 该周 7 天
             const daysShort = ['日', '一', '二', '三', '四', '五', '六']
@@ -560,48 +548,29 @@ export class MemoryService {
     }
 
     private async calculateStreak(userId: string): Promise<number> {
-        // 优化：只获取日期，且按需限制（如最近两年），避免加载全量数据
-        const memories = await prisma.memory.findMany({
-            where: { 
-                userId,
-                date: {
-                    gte: new Date(new Date().getFullYear() - 2, 0, 1) // 限制在最近两年
-                }
-            },
-            select: { date: true },
-            orderBy: { date: 'desc' },
-        })
-
-        if (memories.length === 0) return 0
-
-        let streak = 0
-        const now = new Date()
-        now.setHours(0, 0, 0, 0)
-
-        // 获取昨天的日期
-        const yesterday = new Date(now)
-        yesterday.setDate(yesterday.getDate() - 1)
-
-        // 检查最后一条记忆是不是今天或昨天
-        const lastDate = new Date(memories[0].date)
-        lastDate.setHours(0, 0, 0, 0)
-
-        if (lastDate < yesterday) return 0
-
-        let checkDate = lastDate
-        // 使用 Set 优化查询速度（去重，以防万一有重复日期）
-        const dateSet = new Set(memories.map(m => {
-            const d = new Date(m.date)
-            d.setHours(0, 0, 0, 0)
-            return d.getTime()
-        }))
-
-        while (dateSet.has(checkDate.getTime())) {
-            streak++
-            checkDate.setDate(checkDate.getDate() - 1)
-        }
-
-        return streak
+        // 用 SQL 直接计算连续天数，避免加载大量数据到 JS
+        const result = await prisma.$queryRaw<{ streak: number }[]>`
+            WITH dates AS (
+                SELECT DISTINCT date::date AS d
+                FROM memories
+                WHERE "userId" = ${userId}
+            ),
+            ranked AS (
+                SELECT d, d - (ROW_NUMBER() OVER (ORDER BY d))::int AS grp
+                FROM dates
+            ),
+            streaks AS (
+                SELECT grp, MIN(d) AS start_date, MAX(d) AS end_date, COUNT(*)::int AS streak
+                FROM ranked
+                GROUP BY grp
+            )
+            SELECT COALESCE(streak, 0) AS streak
+            FROM streaks
+            WHERE end_date >= CURRENT_DATE - INTERVAL '1 day'
+            ORDER BY streak DESC
+            LIMIT 1
+        `
+        return result[0]?.streak ?? 0
     }
 
     // 搜索记忆
@@ -685,16 +654,16 @@ export class MemoryService {
 
         // 优化：使用 Raw SQL 直接在数据库中过滤月和日
         // 这样可以避免从数据库中取出所有记忆并在 JS 中过滤
-        const memories = await prisma.$queryRawUnsafe(`
-            SELECT m.*, 
+        const memories = await prisma.$queryRaw<any[]>`
+            SELECT m.*,
                    (SELECT json_agg(p.*) FROM photos p WHERE p."memoryId" = m.id LIMIT 1) as photos
             FROM memories m
-            WHERE m."userId" = $1
-              AND EXTRACT(MONTH FROM m.date) = $2
-              AND EXTRACT(DAY FROM m.date) = $3
-              AND EXTRACT(YEAR FROM m.date) < $4
+            WHERE m."userId" = ${userId}
+              AND EXTRACT(MONTH FROM m.date) = ${month}
+              AND EXTRACT(DAY FROM m.date) = ${day}
+              AND EXTRACT(YEAR FROM m.date) < ${today.getFullYear()}
             ORDER BY m.date DESC
-        `, userId, month, day, today.getFullYear()) as any[]
+        `
 
         return memories.map((m) => ({
             ...m,

@@ -48,12 +48,11 @@ const searchResults = computed(() => {
   const query = debouncedSearchQuery.value.trim().toLowerCase()
   if (!query) return []
   const results: any[] = []
-  
+
   const memoriesMap = (memoryStore.memories as unknown) as Map<string, any>
-  const memoriesArr = Array.from(memoriesMap.entries())
-  
-  for (const [date, memory] of memoriesArr) {
-    if (memory.content?.toLowerCase().includes(query) || date.includes(query)) {
+
+  for (const [date, memory] of memoriesMap) {
+    if (date.includes(query) || memory.content?.toLowerCase().includes(query)) {
       results.push({
         date,
         content: memory.content,
@@ -203,7 +202,7 @@ onMounted(() => {
       <!-- 2. 搜索中状态 -->
       <div v-else-if="isSearching" class="py-24 flex flex-col items-center justify-center">
         <div class="w-10 h-10 border-4 border-orange-400/10 border-t-orange-400 rounded-full animate-spin"></div>
-        <p class="mt-4 text-[8px] font-black uppercase tracking-[0.3em] opacity-20">Searching...</p>
+        <p class="mt-4 text-[8px] font-black uppercase tracking-[0.3em] opacity-20">{{ t('search.searching') }}</p>
       </div>
 
       <!-- 3. 搜索结果：紧凑列表 -->

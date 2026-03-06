@@ -142,28 +142,26 @@ export class UploadService {
             const mediumKey = key.replace('original', 'medium').replace(/\.[^.]+$/, '.webp')
             const optimizedKey = key.replace(/\.[^.]+$/, '.webp')
 
-            // 4. 并行处理和上传到 MinIO
-            await Promise.all([
-                // 缩略图
-                pipeline.clone()
-                    .resize(this.thumbnailSize, this.thumbnailSize, { fit: 'cover' })
-                    .webp({ quality: 80 })
-                    .toBuffer()
-                    .then(buf => this.uploadProcessedImage(thumbnailKey, buf, 'image/webp')),
+            // 4. 串行处理各版本，避免大图同时占用过多内存
+            // 缩略图
+            const thumbBuf = await pipeline.clone()
+                .resize(this.thumbnailSize, this.thumbnailSize, { fit: 'cover' })
+                .webp({ quality: 80 })
+                .toBuffer()
+            await this.uploadProcessedImage(thumbnailKey, thumbBuf, 'image/webp')
 
-                // 中等尺寸
-                pipeline.clone()
-                    .resize(this.mediumSize, this.mediumSize, { fit: 'inside', withoutEnlargement: true })
-                    .webp({ quality: 85 })
-                    .toBuffer()
-                    .then(buf => this.uploadProcessedImage(mediumKey, buf, 'image/webp')),
+            // 中等尺寸
+            const mediumBuf = await pipeline.clone()
+                .resize(this.mediumSize, this.mediumSize, { fit: 'inside', withoutEnlargement: true })
+                .webp({ quality: 85 })
+                .toBuffer()
+            await this.uploadProcessedImage(mediumKey, mediumBuf, 'image/webp')
 
-                // 优化后的原图
-                pipeline.clone()
-                    .webp({ quality: 90 })
-                    .toBuffer()
-                    .then(buf => this.uploadProcessedImage(optimizedKey, buf, 'image/webp'))
-            ])
+            // 优化后的原图
+            const optimizedBuf = await pipeline.clone()
+                .webp({ quality: 90 })
+                .toBuffer()
+            await this.uploadProcessedImage(optimizedKey, optimizedBuf, 'image/webp')
 
             // 5. 删除临时上传的原始文件（如果是不同格式）
             if (optimizedKey !== key) {

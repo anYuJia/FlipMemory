@@ -83,7 +83,7 @@ onActivated(() => {
             <span class="text-[9px] font-extrabold tracking-[0.2em] uppercase opacity-30">{{ t('nav.flashback') }}</span>
           </div>
           <h1 class="text-4xl font-serif italic tracking-tighter mt-1 leading-tight" style="color: var(--text-primary);">
-            Cinema of Time
+            {{ t('flashback.title') || 'Cinema of Time' }}
           </h1>
         </div>
       </header>
@@ -114,7 +114,7 @@ onActivated(() => {
         <div v-else-if="isLoading" class="h-[480px] flex items-center justify-center card-static rounded-[2.5rem]">
           <div class="flex flex-col items-center gap-4">
             <div class="w-12 h-12 border-4 border-orange-400/10 border-t-orange-400 rounded-full animate-spin"></div>
-            <p class="text-[8px] font-black uppercase tracking-[0.3em] opacity-30">Developing...</p>
+            <p class="text-[8px] font-black uppercase tracking-[0.3em] opacity-30">{{ t('flashback.developing') }}</p>
           </div>
         </div>
 
