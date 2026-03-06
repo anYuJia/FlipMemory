@@ -29,9 +29,6 @@ export async function buildApp() {
     // 安全头
     registerSecurityHeaders(app)
 
-    // 请求体清理（XSS 防护）
-    app.addHook('preHandler', sanitizeBodyMiddleware)
-
     // CORS（终极宽松模式）
     await app.register(cors, {
         origin: (origin, cb) => {
@@ -46,8 +43,11 @@ export async function buildApp() {
         optionsSuccessStatus: 204
     })
 
-    // API 速率限制
+    // API 速率限制（先于请求体清理，尽早拒绝超限请求）
     await registerRateLimit(app)
+
+    // 请求体清理（XSS 防护）
+    app.addHook('preHandler', sanitizeBodyMiddleware)
 
     // JWT
     await app.register(jwt, {

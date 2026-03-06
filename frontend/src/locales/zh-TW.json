@@ -23,6 +23,8 @@
     "retry_countdown": "{seconds} 秒後重試",
     "clear": "清空",
     "close": "關閉",
+    "new_label": "新",
+    "create": "立即建立",
     "weekdays_short": {
       "sun": "日",
       "mon": "一",
@@ -56,7 +58,9 @@
     "settings_privacy_lock": "隱私鎖",
     "settings_data": "資料管理",
     "settings_profile": "個人資料",
-    "settings_feedback": "回饋與建議"
+    "settings_feedback": "回饋與建議",
+    "forgot_password": "找回密碼",
+    "change_password": "修改密碼"
   },
   "language": {
     "zh-CN": "簡體中文",
@@ -92,6 +96,11 @@
     "confirm_password_placeholder": "確認密碼",
     "submit_login": "立即進入",
     "submit_register": "建立帳號",
+    "login_submit": "立即進入",
+    "register_submit": "建立帳號",
+    "login_heading": "歡迎回來",
+    "register_heading": "開啟旅程",
+    "brand_slogan": "FlipMemory",
     "server_settings": "伺服器節點設定",
     "config_api_title": "設定後端 API 位址",
     "config_api_hint": "行動裝置無法直接存取 localhost，請輸入你電腦在區域網路中的 IP。",
@@ -99,7 +108,27 @@
     "auth_failed": "驗證失敗，請檢查網路或設定",
     "login_success": "歡迎回來",
     "register_success": "時光之門已開啟",
-    "record_every_moment": "記錄每個瞬間"
+    "record_every_moment": "記錄每個瞬間",
+    "no_account": "還沒有帳號？立即加入",
+    "has_account": "已有帳號？返回登入",
+    "forgot_password": "忘記密碼？",
+    "verification_code": "驗證碼",
+    "code_placeholder": "請輸入 6 位驗證碼",
+    "send_code": "傳送驗證碼",
+    "resend_code": "{seconds}s 後重發",
+    "code_sent": "驗證碼已傳送至您的信箱",
+    "code_send_failed": "驗證碼傳送失敗",
+    "forgot_title": "找回密碼",
+    "forgot_subtitle": "輸入註冊信箱，我們將傳送驗證碼",
+    "new_password": "新密碼",
+    "new_password_placeholder": "請輸入新密碼（至少 8 位）",
+    "reset_password": "重設密碼",
+    "reset_success": "密碼重設成功，請重新登入",
+    "change_password": "修改密碼",
+    "old_password": "舊密碼",
+    "old_password_placeholder": "請輸入目前密碼",
+    "change_password_success": "密碼修改成功",
+    "back_to_login": "返回登入"
   },
   "settings": {
     "theme_title": "主題外觀",
@@ -117,8 +146,12 @@
     "data_desc": "備份、匯出與清除資料",
     "feedback_title": "回饋與建議",
     "feedback_desc": "告訴我們您的想法",
+    "change_password_title": "修改密碼",
+    "change_password_desc": "更新您的帳號密碼",
     "logout": "登出",
     "logout_confirm": "確定要退出登入嗎？",
+    "page_title": "偏好設定",
+    "pro_member": "專業會員",
     "theme": {
       "title": "個性化調色盤",
       "light": "淺色",
@@ -292,6 +325,7 @@
   "detail": {
     "blank_page": "空白頁",
     "no_entry": "這一天尚未記錄",
+    "no_memory": "這一天暫無記憶",
     "start_writing": "開始記錄",
     "date_captured": "記錄日期",
     "delete_confirm": "確定刪除這條記憶嗎？此操作無法復原。"
@@ -357,6 +391,7 @@
     "memories_count": "條記憶",
     "no_results": "找不到結果",
     "no_results_sub": "沒有匹配「{query}」的結果",
+    "searching": "搜尋中...",
     "clear": "清空",
     "hot_tags": {
       "happy": "開心",

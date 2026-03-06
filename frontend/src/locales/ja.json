@@ -23,6 +23,8 @@
     "retry_countdown": "{seconds}秒後に再試行",
     "clear": "クリア",
     "close": "閉じる",
+    "new_label": "新規",
+    "create": "今すぐ作成",
     "weekdays_short": {
       "sun": "日",
       "mon": "月",
@@ -56,7 +58,9 @@
     "settings_privacy_lock": "プライバシーロック",
     "settings_data": "データ管理",
     "settings_profile": "プロフィール",
-    "settings_feedback": "フィードバック"
+    "settings_feedback": "フィードバック",
+    "forgot_password": "パスワードリセット",
+    "change_password": "パスワード変更"
   },
   "language": {
     "zh-CN": "簡体字中国語",
@@ -92,6 +96,11 @@
     "confirm_password_placeholder": "パスワード確認",
     "submit_login": "今すぐ開始",
     "submit_register": "アカウント作成",
+    "login_submit": "今すぐ開始",
+    "register_submit": "アカウント作成",
+    "login_heading": "おかえりなさい",
+    "register_heading": "旅を始めよう",
+    "brand_slogan": "FlipMemory",
     "server_settings": "サーバー設定",
     "config_api_title": "バックエンド API の設定",
     "config_api_hint": "モバイル端末では localhost に直接アクセスできません。LAN 内の IP を入力してください。",
@@ -99,7 +108,27 @@
     "auth_failed": "認証に失敗しました。ネットワークまたは設定を確認してください。",
     "login_success": "おかえりなさい",
     "register_success": "アカウントが作成されました",
-    "record_every_moment": "すべての瞬間を記録"
+    "record_every_moment": "すべての瞬間を記録",
+    "no_account": "アカウントをお持ちでないですか？登録する",
+    "has_account": "アカウントをお持ちですか？ログイン",
+    "forgot_password": "パスワードをお忘れですか？",
+    "verification_code": "認証コード",
+    "code_placeholder": "6桁のコードを入力",
+    "send_code": "コードを送信",
+    "resend_code": "{seconds}秒後に再送",
+    "code_sent": "認証コードをメールに送信しました",
+    "code_send_failed": "認証コードの送信に失敗しました",
+    "forgot_title": "パスワードリセット",
+    "forgot_subtitle": "登録メールアドレスを入力してください",
+    "new_password": "新しいパスワード",
+    "new_password_placeholder": "新しいパスワードを入力（8文字以上）",
+    "reset_password": "パスワードをリセット",
+    "reset_success": "パスワードがリセットされました。再ログインしてください。",
+    "change_password": "パスワード変更",
+    "old_password": "現在のパスワード",
+    "old_password_placeholder": "現在のパスワードを入力",
+    "change_password_success": "パスワードが変更されました",
+    "back_to_login": "ログインに戻る"
   },
   "settings": {
     "theme_title": "テーマ設定",
@@ -117,8 +146,12 @@
     "data_desc": "バックアップ、エクスポート、リセット",
     "feedback_title": "フィードバック",
     "feedback_desc": "ご意見をお聞かせください",
+    "change_password_title": "パスワード変更",
+    "change_password_desc": "アカウントのパスワードを更新",
     "logout": "ログアウト",
     "logout_confirm": "ログアウトしますか？",
+    "page_title": "設定",
+    "pro_member": "Pro メンバー",
     "theme": {
       "title": "カスタムパレット",
       "light": "ライト",
@@ -218,8 +251,8 @@
       "title": "プライバシー保護",
       "enabled": "プライバシー保護は有効です",
       "disabled": "あなたの記憶を守ります",
-      "enabled_sub": "Security Active",
-      "disabled_sub": "Lock your personal records",
+      "enabled_sub": "セキュリティ有効",
+      "disabled_sub": "プライベートな記録をロック",
       "app_lock": "アプリロック",
       "pin_protection": "PIN 保護",
       "biometric": "Face ID / 指紋",
@@ -292,6 +325,7 @@
   "detail": {
     "blank_page": "空白ページ",
     "no_entry": "この日の記録はまだありません",
+    "no_memory": "この日の思い出はまだありません",
     "start_writing": "記録を始める",
     "date_captured": "記録日",
     "delete_confirm": "この記憶を削除しますか？この操作は取り消せません。"
@@ -357,6 +391,7 @@
     "memories_count": "件",
     "no_results": "結果が見つかりません",
     "no_results_sub": "「{query}」に一致する結果はありません",
+    "searching": "検索中...",
     "clear": "クリア",
     "hot_tags": {
       "happy": "嬉しい",
@@ -414,9 +449,9 @@
   },
   "create_menu": {
     "record_memory": "記憶を記録",
-    "new_story": "New story",
+    "new_story": "新しい物語",
     "import_album": "アルバムから追加",
-    "from_gallery": "From gallery",
+    "from_gallery": "ギャラリーから",
     "cancel": "キャンセル"
   },
   "pull_to_refresh": {

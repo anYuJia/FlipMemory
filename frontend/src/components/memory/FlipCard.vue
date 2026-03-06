@@ -78,9 +78,10 @@ const handleImageError = () => { imageError.value = true }
           </div>
         </div>
 
-        <img 
-          v-if="memory.photos?.[0] && !imageError" 
-          :src="memory.photos[0].mediumUrl || memory.photos[0].originalUrl" 
+        <img
+          v-if="memory.photos?.[0] && !imageError"
+          :src="memory.photos[0].mediumUrl || memory.photos[0].originalUrl"
+          :alt="`${formattedDate} ${formattedYear}`"
           class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           loading="lazy"
           decoding="async"
@@ -120,7 +121,7 @@ const handleImageError = () => { imageError.value = true }
         <!-- 内容区域 -->
         <div class="flex-1 overflow-y-auto hide-scrollbar">
           <p class="text-sm font-medium leading-relaxed opacity-80 first-letter:text-2xl first-letter:font-serif first-letter:italic first-letter:mr-1 first-letter:text-orange-500" style="color: var(--text-primary);">
-            {{ memory.content || 'No content provided for this memory.' }}
+            {{ memory.content || t('detail.no_entry') }}
           </p>
         </div>
 

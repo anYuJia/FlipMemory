@@ -23,6 +23,8 @@
     "retry_countdown": "Retry in {seconds}s",
     "clear": "Clear",
     "close": "Close",
+    "new_label": "New",
+    "create": "Create Now",
     "weekdays_short": {
       "sun": "Sun",
       "mon": "Mon",
@@ -56,7 +58,9 @@
     "settings_privacy_lock": "Privacy Lock",
     "settings_data": "Data Management",
     "settings_profile": "Profile",
-    "settings_feedback": "Feedback"
+    "settings_feedback": "Feedback",
+    "forgot_password": "Reset Password",
+    "change_password": "Change Password"
   },
   "language": {
     "zh-CN": "Simplified Chinese",
@@ -92,6 +96,11 @@
     "confirm_password_placeholder": "Confirm password",
     "submit_login": "Enter Now",
     "submit_register": "Create Account",
+    "login_submit": "Enter Now",
+    "register_submit": "Create Account",
+    "login_heading": "Welcome Back",
+    "register_heading": "Join Story",
+    "brand_slogan": "FlipMemory",
     "server_settings": "Server Settings",
     "config_api_title": "Backend API URL",
     "config_api_hint": "If running on mobile, localhost is not reachable. Enter your LAN IP.",
@@ -99,7 +108,27 @@
     "auth_failed": "Authentication failed. Check network or server config.",
     "login_success": "Welcome back",
     "register_success": "Account created successfully",
-    "record_every_moment": "Record Every Moment"
+    "record_every_moment": "Record Every Moment",
+    "no_account": "Don't have an account? Join now",
+    "has_account": "Already have an account? Sign in",
+    "forgot_password": "Forgot password?",
+    "verification_code": "Verification Code",
+    "code_placeholder": "Enter 6-digit code",
+    "send_code": "Send Code",
+    "resend_code": "Resend in {seconds}s",
+    "code_sent": "Verification code sent to your email",
+    "code_send_failed": "Failed to send verification code",
+    "forgot_title": "Reset Password",
+    "forgot_subtitle": "Enter your email to receive a verification code",
+    "new_password": "New Password",
+    "new_password_placeholder": "Enter new password (min 8 chars)",
+    "reset_password": "Reset Password",
+    "reset_success": "Password reset successfully. Please sign in again.",
+    "change_password": "Change Password",
+    "old_password": "Current Password",
+    "old_password_placeholder": "Enter current password",
+    "change_password_success": "Password changed successfully",
+    "back_to_login": "Back to Sign In"
   },
   "settings": {
     "theme_title": "Appearance",
@@ -117,8 +146,12 @@
     "data_desc": "Backup, Export and Reset",
     "feedback_title": "Feedback",
     "feedback_desc": "Tell us what you think",
+    "change_password_title": "Change Password",
+    "change_password_desc": "Update your account password",
     "logout": "Sign Out",
     "logout_confirm": "Are you sure you want to sign out?",
+    "page_title": "Preference",
+    "pro_member": "Pro Member",
     "theme": {
       "title": "Custom Palette",
       "light": "Light",
@@ -292,6 +325,7 @@
   "detail": {
     "blank_page": "Blank Page",
     "no_entry": "No memory for this day",
+    "no_memory": "No memory for this day",
     "start_writing": "Start Writing",
     "date_captured": "Date Captured",
     "delete_confirm": "Delete this memory? This cannot be undone."
@@ -357,6 +391,7 @@
     "memories_count": "Memories",
     "no_results": "No Results",
     "no_results_sub": "No results for \"{query}\"",
+    "searching": "Searching...",
     "clear": "Clear",
     "hot_tags": {
       "happy": "happy",

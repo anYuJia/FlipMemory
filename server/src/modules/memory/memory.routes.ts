@@ -61,12 +61,27 @@ export async function memoryRoutes(app: FastifyInstance) {
                 week?: string
             }
 
+            const parsedYear = year ? parseInt(year) : undefined
+            const parsedMonth = month ? parseInt(month) : undefined
+            const parsedWeek = week ? parseInt(week) : undefined
+
+            // 参数范围校验
+            if (parsedYear !== undefined && (parsedYear < 2000 || parsedYear > 2100)) {
+                return error(reply, 'Invalid year', 400)
+            }
+            if (parsedMonth !== undefined && (parsedMonth < 1 || parsedMonth > 12)) {
+                return error(reply, 'Invalid month', 400)
+            }
+            if (parsedWeek !== undefined && (parsedWeek < 1 || parsedWeek > 53)) {
+                return error(reply, 'Invalid week', 400)
+            }
+
             const data = await memoryService.getStats(
                 request.userId,
                 range,
-                year ? parseInt(year) : undefined,
-                month ? parseInt(month) : undefined,
-                week ? parseInt(week) : undefined
+                parsedYear,
+                parsedMonth,
+                parsedWeek
             )
             return success(reply, data)
         } catch (err) {
@@ -87,14 +102,17 @@ export async function memoryRoutes(app: FastifyInstance) {
                 skip?: string
             }
 
+            const safeLimit = Math.min(Math.max(parseInt(limit || '') || 20, 1), 100)
+            const safeSkip = Math.min(Math.max(parseInt(skip || '') || 0, 0), 10000)
+
             const data = await memoryService.searchMemories(
                 request.userId,
                 q,
                 mood,
                 from,
                 to,
-                limit ? parseInt(limit) : 20,
-                skip ? parseInt(skip) : 0
+                safeLimit,
+                safeSkip
             )
             return success(reply, data)
         } catch (err) {
@@ -107,10 +125,13 @@ export async function memoryRoutes(app: FastifyInstance) {
     app.get('/recent', async (request, reply) => {
         try {
             const { limit, skip } = request.query as { limit?: string; skip?: string }
+            const safeLimit = Math.min(Math.max(parseInt(limit || '') || 10, 1), 50)
+            const safeSkip = Math.min(Math.max(parseInt(skip || '') || 0, 0), 10000)
+
             const data = await memoryService.getRecentMemories(
                 request.userId,
-                limit ? parseInt(limit) : 10,
-                skip ? parseInt(skip) : 0
+                safeLimit,
+                safeSkip
             )
             return success(reply, data)
         } catch (err) {

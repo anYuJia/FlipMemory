@@ -35,6 +35,7 @@ function defaultKeyGenerator(req: FastifyRequest): string {
  * 内存存储（当 Redis 不可用时）
  */
 const memoryStore = new Map<string, { count: number; resetTime: number }>()
+const MAX_MEMORY_STORE_SIZE = 10000
 
 /**
  * 清理过期的内存存储
@@ -49,7 +50,8 @@ function cleanupMemoryStore() {
 }
 
 // 每分钟清理一次
-setInterval(cleanupMemoryStore, 60 * 1000)
+const cleanupTimer = setInterval(cleanupMemoryStore, 60 * 1000)
+cleanupTimer.unref()
 
 /**
  * 速率限制中间件
@@ -91,6 +93,12 @@ export async function rateLimitMiddleware(
     } else {
         // 使用内存存储
         const now = Date.now()
+
+        // 防止内存无限增长
+        if (memoryStore.size > MAX_MEMORY_STORE_SIZE) {
+            cleanupMemoryStore()
+        }
+
         const stored = memoryStore.get(key)
 
         if (stored && stored.resetTime > now) {
@@ -150,6 +158,12 @@ export const endpointRateLimits = {
         timeWindow: 60 * 1000,
         errorMessage: '注册请求过于频繁，请稍后再试',
     },
+    // 发送验证码：3 次/分钟
+    sendCode: {
+        max: 3,
+        timeWindow: 60 * 1000,
+        errorMessage: '验证码发送过于频繁，请稍后再试',
+    },
     // 上传：10 次/分钟
     upload: {
         max: 10,
@@ -167,6 +181,18 @@ export const endpointRateLimits = {
         max: 20,
         timeWindow: 60 * 1000,
         errorMessage: '创建记忆请求过于频繁，请稍后再试',
+    },
+    // 重置密码：5 次/分钟
+    resetPassword: {
+        max: 5,
+        timeWindow: 60 * 1000,
+        errorMessage: '重置密码请求过于频繁，请稍后再试',
+    },
+    // 修改密码：5 次/分钟
+    changePassword: {
+        max: 5,
+        timeWindow: 60 * 1000,
+        errorMessage: '修改密码请求过于频繁，请稍后再试',
     },
 }
 

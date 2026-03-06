@@ -7,7 +7,7 @@ import { useConfirm } from '@/composables/useConfirm'
 import SyncStatusIndicator from '@/components/SyncStatusIndicator.vue'
 import {
   Globe, ChevronRight, Moon, Sun, Smartphone, LogOut,
-  MessageSquare, Shield, Database,
+  MessageSquare, Shield, Database, KeyRound,
   Palette, Bell, Layout
 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
@@ -41,7 +41,7 @@ const currentLanguageLabel = computed(() => {
 const handleLogout = async () => {
   if (await confirm({ 
     title: t('settings.logout'), 
-    message: t('settings.logout_confirm') || 'Are you sure you want to log out?',
+    message: t('settings.logout_confirm'),
     type: 'danger' 
   })) {
     userStore.logout()
@@ -71,7 +71,7 @@ onMounted(() => {
             <span class="text-[9px] font-extrabold tracking-[0.2em] uppercase opacity-30">{{ t('nav.settings') }}</span>
           </div>
           <h1 class="text-3xl font-serif italic tracking-tight mt-1" style="color: var(--text-primary);">
-            Preference
+            {{ t('settings.page_title') }}
           </h1>
         </div>
       </header>
@@ -91,7 +91,7 @@ onMounted(() => {
             <div class="flex-1 text-left">
               <h3 class="text-lg font-black tracking-tight mb-0.5" style="color: var(--text-primary);">{{ userStore.displayName }}</h3>
               <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/10 text-[7px] font-black uppercase tracking-widest opacity-40">Pro Member</span>
+                <span class="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/10 text-[7px] font-black uppercase tracking-widest opacity-40">{{ t('settings.pro_member') }}</span>
               </div>
             </div>
             <ChevronRight class="w-5 h-5 opacity-20" />
@@ -149,6 +149,16 @@ onMounted(() => {
                 <Shield class="w-5 h-5 text-green-500" />
               </div>
               <div class="flex-1 text-left text-sm font-black tracking-tight" style="color: var(--text-primary);">{{ t('settings.privacy_title') }}</div>
+              <ChevronRight class="w-4 h-4 opacity-15" />
+            </button>
+
+            <div class="h-px mx-6 bg-black/[0.03] dark:bg-white/[0.05]"></div>
+
+            <button @click="router.push({ name: 'settings-change-password' })" class="w-full flex items-center gap-4 px-6 py-5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors group">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10 shadow-inner">
+                <KeyRound class="w-5 h-5 text-amber-500" />
+              </div>
+              <div class="flex-1 text-left text-sm font-black tracking-tight" style="color: var(--text-primary);">{{ t('settings.change_password_title') }}</div>
               <ChevronRight class="w-4 h-4 opacity-15" />
             </button>
 

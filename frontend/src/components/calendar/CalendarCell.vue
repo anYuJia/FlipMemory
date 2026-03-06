@@ -34,7 +34,7 @@ const handleClick = () => {
 <template>
   <div
     v-memo="[date, hasMemory, mood, isToday, isSelected]"
-    class="relative aspect-square flex flex-col items-center justify-center cursor-pointer group"
+    class="relative aspect-square flex flex-col items-center justify-center cursor-pointer group rounded-[1.25rem] outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60 focus-visible:ring-offset-1"
     role="gridcell"
     tabindex="0"
     :aria-label="`${date}, ${hasMemory ? 'has memory' : 'no memory'}`"
@@ -59,8 +59,8 @@ const handleClick = () => {
       <span 
         class="text-xs font-black tracking-tighter transition-colors duration-300"
         :style="{ 
-          color: isSelected 
-            ? (isSelected ? 'var(--bg-primary)' : 'var(--text-primary)') 
+          color: isSelected
+            ? 'var(--bg-primary)'
             : (isCurrentMonth ? 'var(--text-primary)' : 'var(--text-muted)'),
           opacity: isCurrentMonth ? 1 : 0.25
         }"

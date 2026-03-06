@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import type { User, UserSettings } from '@/types'
 import api from '@/services/api'
 import { saveToken, getToken, removeToken } from '@/services/tokenManager'
+import router from '@/router'
 
 export interface UserProfile {
     id: string
@@ -84,16 +85,20 @@ export const useUserStore = defineStore('user', () => {
     }
 
     async function updateSettings(data: Partial<UserSettings>) {
+        const previousSettings = { ...settings.value }
+        // Optimistic update
+        settings.value = { ...settings.value, ...data }
+        localStorage.setItem('userSettings', JSON.stringify(settings.value))
         try {
             const updated = await api.user.updateSettings(data)
             settings.value = { ...settings.value, ...updated }
             localStorage.setItem('userSettings', JSON.stringify(settings.value))
             return updated
         } catch (e) {
-            console.error('Failed to update settings', e)
-            // 乐观更新，如果 API 失败，至少本地是生效的（或者在这里处理回滚）
-            settings.value = { ...settings.value, ...data }
-            localStorage.setItem('userSettings', JSON.stringify(settings.value))
+            // Rollback on failure
+            settings.value = previousSettings
+            localStorage.setItem('userSettings', JSON.stringify(previousSettings))
+            throw e
         }
     }
 
@@ -103,9 +108,9 @@ export const useUserStore = defineStore('user', () => {
         const u = localStorage.getItem('userInfo')
         const p = localStorage.getItem('userProfile')
         const s = localStorage.getItem('userSettings')
-        if (u) try { user.value = JSON.parse(u) } catch {}
-        if (p) try { profile.value = JSON.parse(p) } catch {}
-        if (s) try { settings.value = JSON.parse(s) } catch {}
+        if (u) try { user.value = JSON.parse(u) } catch { localStorage.removeItem('userInfo') }
+        if (p) try { profile.value = JSON.parse(p) } catch { localStorage.removeItem('userProfile') }
+        if (s) try { settings.value = JSON.parse(s) } catch { localStorage.removeItem('userSettings') }
     }
 
     async function login(account: string, password: string) {
@@ -116,8 +121,8 @@ export const useUserStore = defineStore('user', () => {
         return res.user
     }
 
-    async function register(email: string, username: string, password: string, nickname: string) {
-        const res = await api.auth.register({ email, username, password, nickname })
+    async function register(email: string, username: string, password: string, nickname: string, code: string) {
+        const res = await api.auth.register({ email, username, password, nickname, code })
         setAccessToken(res.accessToken)
         user.value = res.user as unknown as User
         localStorage.setItem('userInfo', JSON.stringify(res.user))
@@ -147,7 +152,8 @@ export const useUserStore = defineStore('user', () => {
         // Selectively remove auth-related keys, preserve theme/language/settings
         const authKeys = ['accessToken', 'refreshToken', 'tokenExpiry', 'userInfo', 'userProfile', 'userSettings', 'flipMemory_lastSyncTime']
         authKeys.forEach(key => localStorage.removeItem(key))
-        removeToken(); window.location.reload()
+        removeToken()
+        router.push({ name: 'auth' })
     }
 
     return {

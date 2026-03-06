@@ -5,7 +5,7 @@ import { safeBack } from '@/router'
 import { Search, X, ArrowLeft, TrendingUp, History, Sparkles } from 'lucide-vue-next'
 import { useMemoryStore } from '@/stores'
 import { MoodEmoji, type MoodType } from '@/types/memory'
-import { sanitizeText } from '@/utils/xssSecurity'
+import { escapeHtml } from '@/utils/xssSecurity'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({
@@ -25,13 +25,13 @@ const isFocused = ref(false)
 const isSearching = ref(false)
 
 // 模拟搜索延迟动画
-watch(searchQuery, (newVal) => {
+watch(searchQuery, (newVal, _oldVal, onCleanup) => {
   isSearching.value = true
-  const timeout = setTimeout(() => { 
+  const timeout = setTimeout(() => {
     debouncedSearchQuery.value = newVal
     isSearching.value = false
   }, 300)
-  return () => clearTimeout(timeout)
+  onCleanup(() => clearTimeout(timeout))
 })
 
 const searchHistory = ref<string[]>(JSON.parse(localStorage.getItem('searchHistory') || '[]'))
@@ -103,10 +103,11 @@ const formatDate = (dateStr: string) => {
 }
 
 const highlightMatch = (text: string, query: string) => {
-  if (!query) return sanitizeText(text)
+  const safe = escapeHtml(text)
+  if (!query) return safe
   const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const regex = new RegExp(`(${escapedQuery})`, 'gi')
-  return sanitizeText(text).replace(regex, '<mark class="search-highlight">$1</mark>')
+  return safe.replace(regex, '<mark class="search-highlight">$1</mark>')
 }
 
 const truncateText = (text: string, length = 80) => {

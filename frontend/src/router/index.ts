@@ -88,6 +88,12 @@ const coreRoutes = [
         component: lazyLoad(() => import('@/views/AuthView.vue')),
         meta: { titleKey: 'route.auth', requiresAuth: false },
     },
+    {
+        path: '/forgot-password',
+        name: 'forgot-password',
+        component: lazyLoad(() => import('@/views/ForgotPasswordView.vue')),
+        meta: { titleKey: 'route.forgot_password', requiresAuth: false },
+    },
 ]
 
 // 记忆相关路由
@@ -183,6 +189,12 @@ const settingsRoutes = [
         name: 'settings-feedback',
         component: lazyLoad(() => import('@/views/settings/FeedbackView.vue')),
         meta: { titleKey: 'route.settings_feedback', requiresAuth: true },
+    },
+    {
+        path: '/settings/change-password',
+        name: 'settings-change-password',
+        component: lazyLoad(() => import('@/views/settings/ChangePasswordView.vue')),
+        meta: { titleKey: 'route.change_password', requiresAuth: true },
     },
 ]
 

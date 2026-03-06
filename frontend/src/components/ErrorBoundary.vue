@@ -10,6 +10,7 @@ const error = ref<any>(null)
 const isRetrying = ref(false)
 const retryCount = ref(0)
 const retryCountdown = ref(0)
+let retryTimerId: ReturnType<typeof setInterval> | null = null
 
 onErrorCaptured((err) => {
   error.value = err
@@ -18,11 +19,12 @@ onErrorCaptured((err) => {
 })
 
 const startRetryTimer = () => {
+  if (retryTimerId) clearInterval(retryTimerId)
   retryCountdown.value = 5
-  const timer = setInterval(() => {
+  retryTimerId = setInterval(() => {
     retryCountdown.value--
     if (retryCountdown.value <= 0) {
-      clearInterval(timer)
+      if (retryTimerId) { clearInterval(retryTimerId); retryTimerId = null }
       if (retryCount.value < 3) handleRetry()
     }
   }, 1000)
@@ -62,7 +64,7 @@ const getErrorMessage = (err: any) => {
     
     <div class="mb-10 space-y-4">
       <p class="text-sm font-medium opacity-40 text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-        {{ error.message || 'An unexpected error occurred.' }}
+        {{ error.message || t('common.error_occurred') }}
       </p>
       
       <!-- 自动重试倒计时 -->

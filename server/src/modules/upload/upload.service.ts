@@ -2,6 +2,12 @@ import { env, minioClient, internalMinioClient } from '../../shared/config/index
 import sharp from 'sharp'
 import { Readable } from 'stream'
 
+const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'])
+const ALLOWED_MIME_TYPES = new Set([
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif',
+])
+const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
+
 export interface PhotoMetadata {
     takenAt?: Date
     latitude?: number
@@ -27,13 +33,23 @@ export class UploadService {
     private readonly mediumSize = 800
 
     // 生成预签名上传 URL (使用公网客户端)
-    async getPresignedUploadUrl(userId: string, filename: string, _mimeType?: string): Promise<{
+    async getPresignedUploadUrl(userId: string, filename: string, mimeType?: string): Promise<{
         uploadUrl: string
         key: string
         expiresIn: number
     }> {
+        // 校验文件扩展名
+        const ext = (filename.split('.').pop() || '').toLowerCase()
+        if (!ALLOWED_EXTENSIONS.has(ext)) {
+            throw new Error(`Unsupported file type: .${ext}`)
+        }
+
+        // 校验 MIME 类型
+        if (mimeType && !ALLOWED_MIME_TYPES.has(mimeType)) {
+            throw new Error(`Unsupported MIME type: ${mimeType}`)
+        }
+
         const date = new Date().toISOString().split('T')[0].replace(/-/g, '/')
-        const ext = filename.split('.').pop() || 'jpg'
         const uniqueId = Date.now().toString(36) + Math.random().toString(36).slice(2)
         const key = `uploads/${userId}/${date}/original/${uniqueId}.${ext}`
 
@@ -73,26 +89,41 @@ export class UploadService {
     }
 
     /**
-     * 下载图片流 (使用内部客户端)
+     * 下载图片流 (使用内部客户端，带大小限制和超时)
      */
     private async downloadPhotoStream(key: string): Promise<Buffer> {
         return new Promise((resolve, reject) => {
             const chunks: Buffer[] = []
+            let totalSize = 0
+            const timeout = setTimeout(() => reject(new Error('Download timeout')), 30000)
+
             internalMinioClient.getObject(this.bucket, key, (err, stream) => {
                 if (err) {
+                    clearTimeout(timeout)
                     reject(err)
                     return
                 }
 
                 stream.on('data', (chunk) => {
+                    totalSize += chunk.length
+                    if (totalSize > MAX_FILE_SIZE) {
+                        stream.destroy()
+                        clearTimeout(timeout)
+                        reject(new Error(`File too large: exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`))
+                        return
+                    }
                     chunks.push(chunk)
                 })
 
                 stream.on('end', () => {
+                    clearTimeout(timeout)
                     resolve(Buffer.concat(chunks))
                 })
 
-                stream.on('error', reject)
+                stream.on('error', (e) => {
+                    clearTimeout(timeout)
+                    reject(e)
+                })
             })
         })
     }
@@ -122,54 +153,68 @@ export class UploadService {
     }
 
     /**
+     * 安全删除对象（忽略不存在错误）
+     */
+    private async safeRemove(key: string): Promise<void> {
+        try {
+            await internalMinioClient.removeObject(this.bucket, key)
+        } catch {
+            // ignore
+        }
+    }
+
+    /**
      * 上传完成后的处理（图片处理管道）
      */
     async processUploadedPhoto(key: string, metadata?: PhotoMetadata): Promise<ProcessedPhoto> {
+        // 1. 下载原图 (此时原图已经在 MinIO 里了)
+        const originalBuffer = await this.downloadPhotoStream(key)
+
+        // 2. 初始化 Sharp 实例
+        const pipeline = sharp(originalBuffer)
+        const imageMetadata = await pipeline.metadata()
+        const dimensions = {
+            width: imageMetadata.width || 0,
+            height: imageMetadata.height || 0,
+        }
+
+        // 3. 定义各版本的处理路径
+        const thumbnailKey = key.replace('original', 'thumbnail').replace(/\.[^.]+$/, '.webp')
+        const mediumKey = key.replace('original', 'medium').replace(/\.[^.]+$/, '.webp')
+        const optimizedKey = key.replace(/\.[^.]+$/, '.webp')
+        const uploadedKeys: string[] = []
+
         try {
-            // 1. 下载原图 (此时原图已经在 MinIO 里了)
-            const originalBuffer = await this.downloadPhotoStream(key)
+            // 4. 并行生成缩略图和中图，串行生成优化原图（共享 pipeline）
+            const [thumbBuf, mediumBuf] = await Promise.all([
+                pipeline.clone()
+                    .resize(this.thumbnailSize, this.thumbnailSize, { fit: 'cover' })
+                    .webp({ quality: 80 })
+                    .toBuffer(),
+                pipeline.clone()
+                    .resize(this.mediumSize, this.mediumSize, { fit: 'inside', withoutEnlargement: true })
+                    .webp({ quality: 85 })
+                    .toBuffer(),
+            ])
 
-            // 2. 初始化 Sharp 实例
-            const pipeline = sharp(originalBuffer)
-            const imageMetadata = await pipeline.metadata()
-            const dimensions = {
-                width: imageMetadata.width || 0,
-                height: imageMetadata.height || 0,
-            }
-
-            // 3. 定义各版本的处理路径
-            const thumbnailKey = key.replace('original', 'thumbnail').replace(/\.[^.]+$/, '.webp')
-            const mediumKey = key.replace('original', 'medium').replace(/\.[^.]+$/, '.webp')
-            const optimizedKey = key.replace(/\.[^.]+$/, '.webp')
-
-            // 4. 串行处理各版本，避免大图同时占用过多内存
-            // 缩略图
-            const thumbBuf = await pipeline.clone()
-                .resize(this.thumbnailSize, this.thumbnailSize, { fit: 'cover' })
-                .webp({ quality: 80 })
-                .toBuffer()
-            await this.uploadProcessedImage(thumbnailKey, thumbBuf, 'image/webp')
-
-            // 中等尺寸
-            const mediumBuf = await pipeline.clone()
-                .resize(this.mediumSize, this.mediumSize, { fit: 'inside', withoutEnlargement: true })
-                .webp({ quality: 85 })
-                .toBuffer()
-            await this.uploadProcessedImage(mediumKey, mediumBuf, 'image/webp')
+            // 并行上传缩略图和中图
+            await Promise.all([
+                this.uploadProcessedImage(thumbnailKey, thumbBuf, 'image/webp')
+                    .then(() => { uploadedKeys.push(thumbnailKey) }),
+                this.uploadProcessedImage(mediumKey, mediumBuf, 'image/webp')
+                    .then(() => { uploadedKeys.push(mediumKey) }),
+            ])
 
             // 优化后的原图
             const optimizedBuf = await pipeline.clone()
                 .webp({ quality: 90 })
                 .toBuffer()
             await this.uploadProcessedImage(optimizedKey, optimizedBuf, 'image/webp')
+            uploadedKeys.push(optimizedKey)
 
             // 5. 删除临时上传的原始文件（如果是不同格式）
             if (optimizedKey !== key) {
-                try {
-                    await internalMinioClient.removeObject(this.bucket, key)
-                } catch (err) {
-                    // 忽略删除错误
-                }
+                await this.safeRemove(key)
             }
 
             return {
@@ -183,6 +228,8 @@ export class UploadService {
                 height: dimensions.height,
             }
         } catch (error) {
+            // 清理已上传的部分文件，防止孤儿对象
+            await Promise.all(uploadedKeys.map(k => this.safeRemove(k)))
             console.error('Error processing photo:', error)
             throw new Error(`Failed to process photo: ${error instanceof Error ? error.message : 'Unknown error'}`)
         }

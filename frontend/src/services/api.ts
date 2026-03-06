@@ -90,7 +90,7 @@ async function request<T>(
     const startTime = performance.now()
 
     // 检查 token 是否过期（跳过 auth 端点，它们不需要 token）
-    const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register')
+    const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register') || endpoint.includes('/auth/send-code') || endpoint.includes('/auth/reset-password')
     if (!isAuthEndpoint && isTokenExpired()) {
         logger.warn('Token expired, redirecting to login', 'API')
         handleUnauthorized()
@@ -126,7 +126,7 @@ async function request<T>(
 
         // 处理 401 未授权错误
         if (response.status === 401) {
-            const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register')
+            const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register') || endpoint.includes('/auth/send-code') || endpoint.includes('/auth/reset-password')
 
             // Auth 端点 401：解析服务器返回的真实错误信息（如"密码错误"）
             if (isAuthEndpoint) {
@@ -238,7 +238,7 @@ interface PhotoMetadata {
 export const api = {
     // ===== 认证 =====
     auth: {
-        register: (data: { email: string; username: string; password: string; nickname?: string }) =>
+        register: (data: { email: string; username: string; password: string; nickname?: string; code: string }) =>
             request<AuthResponse>('/auth/register', {
                 method: 'POST',
                 body: JSON.stringify(data),
@@ -246,6 +246,24 @@ export const api = {
 
         login: (data: { account: string; password: string }) =>
             request<AuthResponse>('/auth/login', {
+                method: 'POST',
+                body: JSON.stringify(data),
+            }),
+
+        sendCode: (data: { email: string; purpose: 'register' | 'reset_password' | 'change_email' }) =>
+            request<{ message: string }>('/auth/send-code', {
+                method: 'POST',
+                body: JSON.stringify(data),
+            }),
+
+        resetPassword: (data: { email: string; code: string; newPassword: string }) =>
+            request<{ message: string }>('/auth/reset-password', {
+                method: 'POST',
+                body: JSON.stringify(data),
+            }),
+
+        changePassword: (data: { oldPassword: string; newPassword: string }) =>
+            request<{ message: string }>('/auth/change-password', {
                 method: 'POST',
                 body: JSON.stringify(data),
             }),

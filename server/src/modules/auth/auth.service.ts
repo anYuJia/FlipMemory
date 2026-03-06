@@ -121,6 +121,43 @@ export class AuthService {
             avatarUrl: getFileUrl(user.avatar),
         }
     }
+
+    /**
+     * 重置密码（通过邮箱验证码）
+     */
+    async resetPassword(email: string, newPassword: string) {
+        const user = await prisma.user.findUnique({ where: { email } })
+        if (!user) {
+            throw new Error('该邮箱未注册')
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10)
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { passwordHash },
+        })
+    }
+
+    /**
+     * 修改密码（已登录用户，需验证旧密码）
+     */
+    async changePassword(userId: string, oldPassword: string, newPassword: string) {
+        const user = await prisma.user.findUnique({ where: { id: userId } })
+        if (!user) {
+            throw new Error('User not found')
+        }
+
+        const isValid = await bcrypt.compare(oldPassword, user.passwordHash)
+        if (!isValid) {
+            throw new Error('旧密码不正确')
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10)
+        await prisma.user.update({
+            where: { id: userId },
+            data: { passwordHash },
+        })
+    }
 }
 
 export const authService = new AuthService()

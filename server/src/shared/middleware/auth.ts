@@ -9,7 +9,7 @@ declare module 'fastify' {
     }
 }
 
-const USER_EXISTS_TTL = 300 // 5 分钟缓存
+const USER_EXISTS_TTL = 60 // 1 分钟缓存
 
 export async function authMiddleware(
     request: FastifyRequest,

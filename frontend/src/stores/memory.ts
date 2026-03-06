@@ -164,12 +164,15 @@ export const useMemoryStore = defineStore('memory', () => {
             const memory = await offlineApi.memories.update(date, input)
             if (memory) {
                 memories.value.set(date, memory)
-                // 更新日历中的心情
+                // 更新日历缓存（心情或照片变更）
                 const existingDay = calendarDays.value.get(date)
-                if (existingDay && input.mood !== undefined) {
+                if (existingDay) {
                     calendarDays.value.set(date, {
                         ...existingDay,
-                        mood: input.mood,
+                        ...(input.mood !== undefined && { mood: input.mood }),
+                        ...(input.photoKeys !== undefined && {
+                            thumbnailUrl: memory.photos?.[0]?.thumbnailUrl ?? memory.photos?.[0]?.originalUrl ?? null,
+                        }),
                     })
                 }
             }

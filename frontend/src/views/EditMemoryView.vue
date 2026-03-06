@@ -197,7 +197,7 @@ const goBack = () => safeBack()
         <div class="grid grid-cols-2 gap-4">
           <!-- 现有照片预览 -->
           <div v-for="photo in existingPhotos" :key="photo.id" class="relative aspect-square rounded-[1.5rem] overflow-hidden group shadow-sm border border-black/5 dark:border-white/5">
-            <img :src="photo.thumbnailUrl || photo.originalUrl" class="w-full h-full object-cover" />
+            <img :src="photo.thumbnailUrl || photo.originalUrl" class="w-full h-full object-cover" loading="lazy" />
             <button @click="removeExistingPhoto(photo.id)" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
               <Trash2 class="w-4 h-4" />
             </button>
@@ -209,7 +209,7 @@ const goBack = () => safeBack()
             <button @click="removeNewPhoto" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white">
               <X class="w-4 h-4" />
             </button>
-            <div class="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-orange-500 text-[8px] font-black text-white uppercase tracking-widest">New</div>
+            <div class="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-orange-500 text-[8px] font-black text-white uppercase tracking-widest">{{ t('common.new_label') }}</div>
           </div>
 
           <!-- 添加按钮 (如果照片不多于一定数量) -->

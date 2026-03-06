@@ -128,7 +128,6 @@ export const useOfflineStore = defineStore('offline', () => {
             // Clean up expired cache after initialization
             await cleanupExpiredCache()
 
-            isInitialized.value = true
             logger.info('离线 Store 初始化完成', LOG_CONTEXT)
         } catch (error) {
             isInitialized.value = false

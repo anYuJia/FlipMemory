@@ -3,6 +3,14 @@ import { cacheService, CacheTTL } from '../../shared/config/redis.js'
 import type { CreateMemoryInput, UpdateMemoryInput } from './memory.schema.js'
 
 export class MemoryService {
+    // 缓存 URL 前缀，避免每次拼接
+    private readonly photoUrlPrefix: string
+
+    constructor() {
+        const proto = env.minio.useSSL ? 'https' : 'http'
+        this.photoUrlPrefix = `${proto}://${env.minio.publicEndpoint}:${env.minio.publicPort}/${env.minio.bucket}/`
+    }
+
     // 缓存 key 生成
     private getCacheKey(type: string, userId: string, ...args: (string | number)[]) {
         return `memory:${type}:${userId}:${args.join(':')}`
@@ -622,8 +630,8 @@ export class MemoryService {
             skip: offset,
             orderBy: { date: 'desc' },
             include: {
-                photos: { orderBy: { order: 'asc' } },
-                tags: { include: { tag: true } },
+                photos: { orderBy: { order: 'asc' }, take: 20 },
+                tags: { include: { tag: true }, take: 10 },
             },
         })
 
@@ -661,6 +669,7 @@ export class MemoryService {
               AND EXTRACT(DAY FROM m.date) = ${day}
               AND EXTRACT(YEAR FROM m.date) < ${today.getFullYear()}
             ORDER BY m.date DESC
+            LIMIT 20
         `
 
         return memories.map((m) => ({
@@ -677,8 +686,7 @@ export class MemoryService {
 
     // 生成照片 URL
     private getPhotoUrl(key: string): string {
-        const proto = env.minio.useSSL ? 'https' : 'http'
-        return `${proto}://${env.minio.publicEndpoint}:${env.minio.publicPort}/${env.minio.bucket}/${key}`
+        return `${this.photoUrlPrefix}${key}`
     }
 }
 

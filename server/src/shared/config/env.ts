@@ -25,6 +25,8 @@ const envSchema = z.object({
     REDIS_PASSWORD: z.string().default(''),
     REDIS_DB: z.string().default('0'),
 
+    RESEND_API_KEY: z.string().default(''),
+
     FRONTEND_URL: z.string().default('http://localhost:3000'),
 })
 
@@ -66,6 +68,8 @@ export const env = {
         password: parsed.data.REDIS_PASSWORD || undefined,
         db: parseInt(parsed.data.REDIS_DB, 10),
     },
+
+    resendApiKey: parsed.data.RESEND_API_KEY,
 
     frontendUrl: parsed.data.FRONTEND_URL,
 }
