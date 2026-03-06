@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useMemoryStore } from '@/stores'
 import { safeBack } from '@/router'
 import { 
-  ArrowLeft, Camera, Image, X, Check, Sparkles, 
+  ArrowLeft, Camera, X, Check, Sparkles, 
   Edit3, MapPin, Sun, Cloud, CloudRain, Wind, Snowflake, Loader2,
   Trash2
 } from 'lucide-vue-next'
@@ -142,12 +142,11 @@ const handleSubmit = async () => {
     }
 
     // 2. 调用 Store 的更新方法
-    // 注意：目前的 Store.updateMemory 接口可能需要扩展以支持 photoKeys
     await memoryStore.updateMemory(date, {
       content: content.value,
       mood: mood.value || undefined,
-      isPrivate: false, // 默认
-      // 这里可以根据后端 API 调整 tags 或 photos 的传递
+      isPrivate: false,
+      photoKeys: photoKeys.length > 0 ? photoKeys : undefined,
     })
 
     toast.success(t('common.success'))

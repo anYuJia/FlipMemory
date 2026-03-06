@@ -12,6 +12,13 @@ const isLoaded = ref(true)
 
 const languages = ['zh-CN', 'zh-TW', 'ja', 'en']
 
+const nativeNames: Record<string, string> = {
+  'zh-CN': '简体中文',
+  'zh-TW': '繁體中文',
+  'ja': '日本語',
+  'en': 'English',
+}
+
 const handleSelect = (key: string) => {
   userStore.setLocale(key)
 }
@@ -42,7 +49,7 @@ const handleSelect = (key: string) => {
           class="w-full flex items-center justify-between px-8 py-6 transition-all hover:bg-black/5 dark:hover:bg-white/5 active:scale-[0.98]"
         >
           <span class="text-base font-bold tracking-tight" :class="locale === lang ? 'text-orange-500' : ''" style="color: var(--text-primary);">
-            {{ t(`language.${lang}`) }}
+            {{ nativeNames[lang] || lang }}
           </span>
           <div v-if="locale === lang" class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center shadow-lg animate-scale-in">
             <Check class="w-4 h-4 text-white" stroke-width="4" />

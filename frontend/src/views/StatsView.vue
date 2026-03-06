@@ -1,39 +1,23 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import {
-  ChevronLeft, ChevronRight, Activity, Zap, ShieldCheck, 
-  Clock
+  ChevronLeft, ChevronRight, Activity, Zap, 
+  Clock, Sparkles, TrendingUp
 } from 'lucide-vue-next'
 import { useMemoryStore } from '@/stores'
-import { MoodEmoji } from '@/types/memory'
-import SkeletonLoader from '@/components/ui/SkeletonLoader.vue'
+import { MoodEmoji, type MoodType } from '@/types/memory'
 import { useI18n } from 'vue-i18n'
-import { performanceMonitor } from '@/services/performanceMonitor'
 
+const { t } = useI18n()
 const memoryStore = useMemoryStore()
-const { t, locale } = useI18n()
 
-const isLoaded = ref(true)
+// 状态
+const selectedRange = ref('month')
 const isLoadingStats = ref(false)
-const activeRange = ref('month')
-const currentYear = ref(new Date().getFullYear())
-const currentMonth = ref(new Date().getMonth() + 1)
-const currentWeek = ref(1)
 const selectedBarIndex = ref<number | null>(null)
+const isVisible = ref(false)
 
-// 性能数据响应式快照
-const perfData = ref(performanceMonitor.getSummary())
-let perfTimer: number | null = null
-
-const timeRanges = computed(() => [
-  { key: 'week', label: t('common.week') },
-  { key: 'month', label: t('common.month') },
-  { key: 'year', label: t('common.year') },
-  { key: 'all', label: t('common.all') }
-])
-
-const activeRangeIndex = computed(() => timeRanges.value.findIndex(r => r.key === activeRange.value))
-
+// 基础统计数据
 const stats = ref({
   totalMemories: 0,
   totalPhotos: 0,
@@ -42,271 +26,212 @@ const stats = ref({
   trend: [] as any[]
 })
 
-const fetchStats = async () => {
+const moodDistribution = computed(() => {
+  const dist = stats.value.moodDistribution || []
+  const total = dist.reduce((sum, item) => sum + item.count, 0)
+  return dist.map(item => ({
+    ...item,
+    percentage: total > 0 ? Math.round((item.count / total) * 100) : 0
+  })).sort((a, b) => b.count - a.count)
+})
+
+const trendData = computed(() => stats.value.trend || [])
+const maxTrendCount = computed(() => {
+  const counts = trendData.value.map(t => t.count)
+  return Math.max(...counts, 1)
+})
+
+async function loadStats() {
   isLoadingStats.value = true
   try {
-    const data = await memoryStore.getStats(activeRange.value, currentYear.value, currentMonth.value, currentWeek.value)
+    const { year, month } = memoryStore.currentMonth
+    const data = await memoryStore.getStats(selectedRange.value, year, month)
     if (data) {
-      stats.value = {
-        totalMemories: data.totalMemories || 0,
-        totalPhotos: data.totalPhotos || 0,
-        consecutiveDays: data.consecutiveDays || 0,
-        moodDistribution: data.moodDistribution || [],
-        trend: data.trend || []
-      }
+      stats.value = data
     }
-    updatePerfSnapshot()
   } finally {
     isLoadingStats.value = false
   }
 }
 
-const updatePerfSnapshot = () => {
-  perfData.value = performanceMonitor.getSummary()
+function prevMonth() {
+  memoryStore.prevMonth()
+  loadStats()
 }
 
-watch([activeRange, currentYear, currentMonth, currentWeek], fetchStats)
-
-onMounted(async () => {
-  await fetchStats()
-  // 每 5 秒自动刷新性能指标
-  perfTimer = window.setInterval(updatePerfSnapshot, 5000)
-})
-
-onUnmounted(() => {
-  if (perfTimer) clearInterval(perfTimer)
-})
-
-const goPrev = () => {
-  if (activeRange.value === 'month') {
-    if (currentMonth.value === 1) { currentMonth.value = 12; currentYear.value-- }
-    else { currentMonth.value-- }
-  } else if (activeRange.value === 'year') {
-    currentYear.value--
-  }
+function nextMonth() {
+  memoryStore.nextMonth()
+  loadStats()
 }
 
-const goNext = () => {
-  if (activeRange.value === 'month') {
-    if (currentMonth.value === 12) { currentMonth.value = 1; currentYear.value++ }
-    else { currentMonth.value++ }
-  } else if (activeRange.value === 'year') {
-    currentYear.value++
-  }
-}
-
-const moodDistribution = computed(() => {
-  const dist = stats.value.moodDistribution || []
-  const total = dist.reduce((acc, curr) => acc + (curr.count || 0), 0)
-  return dist.map(m => ({
-    ...m,
-    percentage: total > 0 ? Math.round(((m.count || 0) / total) * 100) : 0
-  })).sort((a, b) => (b.count || 0) - (a.count || 0))
-})
-
-const trendData = computed(() => stats.value.trend || [])
-const maxTrendCount = computed(() => {
-  const counts = trendData.value.map(t => t.count || 0)
-  return counts.length > 0 ? Math.max(...counts, 1) : 1
-})
-
-const timeLabel = computed(() => {
-  if (activeRange.value === 'month') {
-    return new Intl.DateTimeFormat(locale.value, { year: 'numeric', month: 'long' }).format(new Date(currentYear.value, currentMonth.value - 1))
-  }
-  if (activeRange.value === 'year') return `${currentYear.value}`
-  if (activeRange.value === 'week') return t('stats.week_num', { num: currentWeek.value })
-  return t('common.all')
-})
-
-const toggleBarSelection = (index: number) => {
+function toggleBarSelection(index: number) {
   selectedBarIndex.value = selectedBarIndex.value === index ? null : index
 }
+
+onMounted(() => {
+  loadStats()
+  setTimeout(() => { isVisible.value = true }, 100)
+})
+
+watch(selectedRange, () => {
+  loadStats()
+})
 </script>
 
 <template>
-  <div class="page-container relative pb-32">
-    <div class="relative max-w-lg mx-auto px-6">
-      <header class="pt-16 pb-6 safe-area-top transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div class="flex flex-col gap-1">
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('stats.subtitle') }}</span>
-            <div class="w-1.5 h-1.5 rounded-full bg-orange-400 opacity-60"></div>
+  <div class="page-container page-enter pb-32">
+    <div class="fixed inset-0 pointer-events-none overflow-hidden opacity-40 dark:opacity-20">
+      <div class="absolute -top-[10%] -right-[10%] w-[60%] h-[40%] rounded-full blur-[120px] rotate-12" style="background: linear-gradient(135deg, var(--color-primary) 0%, transparent 100%);"></div>
+      <div class="absolute top-[20%] -left-[10%] w-[50%] h-[30%] rounded-full blur-[100px] -rotate-12" style="background: linear-gradient(135deg, var(--color-accent) 0%, transparent 100%);"></div>
+    </div>
+
+    <div class="relative max-w-lg mx-auto px-7">
+      <header class="pt-12 pb-6 safe-area-top">
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center gap-3">
+            <Activity class="w-3.5 h-3.5 opacity-30" />
+            <span class="text-[9px] font-extrabold tracking-[0.2em] uppercase opacity-30">{{ t('nav.stats') }}</span>
           </div>
-          <h1 class="text-4xl font-black tracking-tighter" style="color: var(--text-primary);">{{ t('stats.title') }}</h1>
+          <div class="flex items-end justify-between">
+            <h1 class="text-3xl font-serif italic tracking-tight" style="color: var(--text-primary);">Insights</h1>
+            
+            <div class="flex p-1 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/5 dark:border-white/10 backdrop-blur-md">
+              <button 
+                v-for="r in ['month', 'year']" 
+                :key="r"
+                @click="selectedRange = r"
+                class="px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-500"
+                :class="selectedRange === r ? 'bg-white dark:bg-white/10 shadow-sm opacity-100' : 'opacity-30'"
+              >
+                {{ t(`stats.range_${r}`) }}
+              </button>
+            </div>
+          </div>
         </div>
       </header>
-      
-      <!-- 范围切换 -->
-      <section class="mb-8">
-        <div class="p-1.5 rounded-[1.5rem] card-static shadow-sm relative">
-          <div class="relative flex">
-            <div class="absolute top-0 h-full rounded-[1.25rem] transition-all duration-500 ease-out bg-white dark:bg-white/10 shadow-sm border border-white/20 dark:border-white/5"
-              :style="{ width: `${100 / timeRanges.length}%`, transform: `translateX(${activeRangeIndex * 100}%)` }" />
-            <button v-for="range in timeRanges" :key="range.key" @click="activeRange = range.key"
-              class="relative flex-1 py-3 text-center text-[11px] font-black tracking-widest uppercase transition-all duration-300 z-10"
-              :style="{ color: activeRange === range.key ? 'var(--text-primary)' : 'var(--text-tertiary)' }">
-              {{ range.label }}
-            </button>
+
+      <section class="grid grid-cols-2 gap-4 mb-8">
+        <div class="p-5 rounded-[2.2rem] card-static grainy-overlay">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-500/10 mb-3 shadow-inner">
+            <Sparkles class="w-4.5 h-4.5 text-orange-500" />
+          </div>
+          <div class="flex flex-col">
+            <span class="text-[32px] font-serif italic tracking-tighter leading-none mb-1">{{ stats.totalMemories }}</span>
+            <span class="text-[8px] font-black uppercase tracking-widest opacity-30">{{ t('home.monthly_records') }}</span>
           </div>
         </div>
         
-        <div v-if="activeRange !== 'all'" class="flex items-center justify-between mt-6 px-2">
-          <button @click="goPrev" class="btn-back w-10 h-10 rounded-2xl">
-            <ChevronLeft class="w-4 h-4 opacity-40" />
-          </button>
-          <div class="flex flex-col items-center">
-            <span class="text-[10px] font-black uppercase tracking-[0.2em] opacity-30" style="color: var(--text-primary);">{{ t(`common.${activeRange}`) }}</span>
-            <span class="text-sm font-black tracking-tight mt-0.5" style="color: var(--text-primary);">{{ timeLabel }}</span>
+        <div class="p-5 rounded-[2.2rem] card-static grainy-overlay">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-500/10 mb-3 shadow-inner">
+            <TrendingUp class="w-4.5 h-4.5 text-blue-500" />
           </div>
-          <button @click="goNext" class="btn-back w-10 h-10 rounded-2xl">
-            <ChevronRight class="w-4 h-4 opacity-40" />
-          </button>
-        </div>
-      </section>
-      
-      <!-- 核心指标 -->
-      <section class="mb-10">
-        <SkeletonLoader v-if="isLoadingStats" type="stats" />
-        <div v-else class="grid grid-cols-2 gap-4">
-          <div class="p-6 rounded-[2.5rem] card-static shadow-sm flex flex-col justify-between relative overflow-hidden group border-l-4 border-l-orange-400">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-400 rounded-full blur-[40px] opacity-[0.05] transition-transform duration-1000 group-hover:scale-125"></div>
-            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('stats.total_memories') }}</span>
-            <div class="mt-4 flex items-baseline gap-2">
-              <span class="text-5xl font-black tracking-tighter" style="color: var(--text-primary);">{{ stats.totalMemories }}</span>
-              <span class="text-[10px] font-bold opacity-40 uppercase">{{ t('stats.unit_entries') }}</span>
-            </div>
-          </div>
-          <div class="flex flex-col gap-4">
-            <div class="flex-1 p-5 rounded-[2.2rem] card-static shadow-sm flex flex-col justify-center border-l-4 border-l-blue-500">
-              <span class="text-[9px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('stats.streak') }}</span>
-              <div class="mt-1 flex items-baseline gap-1">
-                <span class="text-3xl font-black tracking-tighter text-blue-600 dark:text-blue-400">{{ stats.consecutiveDays }}</span>
-                <span class="text-[10px] font-bold text-blue-600/50 uppercase">{{ t('stats.unit_days') }}</span>
-              </div>
-            </div>
-            <div class="flex-1 p-5 rounded-[2.2rem] card-static shadow-sm flex flex-col justify-center border-l-4 border-l-purple-500">
-              <span class="text-[9px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('stats.photos') }}</span>
-              <div class="mt-1 flex items-baseline gap-1">
-                <span class="text-3xl font-black tracking-tighter text-purple-600 dark:text-purple-400">{{ stats.totalPhotos }}</span>
-                <span class="text-[10px] font-bold text-purple-600/50 uppercase">{{ t('stats.unit_pics') }}</span>
-              </div>
-            </div>
+          <div class="flex flex-col">
+            <span class="text-[32px] font-serif italic tracking-tighter leading-none mb-1">{{ stats.consecutiveDays }}</span>
+            <span class="text-[8px] font-black uppercase tracking-widest opacity-30">{{ t('stats.streak_days') }}</span>
           </div>
         </div>
       </section>
-      
-      <!-- 趋势与分布 -->
-      <div class="grid grid-cols-1 gap-6 mb-10">
-        <!-- 情绪分布 -->
-        <div class="p-6 rounded-[2.5rem] card-static shadow-sm">
-          <div class="flex items-center gap-2 mb-6">
-            <div class="w-1 h-4 rounded-full bg-orange-400"></div>
-            <h3 class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('stats.mood_dist') }}</h3>
+
+      <section class="flex items-center justify-between mb-6 px-2">
+        <button @click="prevMonth" class="btn-back scale-90 active:scale-75"><ChevronLeft class="w-5 h-5" /></button>
+        <h3 class="text-base font-black tracking-tight" style="color: var(--text-primary);">
+          {{ memoryStore.currentMonth.year }} / {{ String(memoryStore.currentMonth.month).padStart(2, '0') }}
+        </h3>
+        <button @click="nextMonth" class="btn-back scale-90 active:scale-75"><ChevronRight class="w-5 h-5" /></button>
+      </section>
+
+      <section class="mb-8">
+        <div class="p-6 rounded-[2.5rem] card-static grainy-overlay flex flex-col min-h-[300px]">
+          <div class="flex items-center gap-3 mb-8">
+            <div class="w-1 h-3.5 rounded-full bg-gradient-to-b from-blue-400 to-blue-600"></div>
+            <h3 class="text-[9px] font-black tracking-[0.2em] uppercase opacity-30">{{ t('stats.activity_trend') }}</h3>
           </div>
           
-          <div v-if="isLoadingStats" class="space-y-6">
-            <div v-for="i in 3" :key="i" class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 animate-pulse"></div>
-              <div class="flex-1 space-y-2">
-                <div class="h-2 w-24 bg-black/5 dark:bg-white/5 rounded animate-pulse"></div>
-                <div class="h-2 bg-black/5 dark:bg-white/5 rounded animate-pulse"></div>
-              </div>
-            </div>
+          <div v-if="isLoadingStats" class="flex-1 flex items-end justify-between gap-2 pt-8 pb-4 px-1">
+            <div v-for="i in 7" :key="i" class="flex-1 skeleton rounded-t-xl" :style="{ height: `${20 + Math.random() * 60}%` }"></div>
           </div>
-          <div v-else-if="moodDistribution.length === 0" class="py-10 flex flex-col items-center justify-center opacity-30">
-            <Activity class="w-10 h-10 mb-2" />
-            <p class="text-[10px] font-black uppercase tracking-widest">{{ t('stats.no_data') }}</p>
-          </div>
-          <div v-else class="space-y-5">
-            <div v-for="item in moodDistribution" :key="item.mood" class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center justify-center text-xl border border-black/5 dark:border-white/10">{{ MoodEmoji[item.mood as keyof typeof MoodEmoji] }}</div>
-              <div class="flex-1 flex flex-col gap-2">
-                <div class="flex justify-between items-center text-[10px] font-black uppercase tracking-widest" style="color: var(--text-primary);">
-                  <span class="opacity-60">{{ item.percentage }}%</span>
-                  <span class="opacity-20">{{ item.count }} {{ t('stats.unit_entries') }}</span>
-                </div>
-                <div class="h-2 rounded-full bg-black/5 dark:bg-white/5 overflow-hidden">
-                  <div class="h-full rounded-full origin-left bg-orange-400 transition-transform duration-1000" :style="{ transform: `scaleX(${item.percentage / 100})` }"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 活动趋势 -->
-        <div class="p-6 rounded-[2.5rem] card-static shadow-sm h-full flex flex-col min-h-[300px]">
-          <div class="flex items-center gap-2 mb-8">
-            <div class="w-1 h-4 rounded-full bg-blue-500"></div>
-            <h3 class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('stats.activity_trend') }}</h3>
-          </div>
-          <div v-if="isLoadingStats" class="flex-1 flex items-end justify-between gap-3 pt-8 pb-2 px-2">
-            <div v-for="i in 7" :key="i" class="flex-1 bg-black/5 dark:bg-white/5 rounded-t-xl animate-pulse" :style="{ height: `${20 + Math.random() * 60}%` }"></div>
-          </div>
-          <div v-else-if="trendData.length === 0 || trendData.every(t => t.count === 0)" class="flex-1 flex flex-col items-center justify-center opacity-30">
+          <div v-else-if="trendData.length === 0" class="flex-1 flex flex-col items-center justify-center opacity-20">
             <Zap class="w-10 h-10 mb-2" />
-            <p class="text-[10px] font-black uppercase tracking-widest">{{ t('stats.no_trend_data') }}</p>
+            <p class="text-[9px] font-black uppercase tracking-widest">No Activity</p>
           </div>
-          <div v-else class="flex-1 flex items-end justify-between gap-2 pt-10 relative pb-2 px-1">
-            <div v-for="(item, index) in trendData" :key="item.label" class="flex-1 flex flex-col items-center cursor-pointer group h-full justify-end" @click="toggleBarSelection(index)">
-              <!-- 数量标签：始终显示（如果大于0） -->
-              <div 
-                v-if="item.count > 0"
-                class="mb-1.5 text-[8px] font-black tracking-tighter transition-all duration-500"
+          <div v-else class="flex-1 flex items-end justify-between gap-1.5 pt-10 relative pb-4 px-1">
+            <div v-for="(item, index) in trendData" :key="item.label" 
+              class="flex-1 flex flex-col items-center cursor-pointer group h-full justify-end"
+              @click="toggleBarSelection(index)"
+            >
+              <div v-if="item.count > 0" 
+                class="mb-1 text-[9px] font-serif italic tracking-tighter transition-all duration-500"
                 :style="{ 
                   color: selectedBarIndex === index ? 'var(--color-primary)' : 'var(--text-primary)',
-                  opacity: selectedBarIndex === index ? '1' : '0.4',
+                  opacity: selectedBarIndex === index ? '1' : '0.3',
                   transform: selectedBarIndex === index ? 'scale(1.2)' : 'scale(1)'
                 }"
               >
                 {{ item.count }}
               </div>
               
-              <div class="w-full rounded-t-lg transition-all duration-700"
+              <div class="w-full rounded-t-lg transition-all duration-1000 relative overflow-hidden"
                 :style="{ 
-                  background: selectedBarIndex === index ? 'var(--color-primary)' : 'var(--border-primary)', 
+                  background: selectedBarIndex === index ? 'var(--gradient-accent)' : 'var(--border-primary)', 
                   height: item.count > 0 ? `${Math.max((item.count / maxTrendCount) * 100, 15)}%` : '4px', 
-                  opacity: selectedBarIndex === index ? '1' : (item.count > 0 ? '0.6' : '0.2') 
-                }">
+                  opacity: selectedBarIndex === index ? '1' : (item.count > 0 ? '0.7' : '0.2'),
+                  boxShadow: selectedBarIndex === index ? '0 8px 16px -4px var(--glow-dynamic)' : 'none'
+                }"
+              >
+                <div v-if="item.count > 0" class="absolute top-0 inset-x-0 h-0.5 bg-white/20"></div>
               </div>
-              <span class="text-[7px] font-black tracking-tighter uppercase mt-3" style="color: var(--text-primary);" :style="{ opacity: selectedBarIndex === index ? '1' : '0.25' }">{{ item.label }}</span>
+              <span class="text-[7px] font-black tracking-tighter uppercase mt-2.5" :style="{ opacity: selectedBarIndex === index ? '1' : '0.2' }">{{ item.label }}</span>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- 系统健康度 (Vitals) -->
-      <section class="mb-12">
-        <div class="flex items-center gap-2 mb-4 px-1">
-          <Activity class="w-4 h-4 opacity-40" style="color: var(--text-primary);" />
-          <h2 class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('stats.system_health') }}</h2>
-        </div>
-        <div class="grid grid-cols-3 gap-3">
-          <div class="p-4 rounded-[1.5rem] card-static shadow-sm flex flex-col items-center text-center gap-2">
-            <Zap class="w-5 h-5 text-yellow-500" />
-            <div class="text-[14px] font-black" style="color: var(--text-primary);">{{ (perfData.lcp || 0).toFixed(0) }}ms</div>
-            <span class="text-[8px] font-black uppercase opacity-30 tracking-widest">{{ t('stats.vitals.load') }}</span>
+      <section class="mb-10">
+        <div class="p-6 rounded-[2.5rem] card-static grainy-overlay">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-1 h-3.5 rounded-full bg-gradient-to-b from-orange-400 to-orange-600"></div>
+            <h3 class="text-[9px] font-black tracking-[0.2em] uppercase opacity-30">{{ t('stats.mood_dist') }}</h3>
           </div>
-          <div class="p-4 rounded-[1.5rem] card-static shadow-sm flex flex-col items-center text-center gap-2">
-            <Clock class="w-5 h-5 text-blue-500" />
-            <div class="text-[14px] font-black" style="color: var(--text-primary);">{{ (perfData.apiAvg || 0).toFixed(0) }}ms</div>
-            <span class="text-[8px] font-black uppercase opacity-30 tracking-widest">{{ t('stats.vitals.network') }}</span>
+          
+          <div v-if="isLoadingStats" class="space-y-5">
+            <div v-for="i in 3" :key="i" class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-[1rem] skeleton opacity-40"></div>
+              <div class="flex-1 space-y-2.5">
+                <div class="h-2 w-20 skeleton opacity-40 rounded"></div>
+                <div class="h-1 skeleton opacity-40 rounded"></div>
+              </div>
+            </div>
           </div>
-          <div class="p-4 rounded-[1.5rem] card-static shadow-sm flex flex-col items-center text-center gap-2">
-            <ShieldCheck class="w-5 h-5 text-green-500" />
-            <div class="text-[14px] font-black" style="color: var(--text-primary);">{{ (perfData.health || 100) }}%</div>
-            <span class="text-[8px] font-black uppercase opacity-30 tracking-widest">{{ t('stats.vitals.health') }}</span>
+          <div v-else-if="moodDistribution.length === 0" class="py-10 flex flex-col items-center justify-center opacity-20">
+            <Clock class="w-10 h-10 mb-2" />
+            <p class="text-[9px] font-black uppercase tracking-widest">No Moods</p>
+          </div>
+          <div v-else class="space-y-6">
+            <div v-for="(item, index) in moodDistribution" :key="item.mood" 
+              class="flex items-center gap-4 transition-all duration-700"
+              :style="{ transitionDelay: `${index * 80}ms`, opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateX(0)' : 'translateX(15px)' }"
+            >
+              <div class="w-12 h-12 rounded-[1rem] bg-black/[0.03] dark:bg-white/[0.05] border border-black/5 dark:border-white/10 flex items-center justify-center text-2xl shadow-sm">
+                {{ MoodEmoji[item.mood as MoodType] }}
+              </div>
+              <div class="flex-1 flex flex-col gap-2">
+                <div class="flex justify-between items-end">
+                  <span class="text-[9px] font-black uppercase tracking-widest opacity-60">{{ t(`mood.${item.mood}`) }}</span>
+                  <div class="flex items-baseline gap-0.5">
+                    <span class="text-base font-serif italic">{{ item.percentage }}</span>
+                    <span class="text-[7px] font-bold opacity-30">%</span>
+                  </div>
+                </div>
+                <div class="h-1 rounded-full bg-black/[0.03] dark:bg-white/[0.05] overflow-hidden">
+                  <div class="h-full rounded-full origin-left bg-gradient-to-r from-orange-400 to-orange-500 transition-transform duration-[1.2s]" 
+                    :style="{ transform: isVisible ? `scaleX(${item.percentage / 100})` : 'scaleX(0)' }">
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
     </div>
   </div>
 </template>
-
-<style scoped>
-.card-static {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  backdrop-filter: blur(24px) saturate(180%);
-}
-</style>

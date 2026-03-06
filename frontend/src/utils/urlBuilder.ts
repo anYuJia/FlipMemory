@@ -25,7 +25,7 @@ export function getApiBaseUrl(): string {
 export function getStorageBaseUrl(): string {
     const savedUrl = localStorage.getItem('storageUrl')
     if (savedUrl) return savedUrl
-    return import.meta.env.VITE_STORAGE_URL || 'http://localhost:9000'
+    return import.meta.env.VITE_STORAGE_URL || 'http://139.199.55.169:9002'
 }
 
 /**

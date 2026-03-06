@@ -1,174 +1,149 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onActivated, onDeactivated } from 'vue'
-import { Shuffle, ArrowLeft, ArrowRight, Clock, Heart } from 'lucide-vue-next'
+import { ref, computed, onMounted, onActivated } from 'vue'
+import { Shuffle, Clock, Sparkles, Film } from 'lucide-vue-next'
 import FlipCard from '@/components/memory/FlipCard.vue'
 import { useMemoryStore } from '@/stores'
-import { logger } from '@/services/logger'
 import type { Memory } from '@/types'
 import { useI18n } from 'vue-i18n'
 
-const memoryStore = useMemoryStore()
 const { t } = useI18n()
+const memoryStore = useMemoryStore()
 
-const isLoaded = ref(false)
-const isLoading = ref(true)
+const yearAgoMemory = ref<Memory | null>(null)
+const randomMemories = ref<Memory[]>([])
 const currentIndex = ref(0)
-const activeTab = ref<'year' | 'random' | 'featured'>('year')
+const isLoading = ref(false)
+const isLoaded = ref(false)
 
-const flashbackData = ref<{ yearAgo: Memory | null; random: Memory[] }>({ yearAgo: null, random: [] })
+const allFlashbacks = computed(() => {
+  const list = []
+  if (yearAgoMemory.value) list.push(yearAgoMemory.value)
+  if (randomMemories.value?.length) list.push(...randomMemories.value)
+  return list
+})
 
-const loadFlashback = async () => {
+const currentMemory = computed(() => allFlashbacks.value[currentIndex.value] || null)
+const hasMultiple = computed(() => allFlashbacks.value.length > 1)
+
+const currentLabel = computed(() => {
+  if (yearAgoMemory.value && currentIndex.value === 0) return t('flashback.one_year_ago')
+  return t('flashback.random_memory')
+})
+
+async function loadFlashback() {
   isLoading.value = true
+  isLoaded.value = false
   try {
-    const res = await memoryStore.getFlashback()
-    if (res) flashbackData.value = res
-  } catch (e) {
-    logger.error('Failed to fetch flashback', 'Flashback', e)
+    const data = await memoryStore.getFlashback()
+    if (data) {
+      yearAgoMemory.value = data.yearAgo
+      randomMemories.value = data.random || []
+      currentIndex.value = 0
+    }
   } finally {
     isLoading.value = false
+    setTimeout(() => { isLoaded.value = true }, 300)
   }
 }
 
-const flashbackMemories = computed<Memory[]>(() => {
-  const memories: Memory[] = []
-  const data = flashbackData.value || { yearAgo: null, random: [] }
-  const randomList = data.random || []
-  
-  if (activeTab.value === 'year' && data.yearAgo) { 
-    memories.push(data.yearAgo) 
-  }
-  
-  if (activeTab.value === 'random' || activeTab.value === 'featured') { 
-    memories.push(...randomList) 
-  }
-  
-  if (activeTab.value === 'year' && !data.yearAgo && randomList.length > 0) {
-    memories.push(...randomList)
-  }
-  
-  return memories
-})
-
-const currentMemory = computed(() => flashbackMemories.value[currentIndex.value] || null)
-const hasNext = computed(() => flashbackMemories.value.length > 0 && currentIndex.value < flashbackMemories.value.length - 1)
-const hasPrev = computed(() => flashbackMemories.value.length > 0 && currentIndex.value > 0)
-
-const flashbackDescription = computed(() => {
-  if (!currentMemory.value) return t('flashback.title')
-  const date = new Date(currentMemory.value.date)
-  const now = new Date()
-  const diffYears = now.getFullYear() - date.getFullYear()
-  if (diffYears >= 1) return t('flashback.days_ago', { days: diffYears * 365 })
-  return t('flashback.subtitle')
-})
-
-const nextMemory = () => { if (hasNext.value) currentIndex.value++ }
-const prevMemory = () => { if (hasPrev.value) currentIndex.value-- }
-const randomMemory = () => {
-  const len = flashbackMemories.value.length
-  if (len > 0) {
-    currentIndex.value = Math.floor(Math.random() * len)
-  }
-}
-
-// 核心修复：使用 computed 确保响应式翻译
-const tabs = computed(() => [
-  { id: 'year', icon: Clock, label: t('flashback.tabs.year') },
-  { id: 'random', icon: Shuffle, label: t('flashback.tabs.random') },
-  { id: 'featured', icon: Heart, label: t('flashback.tabs.featured') },
-])
-
-const switchTab = (tabId: 'year' | 'random' | 'featured') => {
-  activeTab.value = tabId
-  currentIndex.value = 0
+function nextMemory() {
+  if (allFlashbacks.value.length <= 1) return
+  isLoaded.value = false
+  setTimeout(() => {
+    currentIndex.value = (currentIndex.value + 1) % allFlashbacks.value.length
+    setTimeout(() => { isLoaded.value = true }, 50)
+  }, 400)
 }
 
 onMounted(() => {
   loadFlashback()
-  setTimeout(() => { isLoaded.value = true }, 100)
 })
 
-const scrollY = ref(0)
 onActivated(() => {
-  if (scrollY.value > 0) window.scrollTo(0, scrollY.value)
+  if (!allFlashbacks.value.length && !isLoading.value) {
+    loadFlashback()
+  }
 })
-onDeactivated(() => { scrollY.value = window.scrollY })
 </script>
 
 <template>
-  <div class="page-container min-h-screen relative overflow-x-hidden">
-    <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.12] dark:opacity-[0.04]" style="background-color: var(--color-primary);" />
+  <div class="page-container page-enter pb-32 overflow-hidden bg-primary">
+    <div class="fixed inset-0 pointer-events-none transition-all duration-[2s]">
+      <div class="absolute -top-[20%] -right-[10%] w-[80%] h-[60%] rounded-full blur-[150px] opacity-20 animate-pulse-slow" 
+        :style="{ background: `radial-gradient(circle, var(--color-primary) 0%, transparent 70%)` }"></div>
+      <div class="absolute bottom-[10%] -left-[20%] w-[70%] h-[50%] rounded-full blur-[130px] opacity-15" 
+        :style="{ background: `radial-gradient(circle, var(--color-accent) 0%, transparent 70%)` }"></div>
     </div>
-    
-    <div class="relative max-w-lg mx-auto px-6">
-      <header class="pt-16 pb-8 safe-area-top transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div class="flex items-center justify-between">
-          <div class="flex flex-col gap-1">
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('nav.flashback') }}</span>
-              <div class="w-1 h-1 rounded-full bg-orange-400 opacity-60"></div>
-            </div>
-            <h1 class="text-4xl font-black tracking-tighter" style="color: var(--text-primary);">{{ t('flashback.title') }}</h1>
+
+    <div class="relative max-w-lg mx-auto px-7">
+      <header class="pt-12 pb-8 safe-area-top">
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center gap-3">
+            <Film class="w-3.5 h-3.5 opacity-30" />
+            <span class="text-[9px] font-extrabold tracking-[0.2em] uppercase opacity-30">{{ t('nav.flashback') }}</span>
           </div>
-          <div class="px-4 py-2 rounded-2xl card-static shadow-sm">
-            <span class="text-[10px] font-black tracking-widest uppercase opacity-40" style="color: var(--text-primary);">{{ flashbackDescription }}</span>
-          </div>
+          <h1 class="text-4xl font-serif italic tracking-tighter mt-1 leading-tight" style="color: var(--text-primary);">
+            Cinema of Time
+          </h1>
         </div>
       </header>
-      
-      <section class="mb-10 transition-all duration-700 delay-100" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div class="relative flex p-1.5 rounded-[1.5rem] card-static shadow-sm">
-          <div class="absolute top-1.5 bottom-1.5 rounded-[1.1rem] transition-all duration-500 ease-out"
-            :style="{
-              width: 'calc((100% - 12px) / 3)',
-              left: activeTab === 'year' ? '6px' : activeTab === 'random' ? 'calc((100% - 12px) / 3 + 6px)' : 'calc((100% - 12px) / 3 * 2 + 6px)',
-              backgroundColor: 'var(--color-primary)',
-              opacity: '0.1'
-            }"
-          />
-          <button v-for="tab in tabs" :key="tab.id" @click="switchTab(tab.id as 'year' | 'random' | 'featured')"
-            class="relative z-10 flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all duration-300"
-            :style="{ color: activeTab === tab.id ? 'var(--color-primary)' : 'var(--text-tertiary)' }">
-            <component :is="tab.icon" class="w-4 h-4" />
-            <span class="text-[10px] font-black uppercase tracking-widest">{{ tab.label }}</span>
-          </button>
+
+      <section class="mb-10 relative min-h-[480px]">
+        <!-- 装饰性胶片孔 -->
+        <div class="absolute -left-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 opacity-5">
+          <div v-for="i in 8" :key="i" class="w-1.5 h-1.5 rounded-sm bg-current"></div>
         </div>
-      </section>
-      
-      <section class="mb-10 transition-all duration-700 delay-200" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div v-if="isLoading" class="h-[480px] flex items-center justify-center card-static rounded-[2.5rem]">
+        <div class="absolute -right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 opacity-5">
+          <div v-for="i in 8" :key="i" class="w-1.5 h-1.5 rounded-sm bg-current"></div>
+        </div>
+
+        <div 
+          v-if="!isLoading && currentMemory"
+          class="transition-all duration-700 ease-spring" 
+          :style="{ opacity: isLoaded ? 1 : 0, transform: isLoaded ? 'scale(1) translateY(0)' : 'scale(0.9) translateY(15px)' }"
+        >
+          <div class="h-[480px] shadow-premium rounded-[2.5rem] overflow-hidden relative group border border-black/5 dark:border-white/5">
+            <div class="absolute top-5 left-5 z-20 px-3 py-1.5 rounded-full bg-black/20 backdrop-blur-xl border border-white/10 flex items-center gap-2">
+              <Sparkles class="w-3 h-3 text-orange-400" />
+              <span class="text-[8px] font-black text-white uppercase tracking-widest">{{ currentLabel }}</span>
+            </div>
+            <FlipCard :memory="currentMemory" />
+          </div>
+        </div>
+
+        <div v-else-if="isLoading" class="h-[480px] flex items-center justify-center card-static rounded-[2.5rem]">
           <div class="flex flex-col items-center gap-4">
-            <div class="w-12 h-12 border-4 border-orange-400/20 border-t-orange-400 rounded-full animate-spin"></div>
-            <p class="text-[10px] font-black uppercase tracking-widest opacity-40">{{ t('common.loading') }}</p>
+            <div class="w-12 h-12 border-4 border-orange-400/10 border-t-orange-400 rounded-full animate-spin"></div>
+            <p class="text-[8px] font-black uppercase tracking-[0.3em] opacity-30">Developing...</p>
           </div>
         </div>
-        <div v-else-if="currentMemory" class="h-[480px] shadow-2xl rounded-[2.5rem] overflow-hidden">
-          <FlipCard :memory="currentMemory" />
-        </div>
-        <div v-else class="flex flex-col items-center justify-center py-24 card-static rounded-[2.5rem]">
-          <p class="text-sm font-bold opacity-40" style="color: var(--text-primary);">{{ t('flashback.no_memories') }}</p>
+
+        <div v-else class="h-[480px] flex flex-col items-center justify-center card-static rounded-[2.5rem] border-dashed opacity-40">
+          <Clock class="w-14 h-14 mb-5 opacity-10" />
+          <p class="text-[10px] font-bold uppercase tracking-widest text-center px-10">{{ t('flashback.no_memories') }}</p>
         </div>
       </section>
-      
-      <div v-if="flashbackMemories.length > 0" class="pb-32 transition-all duration-700 delay-300" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div class="flex items-center justify-between mb-10">
-          <button @click="prevMemory" :disabled="!hasPrev" class="btn-back w-14 h-14 rounded-2xl disabled:opacity-10">
-            <ArrowLeft class="w-5 h-5 opacity-40" />
-          </button>
-          <div class="flex items-center gap-2">
-            <span v-for="(_, index) in flashbackMemories" :key="index" class="h-1 rounded-full transition-all duration-500"
-              :style="{ width: index === currentIndex ? '24px' : '6px', background: index === currentIndex ? 'var(--color-primary)' : 'var(--border-primary)' }" />
+
+      <div class="flex flex-col items-center gap-6 pb-20">
+        <button 
+          v-if="hasMultiple"
+          @click="nextMemory"
+          class="group relative px-8 py-4 rounded-[2rem] overflow-hidden transition-all btn-active shadow-lg"
+          style="background: var(--bg-elevated);"
+        >
+          <div class="relative flex items-center gap-3">
+            <Shuffle class="w-4.5 h-4.5 opacity-40 group-hover:rotate-180 transition-transform duration-700" />
+            <span class="text-[9px] font-black uppercase tracking-[0.2em]">{{ t('flashback.shuffle') }}</span>
           </div>
-          <button @click="nextMemory" :disabled="!hasNext" class="btn-back w-14 h-14 rounded-2xl disabled:opacity-10">
-            <ArrowRight class="w-5 h-5 opacity-40" />
-          </button>
-        </div>
-        <div class="flex justify-center">
-          <button @click="randomMemory" class="flex items-center gap-3 px-8 py-5 rounded-[2rem] text-white font-black text-[11px] uppercase tracking-[0.25em] shadow-xl active:scale-95"
-            style="background: var(--gradient-accent);">
-            <Shuffle class="w-4 h-4" /> <span>{{ t('flashback.shuffle') }}</span>
-          </button>
+        </button>
+
+        <div v-if="hasMultiple" class="flex gap-1.5">
+          <div 
+            v-for="(_, i) in allFlashbacks" 
+            :key="i"
+            class="h-1 rounded-full transition-all duration-500"
+            :class="currentIndex === i ? 'w-6 bg-orange-400' : 'w-1.5 bg-black/5 dark:bg-white/10'"
+          ></div>
         </div>
       </div>
     </div>
@@ -176,9 +151,12 @@ onDeactivated(() => { scrollY.value = window.scrollY })
 </template>
 
 <style scoped>
-.card-static {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  backdrop-filter: blur(24px) saturate(180%);
+.animate-pulse-slow {
+  animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.1; transform: scale(1); }
+  50% { opacity: 0.2; transform: scale(1.05); }
+}
+.ease-spring { transition-timing-function: var(--ease-spring); }
 </style>

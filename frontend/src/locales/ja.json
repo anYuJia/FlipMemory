@@ -95,6 +95,9 @@
     "theme_desc": "視覚体験をカスタマイズ",
     "language_title": "言語設定",
     "language_desc": "言語を選択してください。変更は自動的に再読み込みして適用されます。",
+    "appearance": "外観",
+    "security_data": "セキュリティとデータ",
+    "support": "サポート",
     "profile_title": "プロフィール",
     "profile_desc": "アカウントと設定の管理",
     "privacy_title": "プライバシー",
@@ -104,6 +107,7 @@
     "feedback_title": "フィードバック",
     "feedback_desc": "ご意見をお聞かせください",
     "logout": "ログアウト",
+    "logout_confirm": "ログアウトしますか？",
     "theme": {
       "title": "カスタムパレット",
       "light": "ライト",
@@ -360,6 +364,10 @@
     "unit_entries": "件",
     "unit_days": "日",
     "unit_pics": "枚",
+    "range_month": "月別",
+    "range_year": "年別",
+    "range_all": "全期間",
+    "streak_days": "連続日数",
     "system_health": "システム健全性",
     "vitals": {
       "load": "読み込み速度",

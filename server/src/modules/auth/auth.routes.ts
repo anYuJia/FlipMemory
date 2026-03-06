@@ -45,6 +45,7 @@ export async function authRoutes(app: FastifyInstance) {
             })
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Login failed'
+            app.log.warn(`Login failed: ${message} for account: ${(request.body as any)?.account}`)
             return error(reply, message, 401)
         }
     })

@@ -1,91 +1,99 @@
-<script lang="ts">
-export default {
-  name: 'CalendarView'
-}
-</script>
-
 <script setup lang="ts">
-import { ref, onMounted, onActivated, onDeactivated } from 'vue'
-import { useRouter } from 'vue-router'
-import { Search } from 'lucide-vue-next'
+import { ref, onMounted, computed } from 'vue'
 import { useMemoryStore } from '@/stores'
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Sparkles } from 'lucide-vue-next'
 import CalendarGrid from '@/components/calendar/CalendarGrid.vue'
-import FloatingAddButton from '@/components/layout/FloatingAddButton.vue'
 import { useI18n } from 'vue-i18n'
 
-const router = useRouter()
 const memoryStore = useMemoryStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
-const isLoaded = ref(true)
-const hasAnimated = ref(false)
-const scrollY = ref(0)
+const isLoaded = ref(false)
 
-onMounted(async () => {
-  if (memoryStore.currentMonthDays.length === 0) {
-    const { year, month } = memoryStore.currentMonth
-    await memoryStore.fetchCalendarData(year, month)
-  }
-  hasAnimated.value = true
+const currentMonthStr = computed(() => {
+  const date = new Date(memoryStore.currentMonth.year, memoryStore.currentMonth.month - 1)
+  return date.toLocaleDateString(locale.value, { month: 'long' })
 })
 
-onActivated(() => { if (scrollY.value > 0) window.scrollTo(0, scrollY.value) })
-onDeactivated(() => { scrollY.value = window.scrollY })
+const currentYear = computed(() => memoryStore.currentMonth.year)
 
-const goToSearch = () => router.push({ name: 'search' })
+const prevMonth = () => {
+  memoryStore.prevMonth()
+}
+
+const nextMonth = () => {
+  memoryStore.nextMonth()
+}
+
+const goToToday = () => {
+  const now = new Date()
+  memoryStore.setCurrentMonth(now.getFullYear(), now.getMonth() + 1)
+}
+
+onMounted(() => {
+  setTimeout(() => { isLoaded.value = true }, 100)
+})
 </script>
 
 <template>
-  <div class="page-container min-h-screen relative overflow-x-hidden">
-    <!-- 背景装饰 -->
-    <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.12] dark:opacity-[0.04]" style="background-color: var(--glow-primary);" />
+  <div class="page-container page-enter pb-32">
+    <!-- 动态氛围光晕 -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden opacity-30 dark:opacity-20">
+      <div class="absolute -top-[10%] -left-[10%] w-[70%] h-[50%] rounded-full blur-[120px]" 
+        :style="{ background: `radial-gradient(circle, var(--color-primary) 0%, transparent 70%)` }"></div>
     </div>
-    
-    <!-- 主内容区域 -->
-    <div class="relative max-w-lg mx-auto px-6">
-      <header class="pt-16 pb-8 safe-area-top transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div class="flex flex-col gap-1">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-40" style="color: var(--text-primary);">{{ t('nav.calendar') }}</span>
-              <div class="w-1 h-1 rounded-full bg-orange-400 opacity-60"></div>
-            </div>
-            <button @click="goToSearch" class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 shadow-sm active:scale-90">
-              <Search class="w-4 h-4 opacity-40" style="color: var(--text-primary);" />
-            </button>
+
+    <div class="relative max-w-lg mx-auto px-7">
+      <!-- 顶部导航：穿梭机感 (紧凑) -->
+      <header class="pt-12 pb-6 safe-area-top">
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center gap-3">
+            <CalendarIcon class="w-3.5 h-3.5 opacity-30" />
+            <span class="text-[9px] font-extrabold tracking-[0.2em] uppercase opacity-30">{{ t('nav.calendar') }}</span>
           </div>
           
-          <div class="flex items-end justify-between mt-2">
-            <div>
-              <h1 class="text-4xl font-black tracking-tighter" style="color: var(--text-primary);">{{ $t('calendar.title') }}</h1>
-              <p class="text-sm font-medium mt-1 opacity-40" style="color: var(--text-primary);">{{ $t('calendar.subtitle') }}</p>
+          <div class="flex items-end justify-between mt-1">
+            <div class="flex flex-col">
+              <span class="text-[10px] font-black tracking-[0.1em] opacity-30">{{ currentYear }}</span>
+              <div class="flex items-center gap-3 group cursor-pointer" @click="goToToday">
+                <h1 class="text-4xl font-serif italic tracking-tighter transition-all duration-700 group-active:scale-95 group-active:opacity-60" style="color: var(--text-primary);">
+                  {{ currentMonthStr }}
+                </h1>
+                <div class="w-1.5 h-1.5 rounded-full bg-gradient-accent animate-pulse"></div>
+              </div>
             </div>
-            
-            <div class="flex flex-col items-end">
-              <span class="text-3xl font-black tracking-tighter text-gradient leading-none">{{ memoryStore.currentMonth.month }}</span>
-              <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 mt-1" style="color: var(--text-primary);">{{ memoryStore.currentMonth.year }}</span>
+
+            <!-- 月份切换胶囊：缩小尺寸 -->
+            <div class="flex items-center p-1 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/5 dark:border-white/10 backdrop-blur-xl">
+              <button @click="prevMonth" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 transition-all btn-active">
+                <ChevronLeft class="w-4 h-4 opacity-40" />
+              </button>
+              <div class="w-px h-3 bg-black/[0.05] dark:bg-white/[0.1] mx-1"></div>
+              <button @click="nextMonth" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 transition-all btn-active">
+                <ChevronRight class="w-4 h-4 opacity-40" />
+              </button>
             </div>
           </div>
         </div>
       </header>
-      
-      <section class="mb-8 transition-all duration-700 delay-100" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div class="p-6 rounded-[2.5rem] card-static shadow-2xl relative overflow-hidden">
-          <div class="absolute -right-12 -top-12 w-32 h-32 rounded-full blur-3xl opacity-[0.08] bg-orange-400"></div>
+
+      <!-- 日历主容器 -->
+      <section class="mb-6 transition-all duration-1000" :style="{ opacity: isLoaded ? 1 : 0, transform: isLoaded ? 'translateY(0)' : 'translateY(20px)' }">
+        <div class="p-1 rounded-[2.2rem] card-static grainy-overlay shadow-lg relative overflow-hidden">
           <CalendarGrid />
         </div>
       </section>
+
+      <!-- 底部提示：紧凑 -->
+      <div class="flex flex-col items-center gap-3 opacity-30 mt-8 transition-all duration-1000 delay-500" :style="{ opacity: isLoaded ? 0.3 : 0 }">
+        <Sparkles class="w-4 h-4" />
+        <p class="text-[8px] font-black uppercase tracking-[0.3em] text-center px-10 leading-relaxed">
+          Recorded in the flow of time.
+        </p>
+      </div>
     </div>
-    
-    <FloatingAddButton />
   </div>
 </template>
 
 <style scoped>
-.card-static {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  backdrop-filter: blur(24px) saturate(180%);
-}
 </style>

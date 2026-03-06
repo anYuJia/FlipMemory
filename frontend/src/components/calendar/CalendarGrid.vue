@@ -1,41 +1,32 @@
 <script setup lang="ts">
-import { onMounted, watch, computed } from 'vue'
+import { computed, watch, ref } from 'vue'
 import { useMemoryStore } from '@/stores'
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import CalendarCell from './CalendarCell.vue'
 import { useI18n } from 'vue-i18n'
 
 const memoryStore = useMemoryStore()
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
-const weekDays = computed(() => {
-  const fmt = new Intl.DateTimeFormat(locale.value, { weekday: 'short' })
-  const base = new Date(Date.UTC(2024, 0, 7))
-  return Array.from({ length: 7 }, (_, i) => fmt.format(new Date(base.getTime() + i * 86400000)))
-})
+const weekDays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+const isTransitioning = ref(false)
 
-const isCurrentRealMonth = computed(() => {
-  const now = new Date()
-  return memoryStore.currentMonth.year === now.getFullYear() && 
-         memoryStore.currentMonth.month === now.getMonth() + 1
-})
-
+// 生成日历网格数据
 const getCalendarGrid = computed(() => {
   const { year, month } = memoryStore.currentMonth
   const firstDayOfMonth = new Date(year, month - 1, 1).getDay()
   const daysInMonth = new Date(year, month, 0).getDate()
-  const daysInPrevMonth = new Date(year, month - 1, 0).getDate()
   
   const grid = []
   
   // 上个月的尾巴
+  const prevMonthLastDay = new Date(year, month - 1, 0).getDate()
   for (let i = firstDayOfMonth - 1; i >= 0; i--) {
-    const day = daysInPrevMonth - i
+    const day = prevMonthLastDay - i
     const date = `${month === 1 ? year - 1 : year}-${String(month === 1 ? 12 : month - 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     grid.push({ date, day, isCurrentMonth: false })
   }
   
-  // 本月
+  // 本月数据
   for (let i = 1; i <= daysInMonth; i++) {
     const date = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`
     grid.push({ date, day: i, isCurrentMonth: true })
@@ -51,69 +42,35 @@ const getCalendarGrid = computed(() => {
   return grid
 })
 
-const goToToday = () => {
-  const now = new Date()
-  memoryStore.setCurrentMonth(now.getFullYear(), now.getMonth() + 1)
-}
-
-onMounted(async () => {
-  const { year, month } = memoryStore.currentMonth
-  await memoryStore.fetchCalendarData(year, month)
-})
-
-watch(() => memoryStore.currentMonth, async (newMonth) => {
-  await memoryStore.fetchCalendarData(newMonth.year, newMonth.month)
-}, { deep: true })
+// 监听月份变化，触发过渡动画
+watch(() => memoryStore.currentMonth, () => {
+  isTransitioning.value = true
+  memoryStore.fetchCalendarData(memoryStore.currentMonth.year, memoryStore.currentMonth.month)
+  setTimeout(() => {
+    isTransitioning.value = false
+  }, 500)
+}, { immediate: true })
 </script>
 
 <template>
-  <div class="calendar">
-    <!-- 月份导航 -->
-    <div class="flex items-center justify-between mb-8">
-      <button 
-        @click="memoryStore.prevMonth()"
-        class="w-11 h-11 rounded-2xl flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/5 active:scale-90 border border-black/5 dark:border-white/5 shadow-sm"
-      >
-        <ChevronLeft class="w-4 h-4 opacity-30" style="color: var(--text-primary);" />
-      </button>
-      
-      <div class="flex flex-col items-center gap-1">
-        <h2 class="text-xl font-black tracking-tighter" style="color: var(--text-primary);">
-          {{ t('calendar.month_label', { month: memoryStore.currentMonth.month }) }}
-        </h2>
-        
-        <button 
-          v-if="!isCurrentRealMonth"
-          @click="goToToday"
-          class="text-[9px] font-black tracking-[0.2em] uppercase opacity-40 hover:opacity-100 transition-opacity"
-          style="color: var(--text-primary);"
-        >
-          {{ $t('calendar.back_to_today') }}
-        </button>
-      </div>
-      
-      <button 
-        @click="memoryStore.nextMonth()"
-        class="w-11 h-11 rounded-2xl flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/5 active:scale-90 border border-black/5 dark:border-white/5 shadow-sm"
-      >
-        <ChevronRight class="w-4 h-4 opacity-30" style="color: var(--text-primary);" />
-      </button>
-    </div>
-    
-    <!-- 星期标题 -->
-    <div class="grid grid-cols-7 mb-4">
+  <div class="calendar-grid-container p-2">
+    <!-- 星期表头：紧凑 -->
+    <div class="grid grid-cols-7 mb-3">
       <div 
-        v-for="day in weekDays"
-        :key="day"
-        class="text-center text-[10px] font-black py-2 tracking-[0.2em] uppercase opacity-20"
+        v-for="day in weekDays" 
+        :key="day" 
+        class="text-center text-[8px] font-black uppercase tracking-widest opacity-20"
         style="color: var(--text-primary);"
       >
-        {{ day }}
+        {{ t(`common.weekdays_short.${day}`) }}
       </div>
     </div>
-    
-    <!-- 日历网格 -->
-    <div class="grid grid-cols-7 gap-3">
+
+    <!-- 日历网格：紧凑间距 -->
+    <div 
+      class="grid grid-cols-7 gap-y-1 relative transition-all duration-500"
+      :class="{ 'opacity-40 scale-[0.99] blur-[2px]': isTransitioning }"
+    >
       <CalendarCell
         v-for="item in getCalendarGrid"
         :key="item.date"
@@ -124,3 +81,9 @@ watch(() => memoryStore.currentMonth, async (newMonth) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.calendar-grid-container {
+  min-height: 380px;
+}
+</style>

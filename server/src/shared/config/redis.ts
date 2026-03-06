@@ -135,19 +135,26 @@ export class CacheService {
     /**
      * 删除匹配模式的缓存
      */
-    async delPattern(pattern: string): Promise<boolean> {
+    async deletePattern(pattern: string): Promise<boolean> {
         if (!this.redis) return false
 
         try {
-            const keys = await this.redis.keys(`${KEY_PREFIX}${pattern}`)
+            const keys = await this.redis.keys(pattern.startsWith(KEY_PREFIX) ? pattern : `${KEY_PREFIX}${pattern}`)
             if (keys.length > 0) {
                 await this.redis.del(...keys)
             }
             return true
         } catch (error) {
-            console.error('Cache delPattern error:', error)
+            console.error('Cache deletePattern error:', error)
             return false
         }
+    }
+
+    /**
+     * 删除匹配模式的缓存 (兼容旧代码中的 delPattern 命名)
+     */
+    async delPattern(pattern: string): Promise<boolean> {
+        return this.deletePattern(pattern)
     }
 
     /**

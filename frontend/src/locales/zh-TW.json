@@ -95,6 +95,9 @@
     "theme_desc": "個性化你的視覺體驗",
     "language_title": "語言設定",
     "language_desc": "選擇您的首選語言，應用將自動重新載入以套用更改。",
+    "appearance": "視覺風格",
+    "security_data": "安全與資料",
+    "support": "關於與支援",
     "profile_title": "個人資料",
     "profile_desc": "管理您的帳號與偏好",
     "privacy_title": "隱私安全",
@@ -104,6 +107,7 @@
     "feedback_title": "回饋與建議",
     "feedback_desc": "告訴我們您的想法",
     "logout": "登出",
+    "logout_confirm": "確定要退出登入嗎？",
     "theme": {
       "title": "個性化調色盤",
       "light": "淺色",
@@ -360,6 +364,10 @@
     "unit_entries": "條",
     "unit_days": "天",
     "unit_pics": "張",
+    "range_month": "按月",
+    "range_year": "按年",
+    "range_all": "全部數據",
+    "streak_days": "連續天數",
     "system_health": "系統健康度",
     "vitals": {
       "load": "載入速度",

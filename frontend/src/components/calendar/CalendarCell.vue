@@ -2,243 +2,83 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMemoryStore } from '@/stores'
-import { MoodEmoji } from '@/types/memory'
+import { MoodEmoji, type MoodType } from '@/types/memory'
 
-interface Props {
+const props = defineProps<{
   date: string
   day: number
   isCurrentMonth: boolean
-}
+}>()
 
-const props = defineProps<Props>()
 const router = useRouter()
 const memoryStore = useMemoryStore()
 
-const calendarDay = computed(() => {
-  return memoryStore.calendarDays.get(props.date)
-})
-
-const hasMemory = computed(() => calendarDay.value?.hasMemory || false)
+const calendarDay = computed(() => memoryStore.calendarDays.get(props.date))
+const hasMemory = computed(() => !!calendarDay.value?.hasMemory)
+const mood = computed(() => calendarDay.value?.mood)
 
 const isToday = computed(() => {
   const today = new Date()
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-  return props.date === todayStr
+  const d = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  return props.date === d
 })
 
-const isSelected = computed(() => {
-  return props.date === memoryStore.currentDate
-})
-
-const isWeekend = computed(() => {
-  const date = new Date(props.date)
-  const dayOfWeek = date.getDay()
-  return dayOfWeek === 0 || dayOfWeek === 6
-})
-
-const moodEmoji = computed(() => {
-  const mood = calendarDay.value?.mood
-  if (!mood) return null
-  return MoodEmoji[mood]
-})
+const isSelected = computed(() => memoryStore.currentDate === props.date)
 
 const handleClick = () => {
-  if (!props.isCurrentMonth) return
-  
   memoryStore.setCurrentDate(props.date)
-  
-  if (hasMemory.value) {
-    router.push(`/memory/${props.date}`)
-  } else {
-    router.push({ name: 'create-memory', query: { date: props.date } })
-  }
+  router.push({ name: 'memory-detail', params: { date: props.date } })
 }
 </script>
 
 <template>
   <div
-    v-memo="[date, hasMemory, isToday, isSelected]"
-    class="calendar-cell"
+    v-memo="[date, hasMemory, mood, isToday, isSelected]"
+    class="relative aspect-square flex flex-col items-center justify-center cursor-pointer group"
     role="gridcell"
     tabindex="0"
-    :aria-label="`${day}, ${hasMemory ? 'has memory' : 'no memory'}`"
-    :class="{
-      'is-other-month': !isCurrentMonth,
-      'has-memory': hasMemory && isCurrentMonth,
-      'is-today': isToday && isCurrentMonth,
-      'is-selected': isSelected && isCurrentMonth,
-      'is-weekend': isWeekend && isCurrentMonth,
-    }"
+    :aria-label="`${date}, ${hasMemory ? 'has memory' : 'no memory'}`"
     @click="handleClick"
     @keydown.enter="handleClick"
     @keydown.space.prevent="handleClick"
   >
-    <!-- 今日光环效果 -->
-    <div v-if="isToday && isCurrentMonth && !isSelected" class="today-glow" />
-    
-    <!-- 选中状态背景 -->
-    <div v-if="isSelected && isCurrentMonth" class="selected-bg" />
-    
-    <!-- 日期数字 -->
-    <span class="day-number">{{ day }}</span>
-    
-    <!-- 心情指示器 -->
-    <div v-if="hasMemory && isCurrentMonth && !isSelected" class="mood-indicator">
-      <span v-if="moodEmoji" class="emoji">{{ moodEmoji }}</span>
-      <span v-else class="dot" />
+    <!-- 选中态底色 -->
+    <div 
+      class="absolute inset-1 rounded-[1.25rem] transition-all duration-500"
+      :class="isSelected ? 'bg-black dark:bg-white scale-100 opacity-100 shadow-lg' : 'scale-75 opacity-0'"
+    />
+
+    <!-- 内容层 -->
+    <div class="relative z-10 flex flex-col items-center justify-center gap-0.5">
+      <!-- 心情表情：有记忆时显示 -->
+      <span v-if="hasMemory && mood" class="text-xs transform scale-90 -mb-0.5 drop-shadow-sm">
+        {{ MoodEmoji[mood as MoodType] }}
+      </span>
+      
+      <!-- 数字 -->
+      <span 
+        class="text-xs font-black tracking-tighter transition-colors duration-300"
+        :style="{ 
+          color: isSelected 
+            ? (isSelected ? 'var(--bg-primary)' : 'var(--text-primary)') 
+            : (isCurrentMonth ? 'var(--text-primary)' : 'var(--text-muted)'),
+          opacity: isCurrentMonth ? 1 : 0.25
+        }"
+      >
+        {{ day }}
+      </span>
     </div>
+
+    <!-- 今日标记：极简外环 -->
+    <div 
+      v-if="isToday && !isSelected"
+      class="absolute inset-1.5 rounded-[1.1rem] border-2 border-orange-400/20"
+    />
     
-    <!-- 选中状态的心情 -->
-    <div v-if="isSelected && hasMemory && moodEmoji" class="selected-mood">
-      {{ moodEmoji }}
-    </div>
+    <!-- 悬浮反馈 -->
+    <div class="absolute inset-1.5 rounded-[1.1rem] bg-black/[0.02] dark:bg-white/[0.05] opacity-0 group-hover:opacity-100 transition-opacity" />
   </div>
 </template>
 
 <style scoped>
-.calendar-cell {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 1;
-  border-radius: 1rem;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  background: transparent;
-  overflow: hidden;
-}
-
-.calendar-cell:hover:not(.is-other-month) {
-  background: var(--bg-tertiary);
-  transform: scale(1.05);
-}
-
-.calendar-cell:active:not(.is-other-month) {
-  transform: scale(0.95);
-}
-
-.calendar-cell.is-other-month {
-  opacity: 0.25;
-  cursor: default;
-}
-
-.calendar-cell.has-memory {
-  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-}
-
-.calendar-cell.has-memory:hover {
-  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-}
-
-/* 今日样式 - 发光边框 */
-.calendar-cell.is-today {
-  position: relative;
-}
-
-.today-glow {
-  position: absolute;
-  inset: 2px;
-  border-radius: 0.875rem;
-  border: 2px solid var(--color-primary);
-  box-shadow: 
-    inset 0 0 8px rgba(255, 140, 66, 0.2),
-    0 0 12px rgba(255, 140, 66, 0.15);
-  animation: pulse-border 2s ease-in-out infinite;
-}
-
-@keyframes pulse-border {
-  0%, 100% { 
-    opacity: 1;
-    box-shadow: 
-      inset 0 0 8px rgba(255, 140, 66, 0.2),
-      0 0 12px rgba(255, 140, 66, 0.15);
-  }
-  50% { 
-    opacity: 0.7;
-    box-shadow: 
-      inset 0 0 12px rgba(255, 140, 66, 0.3),
-      0 0 20px rgba(255, 140, 66, 0.25);
-  }
-}
-
-/* 选中状态 */
-.calendar-cell.is-selected {
-  transform: scale(1.08);
-}
-
-.calendar-cell.is-selected:hover {
-  transform: scale(1.1);
-}
-
-.selected-bg {
-  position: absolute;
-  inset: 0;
-  background: var(--gradient-accent);
-  border-radius: inherit;
-  box-shadow: 
-    0 4px 12px rgba(255, 140, 66, 0.3),
-    0 8px 24px rgba(255, 107, 107, 0.2);
-}
-
-/* 日期数字 */
-.day-number {
-  position: relative;
-  z-index: 1;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  line-height: 1;
-}
-
-.calendar-cell.is-weekend .day-number {
-  color: var(--color-accent);
-}
-
-.calendar-cell.is-other-month .day-number {
-  color: var(--text-muted);
-}
-
-.calendar-cell.is-selected .day-number {
-  color: white;
-  font-weight: 700;
-}
-
-/* 心情指示器 */
-.mood-indicator {
-  position: relative;
-  z-index: 1;
-  margin-top: 3px;
-  height: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mood-indicator .emoji {
-  font-size: 1.275rem;
-  line-height: 1;
-}
-
-.mood-indicator .dot {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  background: var(--gradient-accent);
-  border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(255, 140, 66, 0.4);
-}
-
-.selected-mood {
-  position: absolute;
-  bottom: 3px;
-  font-size: 0.75rem;
-  opacity: 0.95;
-}
-
-/* 周末样式 */
-.calendar-cell.is-weekend:not(.is-other-month):not(.is-selected) {
-  background: rgba(147, 112, 219, 0.05);
-}
 </style>

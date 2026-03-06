@@ -95,6 +95,9 @@
     "theme_desc": "Personalize your visual experience",
     "language_title": "Language",
     "language_desc": "Choose your preferred language. The app will reload to apply changes.",
+    "appearance": "Appearance",
+    "security_data": "Security & Data",
+    "support": "Support",
     "profile_title": "Profile",
     "profile_desc": "Manage account and preferences",
     "privacy_title": "Security",
@@ -104,6 +107,7 @@
     "feedback_title": "Feedback",
     "feedback_desc": "Tell us what you think",
     "logout": "Sign Out",
+    "logout_confirm": "Are you sure you want to sign out?",
     "theme": {
       "title": "Custom Palette",
       "light": "Light",
@@ -360,6 +364,10 @@
     "unit_entries": "records",
     "unit_days": "days",
     "unit_pics": "photos",
+    "range_month": "Monthly",
+    "range_year": "Yearly",
+    "range_all": "All Time",
+    "streak_days": "Streak Days",
     "system_health": "System Health",
     "vitals": {
       "load": "Load Speed",

@@ -9,32 +9,10 @@ const props = defineProps<{
   memory: Memory
 }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
-// 天气图标映射
-const weatherIcons = {
-  sunny: Sun,
-  cloudy: Cloud,
-  rainy: CloudRain,
-  windy: Wind,
-  snowy: Snowflake
-}
-
-// 动态获取本地化天气标签
-const weatherLabel = computed(() => {
-  const w = props.memory.weather
-  if (w && w in weatherIcons) {
-    return t(`create.weather.${w}`)
-  }
-  return ''
-})
-
-// 格式化日期：3月3日 -> March 3 / 3月3日
 const formattedDate = computed(() => {
-  return new Intl.DateTimeFormat(locale.value, { 
-    month: 'long', 
-    day: 'numeric' 
-  }).format(new Date(props.memory.date))
+  return new Date(props.memory.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 })
 
 const formattedYear = computed(() => {
@@ -43,7 +21,35 @@ const formattedYear = computed(() => {
 
 const isFlipped = ref(false)
 const imageError = ref(false)
-const toggleFlip = () => { isFlipped.value = !isFlipped.value }
+
+// ===== 手势逻辑 =====
+let touchStartX = 0
+let touchEndX = 0
+const swipeThreshold = 50 // 滑动触发翻转的最小距离（像素）
+
+const handleTouchStart = (e: TouchEvent) => {
+  touchStartX = e.changedTouches[0].screenX
+}
+
+const handleTouchEnd = (e: TouchEvent) => {
+  touchEndX = e.changedTouches[0].screenX
+  handleSwipe()
+}
+
+const handleSwipe = () => {
+  const swipeDistance = touchEndX - touchStartX
+  
+  // 如果水平滑动距离超过阈值，则触发翻转
+  if (Math.abs(swipeDistance) > swipeThreshold) {
+    isFlipped.value = !isFlipped.value
+  }
+}
+
+const toggleFlip = () => { 
+  // 保留轻点翻转功能
+  isFlipped.value = !isFlipped.value 
+}
+
 const handleImageError = () => { imageError.value = true }
 </script>
 
@@ -54,6 +60,8 @@ const handleImageError = () => { imageError.value = true }
     tabindex="0"
     :aria-label="`Memory from ${formattedDate} ${formattedYear}`"
     @click="toggleFlip"
+    @touchstart="handleTouchStart"
+    @touchend="handleTouchEnd"
     @keydown.enter="toggleFlip"
   >
     <div class="flip-card-inner" :class="{ 'is-flipped': isFlipped }">
@@ -79,50 +87,53 @@ const handleImageError = () => { imageError.value = true }
           @error="handleImageError"
         />
 
-        <!-- 渐变遮罩 -->        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
+        <!-- 渐变遮罩 -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80"></div>
         
         <!-- 底部信息 -->
         <div class="absolute bottom-0 inset-x-0 p-6 flex items-end justify-between">
           <div class="flex flex-col gap-1 text-white">
             <div class="flex items-center gap-2 opacity-60">
               <Calendar class="w-3 h-3" />
-              <span class="text-[10px] font-black uppercase tracking-widest">{{ formattedYear }}</span>
+              <span class="text-[10px] font-bold uppercase tracking-widest">{{ formattedDate }}</span>
             </div>
-            <h3 class="text-xl font-black tracking-tighter">{{ formattedDate }}</h3>
-            <div v-if="memory.location" class="flex items-center gap-1.5 mt-1 opacity-80">
-              <MapPin class="w-3 h-3" />
-              <span class="text-[10px] font-bold truncate max-w-[120px]">{{ memory.location }}</span>
-            </div>
+            <h3 class="text-2xl font-serif italic tracking-tighter leading-tight">{{ formattedYear }}</h3>
           </div>
           
-          <div v-if="memory.mood" class="w-12 h-12 rounded-2xl backdrop-blur-xl bg-white/20 border border-white/20 flex items-center justify-center text-2xl shadow-2xl">
+          <div v-if="memory.mood" class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-2xl shadow-xl">
             {{ MoodEmoji[memory.mood as MoodType] }}
           </div>
         </div>
       </div>
 
-      <!-- 背面：文字内容 -->
-      <div class="flip-card-back p-8 flex flex-col justify-between" style="background-color: var(--card-bg);">
-        <div class="space-y-6">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <div class="w-1 h-4 rounded-full bg-orange-400"></div>
-              <span class="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">{{ t('create.story_label') }}</span>
-            </div>
-            <div v-if="memory.weather" class="flex items-center gap-2 px-3 py-1 rounded-full bg-black/5 dark:bg-white/5 border border-black/5">
-              <component :is="weatherIcons[memory.weather as keyof typeof weatherIcons]" class="w-3 h-3 opacity-40" />
-              <span class="text-[9px] font-bold opacity-40">{{ weatherLabel }}</span>
-            </div>
+      <!-- 背面：文字与细节 -->
+      <div class="flip-card-back relative p-8 flex flex-col grainy-overlay">
+        <!-- 顶部装饰 -->
+        <div class="flex justify-between items-start mb-6">
+          <div class="flex items-center gap-3">
+            <div class="w-1 h-4 rounded-full bg-gradient-accent"></div>
+            <span class="text-[10px] font-black uppercase tracking-[0.2em] opacity-30">{{ formattedDate }}</span>
           </div>
-          
-          <p class="text-sm font-medium leading-relaxed italic opacity-80 line-clamp-[12]" style="color: var(--text-primary);">
-            “ {{ memory.content || '...' }} ”
+          <Heart class="w-4 h-4 opacity-20" :class="{ 'fill-red-500 text-red-500 opacity-100': memory.mood === 'loved' }" />
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="flex-1 overflow-y-auto hide-scrollbar">
+          <p class="text-sm font-medium leading-relaxed opacity-80 first-letter:text-2xl first-letter:font-serif first-letter:italic first-letter:mr-1 first-letter:text-orange-500" style="color: var(--text-primary);">
+            {{ memory.content || 'No content provided for this memory.' }}
           </p>
         </div>
 
-        <div class="pt-6 border-t border-black/[0.03] dark:border-white/[0.03] flex items-center justify-between">
-          <span class="text-[9px] font-black opacity-20 uppercase tracking-widest">FlipMemory Archive</span>
-          <Heart class="w-4 h-4 opacity-20" :class="{ 'fill-red-500 opacity-100 text-red-500': memory.mood === 'happy' }" />
+        <!-- 底部细节 -->
+        <div class="mt-6 pt-6 border-t border-black/5 dark:border-white/5 flex flex-wrap gap-4">
+          <div v-if="memory.location" class="flex items-center gap-1.5 opacity-40">
+            <MapPin class="w-3 h-3" />
+            <span class="text-[9px] font-bold tracking-tight">{{ memory.location }}</span>
+          </div>
+          <div v-if="memory.weather" class="flex items-center gap-1.5 opacity-40">
+            <Sun class="w-3 h-3" />
+            <span class="text-[9px] font-bold tracking-tight uppercase">{{ memory.weather }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -135,6 +146,7 @@ const handleImageError = () => { imageError.value = true }
   width: 100%;
   height: 100%;
   -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y; /* 允许纵向滚动页面，但拦截横向手势 */
 }
 
 .flip-card-inner {
@@ -170,7 +182,11 @@ const handleImageError = () => { imageError.value = true }
 .flip-card-back {
   transform: rotateY(180deg) translateZ(1px); /* 关键：微调 Z 轴防止层级闪烁 */
   background-color: var(--card-bg);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(40px);
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* 优化：翻转过程中减少复杂阴影计算 */

@@ -2,11 +2,15 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMemoryStore } from '@/stores'
-import { ArrowLeft, Edit3, Trash2, Share2, MapPin, Camera } from 'lucide-vue-next'
+import { 
+  ArrowLeft, Edit3, Trash2, Share2, MapPin, 
+  Cloud, Wind, Sun, Snowflake, CloudRain
+} from 'lucide-vue-next'
 import FlipCard from '@/components/memory/FlipCard.vue'
 import { MoodEmoji, type MoodType } from '@/types/memory'
 import { useConfirm } from '@/composables/useConfirm'
 import { useI18n } from 'vue-i18n'
+import { safeBack } from '@/router'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,23 +21,41 @@ const { t, locale } = useI18n()
 const date = route.params.date as string
 const memory = computed(() => memoryStore.memories.get(date))
 const isLoading = ref(false)
-const isLoaded = ref(true)
+const isVisible = ref(false)
 
-const formattedDate = computed(() => {
+const weatherIcons: Record<string, any> = {
+  sunny: Sun,
+  cloudy: Cloud,
+  rainy: CloudRain,
+  windy: Wind,
+  snowy: Snowflake
+}
+
+const formattedDateDay = computed(() => {
   const d = new Date(date)
-  return d.toLocaleDateString(locale.value, { month: 'long', day: 'numeric', weekday: 'long' })
+  return d.toLocaleDateString(locale.value, { day: '2-digit' })
+})
+
+const formattedMonthYear = computed(() => {
+  const d = new Date(date)
+  return d.toLocaleDateString(locale.value, { month: 'short', year: 'numeric' }).toUpperCase()
 })
 
 const handleEdit = () => router.push({ name: 'edit-memory', params: { date } })
+
 const handleDelete = async () => {
-  if (await confirm({ title: t('common.delete'), message: t('detail.delete_confirm') })) {
+  if (await confirm({ 
+    title: t('common.delete'), 
+    message: t('detail.delete_confirm'),
+    type: 'danger'
+  })) {
     await memoryStore.deleteMemory(date)
     router.replace('/')
   }
 }
 
-const handleShare = () => { /* 分享逻辑 */ }
-const goBack = () => router.back()
+const handleShare = () => { /* 实现分享逻辑 */ }
+const goBack = () => safeBack()
 
 onMounted(async () => {
   if (!memory.value) {
@@ -41,87 +63,107 @@ onMounted(async () => {
     await memoryStore.fetchMemory(date)
     isLoading.value = false
   }
+  setTimeout(() => { isVisible.value = true }, 100)
 })
 </script>
 
 <template>
-  <div class="page-container min-h-screen relative overflow-x-hidden">
-    <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.12] dark:opacity-[0.04]" style="background-color: var(--glow-primary);" />
+  <div class="page-container bg-primary min-h-screen relative overflow-x-hidden">
+    <!-- 全屏封面层 -->
+    <div class="fixed top-0 inset-x-0 h-[55vh] pointer-events-none z-0">
+      <div v-if="memory?.photos?.[0]" class="w-full h-full relative">
+        <img 
+          :src="memory.photos[0].mediumUrl || memory.photos[0].originalUrl" 
+          class="w-full h-full object-cover"
+        />
+        <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[var(--bg-primary)]"></div>
+      </div>
+      <div v-else class="w-full h-full bg-gradient-to-br from-orange-100 to-orange-50 dark:from-slate-900 dark:to-slate-800">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[var(--bg-primary)]"></div>
+      </div>
     </div>
 
-    <header class="sticky top-0 z-40 safe-area-top">
-      <div class="max-w-lg mx-auto px-6 py-4 flex items-center justify-between">
-        <button @click="goBack" class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90">
-          <ArrowLeft class="w-5 h-5 opacity-40" style="color: var(--text-primary);" />
+    <!-- 顶部导航 -->
+    <header class="fixed top-0 z-50 w-full safe-area-top backdrop-blur-sm bg-white/5">
+      <div class="max-w-lg mx-auto px-6 py-3 flex items-center justify-between">
+        <button @click="goBack" class="btn-back bg-black/10 backdrop-blur-xl border border-white/10 text-white">
+          <ArrowLeft class="w-4.5 h-4.5" />
         </button>
-        <div class="flex flex-col items-center">
-          <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ t('route.memory_detail') }}</span>
-          <h1 class="text-sm font-black tracking-tight mt-0.5" style="color: var(--text-primary);">{{ formattedDate }}</h1>
-        </div>
-        <button @click="handleShare" class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all card-static active:scale-90">
-          <Share2 class="w-5 h-5 opacity-40" style="color: var(--text-primary);" />
+        <button @click="handleShare" class="btn-back bg-black/10 backdrop-blur-xl border border-white/10 text-white">
+          <Share2 class="w-4.5 h-4.5" />
         </button>
       </div>
     </header>
     
-    <div class="relative max-w-lg mx-auto px-6 py-4">
-      <div v-if="isLoading" class="space-y-6">
-        <div class="h-[450px] rounded-[2.5rem] skeleton shadow-inner"></div>
+    <main class="relative z-10 pt-[35vh] pb-20">
+      <div v-if="isLoading" class="px-7">
+        <div class="h-80 rounded-[2.5rem] skeleton"></div>
       </div>
       
-      <div v-else-if="!memory" class="flex flex-col items-center justify-center py-20 transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div class="relative w-32 h-32 mb-8">
-          <div class="absolute inset-0 bg-orange-400 rounded-full blur-[50px] opacity-20 animate-pulse"></div>
-          <div class="relative w-full h-full rounded-full border border-black/5 dark:border-white/10 flex items-center justify-center bg-white/50 dark:bg-white/5 backdrop-blur-md">
-            <Camera class="w-10 h-10 opacity-20" style="color: var(--text-primary);" />
-          </div>
-        </div>
-        <h3 class="text-xl font-black tracking-tight mb-2" style="color: var(--text-primary);">{{ $t('detail.blank_page') }}</h3>
-        <p class="text-xs font-medium opacity-40 mb-8 tracking-widest uppercase" style="color: var(--text-primary);">{{ $t('detail.no_entry') }}</p>
-        <button @click="router.push({ name: 'create-memory', query: { date } })" class="px-8 py-4 rounded-2xl text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all" style="background: var(--gradient-accent);">{{ $t('detail.start_writing') }}</button>
-      </div>
-      
-      <div v-else class="transition-all duration-700" :style="{ opacity: isLoaded ? 1 : 0 }">
-        <div class="h-[480px] mb-8 relative z-10 shadow-2xl rounded-[2.5rem] overflow-hidden">
-          <FlipCard :memory="memory" />
-        </div>
-        
-        <div class="mb-8 p-6 rounded-[2rem] card-static shadow-lg relative overflow-hidden">
-          <div class="flex items-center justify-between relative z-10">
-            <div class="flex flex-col gap-1">
-              <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ $t('detail.date_captured') }}</span>
-              <div class="font-black tracking-tight text-lg" style="color: var(--text-primary);">{{ formattedDate }}</div>
-            </div>
-            <div v-if="memory.mood" class="flex flex-col items-end gap-1">
-              <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-30" style="color: var(--text-primary);">{{ t('create.current_mood') }}</span>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold opacity-60" style="color: var(--text-primary);">{{ t(`mood.${memory.mood}`) }}</span>
-                <span class="text-2xl drop-shadow-sm">{{ MoodEmoji[memory.mood as MoodType] }}</span>
+      <div v-else-if="memory" class="px-7 space-y-6 transition-all duration-1000" :style="{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(25px)' }">
+        <div class="flex items-end justify-between mb-6">
+          <div class="flex flex-col">
+            <div class="flex items-baseline gap-2">
+              <span class="text-6xl font-serif italic tracking-tighter leading-none" style="color: var(--text-primary);">{{ formattedDateDay }}</span>
+              <div class="flex flex-col">
+                <span class="text-[9px] font-black tracking-[0.2em] opacity-30">{{ formattedMonthYear }}</span>
+                <div v-if="memory.mood" class="flex items-center gap-1 mt-0.5">
+                  <span class="text-xl">{{ MoodEmoji[memory.mood as MoodType] }}</span>
+                  <span class="text-[8px] font-black uppercase tracking-widest opacity-40">{{ t(`mood.${memory.mood}`) }}</span>
+                </div>
               </div>
             </div>
           </div>
           
-          <div v-if="memory.location || memory.weather" class="flex flex-wrap items-center gap-4 mt-5 pt-5 border-t border-black/5 dark:border-white/5">
-            <div v-if="memory.location" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5">
-              <MapPin class="w-3 h-3 opacity-40" style="color: var(--text-primary);" />
-              <span class="text-[10px] font-bold tracking-wider opacity-60" style="color: var(--text-primary);">{{ memory.location }}</span>
+          <div class="flex flex-col items-end gap-2">
+            <div v-if="memory.weather" class="p-2.5 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-2xl border border-white/20 dark:border-white/5 shadow-sm">
+              <component :is="weatherIcons[memory.weather] || Sun" class="w-4 h-4 opacity-60" />
+            </div>
+            <div v-if="memory.location" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 dark:bg-black/10 backdrop-blur-2xl border border-white/20 dark:border-white/5">
+              <MapPin class="w-2.5 h-2.5 opacity-40" />
+              <span class="text-[8px] font-bold opacity-60">{{ memory.location }}</span>
             </div>
           </div>
         </div>
-        
-        <div class="pb-24 grid grid-cols-2 gap-4">
-          <button @click="handleEdit" class="flex flex-col items-center justify-center gap-2 py-5 rounded-[2rem] card-static hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-all group">
-            <Edit3 class="w-5 h-5 opacity-40 group-hover:opacity-100 transition-opacity" style="color: var(--text-primary);" />
-            <span class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40 group-hover:opacity-100" style="color: var(--text-primary);">{{ $t('common.edit') }}</span>
+
+        <div class="p-7 rounded-[2.5rem] card-static grainy-overlay relative overflow-hidden min-h-[180px]">
+          <div class="relative z-10">
+            <p class="text-base font-medium leading-relaxed opacity-80 first-letter:text-4xl first-letter:font-serif first-letter:italic first-letter:mr-2 first-letter:float-left first-letter:text-orange-500" style="color: var(--text-primary);">
+              {{ memory.content || '...' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="h-[440px] shadow-premium rounded-[2.5rem] overflow-hidden">
+          <FlipCard :memory="memory" />
+        </div>
+
+        <div class="flex gap-3 pb-6">
+          <button @click="handleEdit" class="flex-1 flex items-center justify-center gap-2.5 py-4 rounded-[1.8rem] bg-black dark:bg-white text-white dark:text-black font-black uppercase text-[9px] tracking-widest transition-all btn-active shadow-lg">
+            <Edit3 class="w-4 h-4" /> {{ $t('common.edit') }}
           </button>
-          <button @click="handleDelete" class="flex flex-col items-center justify-center gap-2 py-5 rounded-[2rem] bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 active:scale-95 transition-all group">
-            <Trash2 class="w-5 h-5 text-red-500 opacity-60 group-hover:opacity-100" />
-            <span class="text-[10px] font-black tracking-[0.2em] uppercase text-red-500 opacity-60 group-hover:opacity-100">{{ $t('common.delete') }}</span>
+          <button @click="handleDelete" class="w-16 flex items-center justify-center rounded-[1.8rem] bg-red-500/10 border border-red-500/20 text-red-500 transition-all btn-active">
+            <Trash2 class="w-4.5 h-4.5" />
           </button>
         </div>
       </div>
-    </div>
+
+      <div v-else class="px-7 pt-20 flex flex-col items-center justify-center space-y-8 transition-all duration-1000" :style="{ opacity: isVisible ? 1 : 0 }">
+        <div class="w-32 h-32 rounded-full bg-black/[0.03] dark:bg-white/[0.03] flex items-center justify-center border-2 border-dashed border-black/5 dark:border-white/10">
+          <Edit3 class="w-10 h-10 opacity-10" />
+        </div>
+        <div class="text-center space-y-2">
+          <h2 class="text-2xl font-serif italic opacity-40">{{ t('detail.no_memory') || 'No memory for this day' }}</h2>
+          <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-20">{{ formattedDateDay }} {{ formattedMonthYear }}</p>
+        </div>
+        <button 
+          @click="router.push({ name: 'create-memory', query: { date } })" 
+          class="px-10 py-4 rounded-3xl bg-black dark:bg-white text-white dark:text-black font-black uppercase text-[10px] tracking-widest transition-all btn-active shadow-xl"
+        >
+          {{ t('common.create') || 'Create Now' }}
+        </button>
+      </div>
+    </main>
   </div>
 </template>
 
@@ -129,6 +171,6 @@ onMounted(async () => {
 .card-static {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(40px) saturate(180%);
 }
 </style>

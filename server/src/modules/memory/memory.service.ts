@@ -220,7 +220,35 @@ export class MemoryService {
 
     // 更新记忆
     async updateMemory(userId: string, date: string, input: UpdateMemoryInput) {
-        const { tags, ...data } = input
+        const { tags, photoKeys, photos, ...data } = input
+
+        // 构建新照片创建数据
+        const derivePhotoKeys = (key: string) => {
+            const thumbnailKey = key.replace('/original/', '/thumbnail/')
+            const mediumKey = key.replace('/original/', '/medium/')
+            return { originalKey: key, thumbnailKey, mediumKey }
+        }
+
+        // 获取当前最大 order
+        const existingPhotos = await prisma.photo.findMany({
+            where: { memory: { userId, date: new Date(date) } },
+            orderBy: { order: 'desc' },
+            take: 1,
+        })
+        const nextOrder = (existingPhotos[0]?.order ?? -1) + 1
+
+        const newPhotoData = photos?.map((p, index) => ({
+            ...derivePhotoKeys(p.key),
+            takenAt: p.takenAt ? new Date(p.takenAt) : null,
+            latitude: p.latitude ?? null,
+            longitude: p.longitude ?? null,
+            width: p.width ?? null,
+            height: p.height ?? null,
+            order: nextOrder + index,
+        })) ?? photoKeys?.map((key, index) => ({
+            ...derivePhotoKeys(key),
+            order: nextOrder + index,
+        }))
 
         const memory = await prisma.memory.update({
             where: {
@@ -229,9 +257,16 @@ export class MemoryService {
                     date: new Date(date),
                 },
             },
-            data,
+            data: {
+                ...data,
+                photos: newPhotoData && newPhotoData.length > 0
+                    ? { create: newPhotoData }
+                    : undefined,
+            },
             include: {
-                photos: true,
+                photos: {
+                    orderBy: { order: 'asc' },
+                },
             },
         })
 
@@ -241,6 +276,16 @@ export class MemoryService {
         return {
             ...memory,
             date: memory.date.toISOString().split('T')[0],
+            photos: memory.photos.map((p) => ({
+                id: p.id,
+                originalUrl: this.getPhotoUrl(p.originalKey),
+                thumbnailUrl: this.getPhotoUrl(p.thumbnailKey),
+                mediumUrl: this.getPhotoUrl(p.mediumKey),
+                takenAt: p.takenAt?.toISOString() || null,
+                width: p.width,
+                height: p.height,
+                order: p.order,
+            })),
         }
     }
 
@@ -414,32 +459,35 @@ export class MemoryService {
             const years = Array.from({ length: 5 }, (_, i) => startYear + i)
 
             const results = await prisma.$queryRaw<any[]>`
-                SELECT CAST(EXTRACT(YEAR FROM date) AS TEXT) as label, CAST(COUNT(*) AS INTEGER) as count
+                SELECT CAST(EXTRACT(YEAR FROM date) AS INTEGER) as val, CAST(COUNT(*) AS INTEGER) as count
                 FROM memories
                 WHERE "userId" = ${userId} AND EXTRACT(YEAR FROM date) >= ${startYear}
-                GROUP BY label
-                ORDER BY label ASC
+                GROUP BY EXTRACT(YEAR FROM date)
+                ORDER BY EXTRACT(YEAR FROM date) ASC
             `
 
             trend = years.map(y => ({
                 label: y.toString(),
-                count: Number(results.find(r => r.label === y.toString())?.count || 0)
+                count: Number(results.find(r => Number(r.val) === y)?.count || 0)
             }))
         } else if (range === 'year') {
             // 月度趋势: 该年 12 个月
             const months = Array.from({ length: 12 }, (_, i) => i + 1)
             const results = await prisma.$queryRaw<any[]>`
-                SELECT CAST(EXTRACT(MONTH FROM date) AS TEXT) as label, CAST(COUNT(*) AS INTEGER) as count
+                SELECT CAST(EXTRACT(MONTH FROM date) AS INTEGER) as val, CAST(COUNT(*) AS INTEGER) as count
                 FROM memories
                 WHERE "userId" = ${userId} AND EXTRACT(YEAR FROM date) = ${targetYear}
-                GROUP BY label
-                ORDER BY label::int ASC
+                GROUP BY EXTRACT(MONTH FROM date)
+                ORDER BY EXTRACT(MONTH FROM date) ASC
             `
 
-            trend = months.map(m => ({
-                label: `${m}月`,
-                count: Number(results.find(r => r.label === m.toString())?.count || 0)
-            }))
+            trend = months.map(m => {
+                const found = results.find(r => Number(r.val) === m)
+                return {
+                    label: `${m}月`,
+                    count: found ? Number(found.count) : 0
+                }
+            })
         }
         else if (range === 'month') {
             // 每周趋势: 该月 4-5 周
@@ -659,9 +707,8 @@ export class MemoryService {
 
     // 生成照片 URL
     private getPhotoUrl(key: string): string {
-        // 如果是开发环境，返回预签名 URL
-        // 生产环境可以配置 CDN
-        return `http://${env.minio.endpoint}:${env.minio.port}/${env.minio.bucket}/${key}`
+        // 使用公网 IP 供外部访问
+        return `http://139.199.55.169:9002/${env.minio.bucket}/${key}`
     }
 }
 

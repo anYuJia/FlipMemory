@@ -24,19 +24,24 @@ export async function buildApp() {
             : true,
     })
 
-    // 安全头
-    registerSecurityHeaders(app)
+    // 安全头 (暂时禁用以排查 CORS 问题)
+    // registerSecurityHeaders(app)
 
     // 请求体清理（XSS 防护）
     app.addHook('preHandler', sanitizeBodyMiddleware)
 
-    // CORS（增强配置）
+    // CORS（终极宽松模式）
     await app.register(cors, {
-        origin: env.frontendUrl,
+        origin: (origin, cb) => {
+            // 直接允许所有 origin，并在响应中反射请求的 origin
+            cb(null, true)
+        },
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
         maxAge: 86400,
+        preflightContinue: false,
+        optionsSuccessStatus: 204
     })
 
     // API 速率限制

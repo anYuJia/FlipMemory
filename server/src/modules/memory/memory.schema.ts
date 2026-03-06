@@ -37,6 +37,9 @@ export const updateMemorySchema = z.object({
     weather: z.string().optional(),
     location: z.string().optional(),
     tags: z.array(z.string()).optional(),
+    // 支持添加新照片
+    photoKeys: z.array(z.string()).optional(),
+    photos: z.array(photoDataSchema).optional(),
 })
 
 export const calendarQuerySchema = z.object({

@@ -113,7 +113,9 @@ export const useOfflineStore = defineStore('offline', () => {
                 swListenerRegistered = true
                 navigator.serviceWorker.addEventListener('message', (event) => {
                     if (event.data?.type === 'SYNC_TRIGGERED') {
-                        syncPendingOperations()
+                        syncPendingOperations().catch(err => {
+                            logger.error('SW triggered sync failed', LOG_CONTEXT, err)
+                        })
                     }
                 })
             }
@@ -166,7 +168,9 @@ export const useOfflineStore = defineStore('offline', () => {
 
         // 如果在线且未开启离线模式，尝试立即同步
         if (isOnline.value && !offlineModeEnabled.value) {
-            syncPendingOperations()
+            syncPendingOperations().catch(err => {
+                logger.error('Immediate sync after queue add failed', LOG_CONTEXT, err)
+            })
         }
 
         return id as number

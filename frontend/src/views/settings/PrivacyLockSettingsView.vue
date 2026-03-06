@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { safeBack } from '@/router'
 import { ArrowLeft, Fingerprint, Lock, Shield } from 'lucide-vue-next'
 import { useToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 
-const router = useRouter()
 const toast = useToast()
 const { t } = useI18n()
 

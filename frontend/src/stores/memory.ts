@@ -155,7 +155,7 @@ export const useMemoryStore = defineStore('memory', () => {
     /**
      * 更新记忆（支持离线）
      */
-    async function updateMemory(date: string, input: { content?: string; mood?: MoodType; isPrivate?: boolean }) {
+    async function updateMemory(date: string, input: { content?: string; mood?: MoodType; isPrivate?: boolean; photoKeys?: string[] }) {
         isLoading.value = true
         error.value = null
 

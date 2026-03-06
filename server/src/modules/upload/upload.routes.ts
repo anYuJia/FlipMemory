@@ -23,6 +23,8 @@ export async function uploadRoutes(app: FastifyInstance) {
                 parsed.data.mimeType
             )
 
+            app.log.info(`Generated presigned URL for user ${request.userId}, key: ${result.key}, url: ${result.uploadUrl}`)
+
             return success(reply, result)
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Failed to get upload URL'

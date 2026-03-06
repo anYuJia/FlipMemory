@@ -1,128 +1,98 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&family=Manrope:wght@400;500;600;700;800&display=swap');
 
-/* Tailwind v4 默认用 prefers-color-scheme 来激活 dark:，
-   但本项目用 .dark 类切换暗色模式，必须覆盖此行为 */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ===== 核心设计系统 - 动态时光轴 ===== */
 :root {
-  /* 基础背景 (燕麦色基调) */
-  --bg-primary: #F9F8F6;
-  --bg-secondary: #F2F1EE;
-  --bg-tertiary: #EBEAE6;
+  --bg-primary: #FBFBF9;
+  --bg-secondary: #F5F4F0;
+  --bg-tertiary: #EEEDE8;
   --bg-elevated: #FFFFFF;
-  
-  /* 精致文字 */
-  --text-primary: #1A1D26;
-  --text-secondary: #5C6478;
-  --text-tertiary: #8F96A8;
-  --text-muted: #C5CAD8;
-  
-  /* 顶级材质 */
-  --card-bg: rgba(255, 255, 255, 0.6);
+  --text-primary: #12141A;
+  --text-secondary: #4A4F5C;
+  --text-tertiary: #848999;
+  --text-muted: #BCC1D1;
+  --card-bg: rgba(255, 255, 255, 0.65);
   --card-border: rgba(255, 255, 255, 0.8);
-  --nav-bg: rgba(255, 255, 255, 0.8);
-  --border-primary: rgba(0, 0, 0, 0.05);
-  --hover-bg: rgba(0, 0, 0, 0.03);
-  
-  /* 动态变量 (由 useTimeTheme 控制) */
+  --nav-bg: rgba(255, 255, 255, 0.85);
+  --border-primary: rgba(0, 0, 0, 0.04);
+  --hover-bg: rgba(0, 0, 0, 0.02);
   --color-primary: #FF8C42;
   --color-accent: #F97316;
-  --glow-dynamic: rgba(255, 140, 66, 0.25);
-  --gradient-accent: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  --glow-dynamic: rgba(255, 140, 66, 0.15);
+  --gradient-accent: linear-gradient(135deg, #FF8C42 0%, #F97316 100%);
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.02);
+  --shadow-md: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05);
+  --shadow-lg: 0 20px 50px -12px rgba(0,0,0,0.08);
+  --shadow-premium: 0 30px 100px -15px rgba(0,0,0,0.12), 0 10px 20px -10px rgba(0,0,0,0.05);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark {
-  /* 极致深邃背景 */
-  --bg-primary: #08080C;
-  --bg-secondary: #0F0F15;
-  --bg-tertiary: #161620;
-  --bg-elevated: #1C1C28;
-  
-  /* 高对比度文字 */
+  --bg-primary: #0A0A0C;
+  --bg-secondary: #121217;
+  --bg-tertiary: #1A1A22;
+  --bg-elevated: #1F1F2B;
   --text-primary: #F5F5F7;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-tertiary: rgba(255, 255, 255, 0.4);
+  --text-secondary: rgba(255, 255, 255, 0.75);
+  --text-tertiary: rgba(255, 255, 255, 0.45);
   --text-muted: rgba(255, 255, 255, 0.2);
-  
-  /* 暗色玻璃材质：增加背景不透明度 */
-  --card-bg: rgba(25, 25, 35, 0.85);
-  --card-border: rgba(255, 255, 255, 0.1);
-  --nav-bg: rgba(15, 15, 20, 0.9);
-  --border-primary: rgba(255, 255, 255, 0.12);
-  --hover-bg: rgba(255, 255, 255, 0.08);
+  --card-bg: rgba(28, 28, 40, 0.82);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --nav-bg: rgba(15, 15, 20, 0.92);
+  --border-primary: rgba(255, 255, 255, 0.08);
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  --shadow-premium: 0 40px 120px -20px rgba(0, 0, 0, 0.6);
 }
 
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: color 0.5s ease;
-  font-family: 'Inter', 'Outfit', system-ui, sans-serif;
+  transition: background-color 0.8s var(--ease-out-expo), color 0.5s ease;
+  font-family: 'Manrope', 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  /* 禁止移动端长按弹出菜单 (可选，增强 App 感) */
-  -webkit-touch-callout: none;
-  /* 禁止用户选择文字 (某些区域) */
   user-select: none;
 }
 
-/* ===== 移动端安全区域适配 (Safe Area) ===== */
-.safe-area-top {
-  padding-top: env(safe-area-inset-top, 20px);
-}
-
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 20px);
-}
-
-.pb-safe {
-  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
-}
-
-.pt-safe {
-  padding-top: calc(1rem + env(safe-area-inset-top, 0px));
-}
-
-/* 统一的按钮点击反馈 */
-.btn-active {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.btn-active:active {
-  transform: scale(0.95);
-  opacity: 0.8;
-}
-
-.page-container {
-  background-color: var(--bg-primary);
-  min-height: 100vh;
-  width: 100%;
-  position: relative;
-  overflow-x: hidden;
+.font-serif {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-style: italic;
 }
 
 .card-static {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  backdrop-filter: blur(32px) saturate(180%);
-  transition: background-color 0.8s ease, border-color 0.8s ease;
+  backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: var(--shadow-premium);
+  border-radius: 2rem; /* 紧凑化 */
+  transition: all 0.8s var(--ease-out-expo);
+}
+
+.btn-active {
+  transition: all 0.4s var(--ease-spring);
+}
+.btn-active:active {
+  transform: scale(0.92);
 }
 
 .btn-back {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.85rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  background-color: transparent; /* 设为透明 */
-  border: none; /* 移除边框 */
+  transition: all 0.5s var(--ease-spring);
+  background-color: transparent;
+  border: none;
   color: var(--text-primary);
   -webkit-tap-highlight-color: transparent;
 }
 .btn-back:active {
-  transform: scale(0.85);
-  background-color: var(--hover-bg); /* 点击时仅显示微小的背景反馈 */
+  transform: scale(0.8);
+  background-color: var(--hover-bg);
 }
 
 .text-gradient {
@@ -130,16 +100,32 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  transition: all 0.8s ease;
 }
 
-/* 动效系统 */
-.animate-slide-up {
-  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.grainy-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-.animate-scale-in {
-  animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
 }
-@keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.page-enter {
+  animation: page-in 0.6s var(--ease-out-expo) forwards;
+}
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

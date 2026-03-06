@@ -1,4 +1,4 @@
-import { env, minioClient } from '../../shared/config/index.js'
+import { env, minioClient, internalMinioClient } from '../../shared/config/index.js'
 import sharp from 'sharp'
 import { Readable } from 'stream'
 
@@ -26,8 +26,8 @@ export class UploadService {
     private readonly thumbnailSize = 200
     private readonly mediumSize = 800
 
-    // 生成预签名上传 URL
-    async getPresignedUploadUrl(userId: string, filename: string, mimeType?: string): Promise<{
+    // 生成预签名上传 URL (使用公网客户端)
+    async getPresignedUploadUrl(userId: string, filename: string, _mimeType?: string): Promise<{
         uploadUrl: string
         key: string
         expiresIn: number
@@ -51,35 +51,34 @@ export class UploadService {
         }
     }
 
-    // 生成预签名下载 URL
+    // 生成预签名下载 URL (使用公网客户端)
     async getPresignedDownloadUrl(key: string): Promise<string> {
         const expiresIn = 3600 // 1 小时
         return await minioClient.presignedGetObject(this.bucket, key, expiresIn)
     }
 
-    // 删除照片
+    // 删除照片 (使用内部客户端，更快)
     async deletePhoto(key: string): Promise<void> {
-        await minioClient.removeObject(this.bucket, key)
+        await internalMinioClient.removeObject(this.bucket, key)
 
-        // 同时删除缩略图和中等尺寸
         const thumbnailKey = key.replace('original', 'thumbnail')
         const mediumKey = key.replace('original', 'medium')
 
         try {
-            await minioClient.removeObject(this.bucket, thumbnailKey)
-            await minioClient.removeObject(this.bucket, mediumKey)
+            await internalMinioClient.removeObject(this.bucket, thumbnailKey)
+            await internalMinioClient.removeObject(this.bucket, mediumKey)
         } catch (err) {
             // 忽略不存在的文件错误
         }
     }
 
     /**
-     * 下载图片流
+     * 下载图片流 (使用内部客户端)
      */
     private async downloadPhotoStream(key: string): Promise<Buffer> {
         return new Promise((resolve, reject) => {
             const chunks: Buffer[] = []
-            minioClient.getObject(this.bucket, key, (err, stream) => {
+            internalMinioClient.getObject(this.bucket, key, (err, stream) => {
                 if (err) {
                     reject(err)
                     return
@@ -99,7 +98,7 @@ export class UploadService {
     }
 
     /**
-     * 上传处理后的图片
+     * 上传处理后的图片 (使用内部客户端)
      */
     private async uploadProcessedImage(
         key: string,
@@ -108,7 +107,7 @@ export class UploadService {
     ): Promise<void> {
         return new Promise((resolve, reject) => {
             const stream = Readable.from(buffer)
-            minioClient.putObject(
+            internalMinioClient.putObject(
                 this.bucket,
                 key,
                 stream,
@@ -123,60 +122,14 @@ export class UploadService {
     }
 
     /**
-     * 生成缩略图
-     */
-    private async generateThumbnail(imageBuffer: Buffer): Promise<Buffer> {
-        return sharp(imageBuffer)
-            .resize(this.thumbnailSize, this.thumbnailSize, {
-                fit: 'cover',
-                position: 'center',
-            })
-            .webp({ quality: 80 })
-            .toBuffer()
-    }
-
-    /**
-     * 生成中等尺寸图片
-     */
-    private async generateMedium(imageBuffer: Buffer): Promise<Buffer> {
-        return sharp(imageBuffer)
-            .resize(this.mediumSize, this.mediumSize, {
-                fit: 'inside',
-                withoutEnlargement: true,
-            })
-            .webp({ quality: 85 })
-            .toBuffer()
-    }
-
-    /**
-     * 优化原图
-     */
-    private async optimizeOriginal(imageBuffer: Buffer): Promise<Buffer> {
-        return sharp(imageBuffer)
-            .webp({ quality: 90 })
-            .toBuffer()
-    }
-
-    /**
-     * 获取图片尺寸
-     */
-    private async getImageDimensions(imageBuffer: Buffer): Promise<{ width: number; height: number }> {
-        const metadata = await sharp(imageBuffer).metadata()
-        return {
-            width: metadata.width || 0,
-            height: metadata.height || 0,
-        }
-    }
-
-    /**
      * 上传完成后的处理（图片处理管道）
      */
     async processUploadedPhoto(key: string, metadata?: PhotoMetadata): Promise<ProcessedPhoto> {
         try {
-            // 1. 下载原图
+            // 1. 下载原图 (此时原图已经在 MinIO 里了)
             const originalBuffer = await this.downloadPhotoStream(key)
 
-            // 2. 初始化 Sharp 实例（只解码一次）
+            // 2. 初始化 Sharp 实例
             const pipeline = sharp(originalBuffer)
             const imageMetadata = await pipeline.metadata()
             const dimensions = {
@@ -184,12 +137,12 @@ export class UploadService {
                 height: imageMetadata.height || 0,
             }
 
-            // 3. 定义各版本的处理任务
+            // 3. 定义各版本的处理路径
             const thumbnailKey = key.replace('original', 'thumbnail').replace(/\.[^.]+$/, '.webp')
             const mediumKey = key.replace('original', 'medium').replace(/\.[^.]+$/, '.webp')
             const optimizedKey = key.replace(/\.[^.]+$/, '.webp')
 
-            // 4. 并行处理和上传
+            // 4. 并行处理和上传到 MinIO
             await Promise.all([
                 // 缩略图
                 pipeline.clone()
@@ -212,10 +165,10 @@ export class UploadService {
                     .then(buf => this.uploadProcessedImage(optimizedKey, buf, 'image/webp'))
             ])
 
-            // 5. 删除原始上传的文件（如果是不同格式）
+            // 5. 删除临时上传的原始文件（如果是不同格式）
             if (optimizedKey !== key) {
                 try {
-                    await minioClient.removeObject(this.bucket, key)
+                    await internalMinioClient.removeObject(this.bucket, key)
                 } catch (err) {
                     // 忽略删除错误
                 }
