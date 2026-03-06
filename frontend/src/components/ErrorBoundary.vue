@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onErrorCaptured } from 'vue'
+import { ref, onErrorCaptured, onBeforeUnmount } from 'vue'
 import { AlertCircle, RefreshCw, Home } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -49,6 +49,10 @@ const getErrorMessage = (err: any) => {
   if (err?.name === 'TimeoutError') return t('common.timeout_error')
   return t('common.error_occurred')
 }
+
+onBeforeUnmount(() => {
+  if (retryTimerId) { clearInterval(retryTimerId); retryTimerId = null }
+})
 </script>
 
 <template>

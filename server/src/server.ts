@@ -1,5 +1,6 @@
 import { buildApp } from './app.js'
 import { env, prisma, ensureBucket } from './shared/config/index.js'
+import { getRedis } from './shared/config/redis.js'
 
 async function main() {
     const app = await buildApp()
@@ -43,16 +44,15 @@ async function main() {
 }
 
 // 优雅关闭
-process.on('SIGINT', async () => {
+async function shutdown() {
     console.log('\n👋 Shutting down...')
+    const redis = getRedis()
+    if (redis) await redis.quit().catch(() => {})
     await prisma.$disconnect()
     process.exit(0)
-})
+}
 
-process.on('SIGTERM', async () => {
-    console.log('\n👋 Shutting down...')
-    await prisma.$disconnect()
-    process.exit(0)
-})
+process.on('SIGINT', shutdown)
+process.on('SIGTERM', shutdown)
 
 main()

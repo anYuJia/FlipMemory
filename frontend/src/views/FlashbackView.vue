@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onActivated } from 'vue'
+import { ref, computed, onMounted, onActivated, onBeforeUnmount } from 'vue'
 import { Shuffle, Clock, Sparkles, Film } from 'lucide-vue-next'
 import FlipCard from '@/components/memory/FlipCard.vue'
 import { useMemoryStore } from '@/stores'
@@ -16,6 +16,15 @@ const randomMemories = ref<Memory[]>([])
 const currentIndex = ref(0)
 const isLoading = ref(false)
 const isLoaded = ref(false)
+const timers: ReturnType<typeof setTimeout>[] = []
+
+function trackTimer(fn: () => void, delay: number): void {
+  const id = setTimeout(() => {
+    timers.splice(timers.indexOf(id), 1)
+    fn()
+  }, delay)
+  timers.push(id)
+}
 
 const allFlashbacks = computed(() => {
   const list = []
@@ -47,16 +56,16 @@ async function loadFlashback() {
       toast.error(memoryStore.error)
     }
     isLoading.value = false
-    setTimeout(() => { isLoaded.value = true }, 300)
+    trackTimer(() => { isLoaded.value = true }, 300)
   }
 }
 
 function nextMemory() {
   if (allFlashbacks.value.length <= 1) return
   isLoaded.value = false
-  setTimeout(() => {
+  trackTimer(() => {
     currentIndex.value = (currentIndex.value + 1) % allFlashbacks.value.length
-    setTimeout(() => { isLoaded.value = true }, 50)
+    trackTimer(() => { isLoaded.value = true }, 50)
   }, 400)
 }
 
@@ -68,6 +77,11 @@ onActivated(() => {
   if (!allFlashbacks.value.length && !isLoading.value) {
     loadFlashback()
   }
+})
+
+onBeforeUnmount(() => {
+  timers.forEach(id => clearTimeout(id))
+  timers.length = 0
 })
 </script>
 
@@ -88,7 +102,7 @@ onActivated(() => {
             <span class="text-[9px] font-extrabold tracking-[0.2em] uppercase opacity-30">{{ t('nav.flashback') }}</span>
           </div>
           <h1 class="text-4xl font-serif italic tracking-tighter mt-1 leading-tight" style="color: var(--text-primary);">
-            {{ t('flashback.title') || 'Cinema of Time' }}
+            {{ t('flashback.title') }}
           </h1>
         </div>
       </header>

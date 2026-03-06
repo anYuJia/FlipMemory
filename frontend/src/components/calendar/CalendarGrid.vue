@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, ref } from 'vue'
+import { computed, watch, ref, onBeforeUnmount } from 'vue'
 import { useMemoryStore } from '@/stores'
 import CalendarCell from './CalendarCell.vue'
 import { useI18n } from 'vue-i18n'
@@ -43,13 +43,21 @@ const getCalendarGrid = computed(() => {
 })
 
 // 监听月份变化，触发过渡动画
+let transitionTimer: ReturnType<typeof setTimeout> | null = null
+
 watch(() => memoryStore.currentMonth, () => {
+  if (transitionTimer) clearTimeout(transitionTimer)
   isTransitioning.value = true
   memoryStore.fetchCalendarData(memoryStore.currentMonth.year, memoryStore.currentMonth.month)
-  setTimeout(() => {
+  transitionTimer = setTimeout(() => {
     isTransitioning.value = false
+    transitionTimer = null
   }, 500)
 }, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (transitionTimer) clearTimeout(transitionTimer)
+})
 </script>
 
 <template>

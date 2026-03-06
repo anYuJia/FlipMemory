@@ -117,8 +117,6 @@
     "login_success": "欢迎回来",
     "register_success": "时光之门已开启",
     "record_every_moment": "记录每一个瞬间",
-    "no_account": "还没有账号？立即加入",
-    "has_account": "已有账号？返回登录",
     "forgot_password": "忘记密码？",
     "verification_code": "验证码",
     "code_placeholder": "请输入 6 位验证码",
