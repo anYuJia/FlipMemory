@@ -22,7 +22,16 @@
     "retrying": "正在重試...",
     "retry_countdown": "{seconds} 秒後重試",
     "clear": "清空",
-    "close": "關閉"
+    "close": "關閉",
+    "weekdays_short": {
+      "sun": "日",
+      "mon": "一",
+      "tue": "二",
+      "wed": "三",
+      "thu": "四",
+      "fri": "五",
+      "sat": "六"
+    }
   },
   "nav": {
     "home": "首頁",
@@ -289,6 +298,8 @@
     "title": "時光回顧",
     "subtitle": "重溫那些閃閃發光的瞬間 ✨",
     "shuffle": "隨機換一批",
+    "one_year_ago": "一年前的今天",
+    "random_memory": "偶然翻開的往昔",
     "no_memories": "還沒有記憶可以回顧",
     "days_ago": "{days} 天前",
     "tabs": {
@@ -336,7 +347,9 @@
   "search": {
     "placeholder": "搜尋記憶",
     "recent_searches": "最近搜尋",
+    "history": "搜尋歷史",
     "trending": "熱門標籤",
+    "hot_tags_title": "熱門探索",
     "found": "找到",
     "memories_count": "條記憶",
     "no_results": "找不到結果",
@@ -368,6 +381,8 @@
     "range_year": "按年",
     "range_all": "全部數據",
     "streak_days": "連續天數",
+    "times_unit": "次",
+    "no_trend_data": "本月還沒有活動軌跡",
     "system_health": "系統健康度",
     "vitals": {
       "load": "載入速度",

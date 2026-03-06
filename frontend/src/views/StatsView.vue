@@ -154,12 +154,12 @@ watch(selectedRange, () => {
             <Zap class="w-10 h-10 mb-2" />
             <p class="text-[9px] font-black uppercase tracking-widest">No Activity</p>
           </div>
-          <div v-else class="flex-1 flex items-end justify-between gap-1.5 pt-10 relative pb-4 px-1">
+          <div v-else class="flex items-end justify-between gap-0.5 relative pb-4 px-1" style="height: 200px;">
             <div v-for="(item, index) in trendData" :key="item.label" 
               class="flex-1 flex flex-col items-center cursor-pointer group h-full justify-end"
               @click="toggleBarSelection(index)"
             >
-              <div v-if="item.count > 0" 
+              <div v-if="item.count > 0 && (trendData.length <= 12 || selectedBarIndex === index)" 
                 class="mb-1 text-[9px] font-serif italic tracking-tighter transition-all duration-500"
                 :style="{ 
                   color: selectedBarIndex === index ? 'var(--color-primary)' : 'var(--text-primary)',
@@ -170,17 +170,22 @@ watch(selectedRange, () => {
                 {{ item.count }}
               </div>
               
-              <div class="w-full rounded-t-lg transition-all duration-1000 relative overflow-hidden"
+              <div class="w-full rounded-t-[2px] transition-all duration-1000 relative overflow-hidden"
                 :style="{ 
                   background: selectedBarIndex === index ? 'var(--gradient-accent)' : 'var(--border-primary)', 
-                  height: item.count > 0 ? `${Math.max((item.count / maxTrendCount) * 100, 15)}%` : '4px', 
+                  height: item.count > 0 ? `${Math.max((item.count / maxTrendCount) * 100, 15)}%` : '2px', 
                   opacity: selectedBarIndex === index ? '1' : (item.count > 0 ? '0.7' : '0.2'),
                   boxShadow: selectedBarIndex === index ? '0 8px 16px -4px var(--glow-dynamic)' : 'none'
                 }"
               >
                 <div v-if="item.count > 0" class="absolute top-0 inset-x-0 h-0.5 bg-white/20"></div>
               </div>
-              <span class="text-[7px] font-black tracking-tighter uppercase mt-2.5" :style="{ opacity: selectedBarIndex === index ? '1' : '0.2' }">{{ item.label }}</span>
+              <span v-if="trendData.length <= 12 || index % 5 === 0 || index === trendData.length - 1" 
+                class="text-[7px] font-black tracking-tighter uppercase mt-2.5" 
+                :style="{ opacity: selectedBarIndex === index ? '1' : '0.2' }"
+              >
+                {{ item.label }}
+              </span>
             </div>
           </div>
         </div>
@@ -217,9 +222,15 @@ watch(selectedRange, () => {
               <div class="flex-1 flex flex-col gap-2">
                 <div class="flex justify-between items-end">
                   <span class="text-[9px] font-black uppercase tracking-widest opacity-60">{{ t(`mood.${item.mood}`) }}</span>
-                  <div class="flex items-baseline gap-0.5">
-                    <span class="text-base font-serif italic">{{ item.percentage }}</span>
-                    <span class="text-[7px] font-bold opacity-30">%</span>
+                  <div class="flex items-baseline gap-2">
+                    <div class="flex items-baseline gap-0.5">
+                      <span class="text-base font-serif italic">{{ item.percentage }}</span>
+                      <span class="text-[7px] font-bold opacity-30">%</span>
+                    </div>
+                    <div class="flex items-baseline gap-0.5 opacity-30">
+                      <span class="text-[10px] font-bold">{{ item.count }}</span>
+                      <span class="text-[7px] font-bold uppercase tracking-tighter">{{ t('stats.times_unit') || '次' }}</span>
+                    </div>
                   </div>
                 </div>
                 <div class="h-1 rounded-full bg-black/[0.03] dark:bg-white/[0.05] overflow-hidden">

@@ -22,7 +22,16 @@
     "retrying": "再試行中...",
     "retry_countdown": "{seconds}秒後に再試行",
     "clear": "クリア",
-    "close": "閉じる"
+    "close": "閉じる",
+    "weekdays_short": {
+      "sun": "日",
+      "mon": "月",
+      "tue": "火",
+      "wed": "水",
+      "thu": "木",
+      "fri": "金",
+      "sat": "土"
+    }
   },
   "nav": {
     "home": "ホーム",
@@ -289,6 +298,8 @@
     "title": "振り返り",
     "subtitle": "輝く瞬間をもう一度 ✨",
     "shuffle": "シャッフル",
+    "one_year_ago": "一年前の今日",
+    "random_memory": "偶然の記憶",
     "no_memories": "振り返る記憶がまだありません",
     "days_ago": "{days}日前",
     "tabs": {
@@ -336,7 +347,9 @@
   "search": {
     "placeholder": "記憶を検索",
     "recent_searches": "最近の検索",
+    "history": "検索履歴",
     "trending": "人気タグ",
+    "hot_tags_title": "人気の検索",
     "found": "検索結果",
     "memories_count": "件",
     "no_results": "結果が見つかりません",
@@ -368,6 +381,8 @@
     "range_year": "年別",
     "range_all": "全期間",
     "streak_days": "連続日数",
+    "times_unit": "回",
+    "no_trend_data": "今月はまだ活動がありません",
     "system_health": "システム健全性",
     "vitals": {
       "load": "読み込み速度",

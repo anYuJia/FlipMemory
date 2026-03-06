@@ -22,7 +22,16 @@
     "retrying": "Retrying...",
     "retry_countdown": "Retry in {seconds}s",
     "clear": "Clear",
-    "close": "Close"
+    "close": "Close",
+    "weekdays_short": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    }
   },
   "nav": {
     "home": "Home",
@@ -289,6 +298,8 @@
     "title": "Flashback",
     "subtitle": "Relive those shining moments ✨",
     "shuffle": "Shuffle",
+    "one_year_ago": "One Year Ago Today",
+    "random_memory": "Random Memory",
     "no_memories": "No memories to recall yet",
     "days_ago": "{days} days ago",
     "tabs": {
@@ -336,7 +347,9 @@
   "search": {
     "placeholder": "Search memories",
     "recent_searches": "Recent Searches",
+    "history": "Search History",
     "trending": "Trending",
+    "hot_tags_title": "Popular Tags",
     "found": "Found",
     "memories_count": "Memories",
     "no_results": "No Results",
@@ -368,6 +381,8 @@
     "range_year": "Yearly",
     "range_all": "All Time",
     "streak_days": "Streak Days",
+    "times_unit": "times",
+    "no_trend_data": "No activity this month",
     "system_health": "System Health",
     "vitals": {
       "load": "Load Speed",
