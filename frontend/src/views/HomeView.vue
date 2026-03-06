@@ -21,6 +21,7 @@ const { t, locale } = useI18n()
 
 // 状态控制
 const isInitialLoading = ref(true)
+const hasLoadedOnce = ref(false)
 
 // 问候语逻辑
 const greetingKey = computed(() => {
@@ -64,13 +65,14 @@ onMounted(async () => {
   isInitialLoading.value = true
   try {
     await refreshData()
+    hasLoadedOnce.value = true
   } finally {
     isInitialLoading.value = false
   }
 })
 
 onActivated(async () => {
-  if (!isInitialLoading.value) {
+  if (hasLoadedOnce.value) {
     await refreshData()
   }
 })

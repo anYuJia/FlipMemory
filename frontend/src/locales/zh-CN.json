@@ -92,7 +92,7 @@
     "username": "用户名",
     "username_placeholder": "用于登录的唯一账号",
     "email": "邮箱地址",
-    "email_placeholder": "example@email.com",
+    "email_placeholder": "电子邮箱",
     "password": "密码",
     "password_placeholder": "请输入密码",
     "confirm_password": "确认密码",

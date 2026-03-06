@@ -60,8 +60,8 @@ const handleImageError = () => { imageError.value = true }
     tabindex="0"
     :aria-label="`Memory from ${formattedDate} ${formattedYear}`"
     @click="toggleFlip"
-    @touchstart="handleTouchStart"
-    @touchend="handleTouchEnd"
+    @touchstart.passive="handleTouchStart"
+    @touchend.passive="handleTouchEnd"
     @keydown.enter="toggleFlip"
   >
     <div class="flip-card-inner" :class="{ 'is-flipped': isFlipped }">

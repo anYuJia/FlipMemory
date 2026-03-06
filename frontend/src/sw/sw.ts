@@ -38,7 +38,7 @@ registerRoute(
             }),
             new ExpirationPlugin({
                 maxEntries: 100,
-                maxAgeSeconds: 7 * 24 * 60 * 60, // 7 天
+                maxAgeSeconds: 3 * 60 * 60, // 3 小时
                 purgeOnQuotaError: true,
             }),
         ],

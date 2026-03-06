@@ -38,6 +38,99 @@ export async function memoryRoutes(app: FastifyInstance) {
         }
     })
 
+    // 具名路由必须在通配 /:date 之前注册，否则会被拦截
+
+    // 获取回顾记忆
+    app.get('/flashback', async (request, reply) => {
+        try {
+            const data = await memoryService.getFlashbackMemories(request.userId)
+            return success(reply, data)
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to get flashback'
+            return error(reply, message, 500)
+        }
+    })
+
+    // 获取统计数据
+    app.get('/stats', async (request, reply) => {
+        try {
+            const { range, year, month, week } = request.query as {
+                range?: string
+                year?: string
+                month?: string
+                week?: string
+            }
+
+            const data = await memoryService.getStats(
+                request.userId,
+                range,
+                year ? parseInt(year) : undefined,
+                month ? parseInt(month) : undefined,
+                week ? parseInt(week) : undefined
+            )
+            return success(reply, data)
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to get stats'
+            return error(reply, message, 500)
+        }
+    })
+
+    // 搜索记忆
+    app.get('/search', async (request, reply) => {
+        try {
+            const { q, mood, from, to, limit, skip } = request.query as {
+                q?: string
+                mood?: string
+                from?: string
+                to?: string
+                limit?: string
+                skip?: string
+            }
+
+            const data = await memoryService.searchMemories(
+                request.userId,
+                q,
+                mood,
+                from,
+                to,
+                limit ? parseInt(limit) : 20,
+                skip ? parseInt(skip) : 0
+            )
+            return success(reply, data)
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to search memories'
+            return error(reply, message, 500)
+        }
+    })
+
+    // 获取最近记忆
+    app.get('/recent', async (request, reply) => {
+        try {
+            const { limit, skip } = request.query as { limit?: string; skip?: string }
+            const data = await memoryService.getRecentMemories(
+                request.userId,
+                limit ? parseInt(limit) : 10,
+                skip ? parseInt(skip) : 0
+            )
+            return success(reply, data)
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to get recent memories'
+            return error(reply, message, 500)
+        }
+    })
+
+    // 获取纪念日记忆
+    app.get('/anniversary', async (request, reply) => {
+        try {
+            const data = await memoryService.getAnniversaryMemories(request.userId)
+            return success(reply, data)
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to get anniversary memories'
+            return error(reply, message, 500)
+        }
+    })
+
+    // 通配路由放在最后，避免拦截具名路由
     // 获取指定日期的记忆
     app.get('/:date', async (request, reply) => {
         try {
@@ -99,93 +192,6 @@ export async function memoryRoutes(app: FastifyInstance) {
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Failed to delete memory'
             return error(reply, message, 400)
-        }
-    })
-
-    // 获取回顾记忆
-    app.get('/flashback', async (request, reply) => {
-        try {
-            const data = await memoryService.getFlashbackMemories(request.userId)
-            return success(reply, data)
-        } catch (err) {
-            const message = err instanceof Error ? err.message : 'Failed to get flashback'
-            return error(reply, message, 500)
-        }
-    })
-
-    // 获取统计数据
-    app.get('/stats', async (request, reply) => {
-        try {
-            const { range, year, month, week } = request.query as {
-                range?: string
-                year?: string
-                month?: string
-                week?: string
-            }
-
-            const data = await memoryService.getStats(
-                request.userId,
-                range,
-                year ? parseInt(year) : undefined,
-                month ? parseInt(month) : undefined,
-                week ? parseInt(week) : undefined
-            )
-            return success(reply, data)
-        } catch (err) {
-            const message = err instanceof Error ? err.message : 'Failed to get stats'
-            return error(reply, message, 500)
-        }
-    })
-
-    // 搜索记忆
-    app.get('/search', async (request, reply) => {
-        try {
-            const { q, mood, from, to, limit } = request.query as {
-                q?: string
-                mood?: string
-                from?: string
-                to?: string
-                limit?: string
-            }
-
-            const data = await memoryService.searchMemories(
-                request.userId,
-                q,
-                mood,
-                from,
-                to,
-                limit ? parseInt(limit) : 20
-            )
-            return success(reply, data)
-        } catch (err) {
-            const message = err instanceof Error ? err.message : 'Failed to search memories'
-            return error(reply, message, 500)
-        }
-    })
-
-    // 获取最近记忆
-    app.get('/recent', async (request, reply) => {
-        try {
-            const { limit } = request.query as { limit?: string }
-            const data = await memoryService.getRecentMemories(
-                request.userId,
-                limit ? parseInt(limit) : 10
-            )
-            return success(reply, data)
-        } catch (err) {
-            const message = err instanceof Error ? err.message : 'Failed to get recent memories'
-            return error(reply, message, 500)
-        }
-    })
-
-    // 获取纪念日记忆
-    app.get('/anniversary', async (request, reply) => {
-        try {
-            const data = await memoryService.getAnniversaryMemories(request.userId)
-            return success(reply, data)
-        } catch (err) {
-            const message = err instanceof Error ? err.message : 'Failed to get anniversary memories'
-            return error(reply, message, 500)
         }
     })
 }

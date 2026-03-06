@@ -22,6 +22,7 @@ export function initRedis(): Redis {
         password: env.redis.password,
         db: env.redis.db,
         retryStrategy: (times) => {
+            if (times > 20) return null // 超过 20 次停止重试
             const delay = Math.min(times * 50, 2000)
             return delay
         },
@@ -133,17 +134,23 @@ export class CacheService {
     }
 
     /**
-     * 删除匹配模式的缓存
+     * 删除匹配模式的缓存（使用 SCAN 替代阻塞的 KEYS）
      */
     async deletePattern(pattern: string): Promise<boolean> {
         if (!this.redis) return false
 
         try {
-            const keys = await this.redis.keys(pattern.startsWith(KEY_PREFIX) ? pattern : `${KEY_PREFIX}${pattern}`)
-            if (keys.length > 0) {
-                await this.redis.del(...keys)
-            }
-            return true
+            const fullPattern = pattern.startsWith(KEY_PREFIX) ? pattern : `${KEY_PREFIX}${pattern}`
+            const stream = this.redis.scanStream({ match: fullPattern, count: 100 })
+            return new Promise((resolve) => {
+                stream.on('data', (keys: string[]) => {
+                    if (keys.length > 0) {
+                        this.redis!.del(...keys).catch(() => {})
+                    }
+                })
+                stream.on('end', () => resolve(true))
+                stream.on('error', () => resolve(false))
+            })
         } catch (error) {
             console.error('Cache deletePattern error:', error)
             return false

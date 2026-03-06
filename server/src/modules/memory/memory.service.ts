@@ -8,9 +8,9 @@ export class MemoryService {
         return `memory:${type}:${userId}:${args.join(':')}`
     }
 
-    // 清除用户相关缓存
+    // 清除用户相关缓存（含 stats、calendar 等）
     private async invalidateUserCache(userId: string) {
-        await cacheService.deletePattern(`memory:*:${userId}:*`)
+        await cacheService.clearUserCache(userId)
     }
 
     // 获取月度日历数据
@@ -502,34 +502,32 @@ export class MemoryService {
                 GROUP BY EXTRACT(DAY FROM date)
             `
 
-            const countMap = new Map(results.map(r => [r.day, r.count]))
+            const countMap: Map<number, number> = new Map(results.map(r => [Number(r.day), Number(r.count)]))
             trend = Array.from({ length: daysInMonth }, (_, i) => ({
                 label: (i + 1).toString(),
-                count: countMap.get(i + 1) || 0,
+                count: countMap.get(i + 1) ?? 0,
             }))
         } else if (range === 'week') {
-            // 每日趋势: 该周 7 天
+            // 每日趋势: 该周 7 天，用 SQL 聚合
             const daysShort = ['日', '一', '二', '三', '四', '五', '六']
 
-            const results = await prisma.memory.findMany({
-                where: {
-                    userId,
-                    date: {
-                        gte: periodStartDate,
-                        lte: periodEndDate,
-                    }
-                },
-                select: { date: true }
-            })
+            const results = await prisma.$queryRaw<{ d: Date; count: number }[]>`
+                SELECT date::date AS d, COUNT(*)::int AS count
+                FROM memories
+                WHERE "userId" = ${userId}
+                  AND date >= ${periodStartDate}
+                  AND date <= ${periodEndDate}
+                GROUP BY date::date
+            `
 
+            const countMap: Map<string, number> = new Map(results.map(r => [new Date(r.d).toISOString().split('T')[0], Number(r.count)]))
             trend = Array.from({ length: 7 }, (_, i) => {
                 const d = new Date(periodStartDate)
                 d.setDate(d.getDate() + i)
                 const dateStr = d.toISOString().split('T')[0]
-                const count = results.filter(r => r.date.toISOString().split('T')[0] === dateStr).length
                 return {
                     label: daysShort[d.getDay()],
-                    count
+                    count: countMap.get(dateStr) ?? 0
                 }
             })
         }
