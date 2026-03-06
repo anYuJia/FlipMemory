@@ -427,10 +427,12 @@ export class MemoryService {
         let periodEndDate: Date
 
         if (range === 'week' && week) {
-            // 获取指定周的起始日期
-            const startOfYear = new Date(targetYear, 0, 1)
-            const daysOffset = (week - 1) * 7 - startOfYear.getDay()
-            periodStartDate = new Date(targetYear, 0, 1 + daysOffset)
+            // ISO week: week 1 包含 1月4日，始终从周一开始
+            const jan4 = new Date(targetYear, 0, 4)
+            const jan4Day = jan4.getDay() || 7 // Sunday=0 → 7
+            const week1Monday = new Date(targetYear, 0, 4 - jan4Day + 1)
+            periodStartDate = new Date(week1Monday)
+            periodStartDate.setDate(week1Monday.getDate() + (week - 1) * 7)
             periodStartDate.setHours(0, 0, 0, 0)
 
             periodEndDate = new Date(periodStartDate)
@@ -498,26 +500,26 @@ export class MemoryService {
             })
         }
         else if (range === 'month') {
-            // 每日趋势：用 SQL 直接按天聚合
+            // 按周聚合：第1周(1-7日)、第2周(8-14日)...
             const daysInMonth = new Date(targetYear, targetMonth, 0).getDate()
+            const totalWeeks = Math.ceil(daysInMonth / 7)
 
-            const results = await prisma.$queryRaw<{ day: number; count: number }[]>`
-                SELECT EXTRACT(DAY FROM date)::int AS day, COUNT(*)::int AS count
+            const results = await prisma.$queryRaw<{ week_num: number; count: number }[]>`
+                SELECT CEIL(EXTRACT(DAY FROM date) / 7.0)::int AS week_num, COUNT(*)::int AS count
                 FROM memories
                 WHERE "userId" = ${userId}
                   AND date >= ${new Date(targetYear, targetMonth - 1, 1)}
                   AND date <= ${new Date(targetYear, targetMonth, 0)}
-                GROUP BY EXTRACT(DAY FROM date)
+                GROUP BY CEIL(EXTRACT(DAY FROM date) / 7.0)
             `
 
-            const countMap: Map<number, number> = new Map(results.map(r => [Number(r.day), Number(r.count)]))
-            trend = Array.from({ length: daysInMonth }, (_, i) => ({
-                label: (i + 1).toString(),
+            const countMap: Map<number, number> = new Map(results.map(r => [Number(r.week_num), Number(r.count)]))
+            trend = Array.from({ length: totalWeeks }, (_, i) => ({
+                label: `W${i + 1}`,
                 count: countMap.get(i + 1) ?? 0,
             }))
         } else if (range === 'week') {
-            // 每日趋势: 该周 7 天，用 SQL 聚合
-            const daysShort = ['日', '一', '二', '三', '四', '五', '六']
+            // 每日趋势: 该周 7 天 (周一=1, 周日=7)
 
             const results = await prisma.$queryRaw<{ d: Date; count: number }[]>`
                 SELECT date::date AS d, COUNT(*)::int AS count
@@ -534,7 +536,7 @@ export class MemoryService {
                 d.setDate(d.getDate() + i)
                 const dateStr = d.toISOString().split('T')[0]
                 return {
-                    label: daysShort[d.getDay()],
+                    label: String(i + 1),
                     count: countMap.get(dateStr) ?? 0
                 }
             })

@@ -19,6 +19,18 @@ const isLoadingStats = ref(false)
 const selectedBarIndex = ref<number | null>(null)
 const isVisible = ref(false)
 
+/**
+ * 计算当前 ISO 周号
+ */
+function getISOWeekNumber(): { year: number; week: number } {
+  const d = new Date()
+  const temp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+  temp.setUTCDate(temp.getUTCDate() + 4 - (temp.getUTCDay() || 7))
+  const yearStart = new Date(Date.UTC(temp.getUTCFullYear(), 0, 1))
+  const week = Math.ceil((((temp.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
+  return { year: temp.getUTCFullYear(), week }
+}
+
 // 基础统计数据
 const stats = ref({
   totalMemories: 0,
@@ -45,9 +57,17 @@ const maxTrendCount = computed(() => {
 
 async function loadStats() {
   isLoadingStats.value = true
+  selectedBarIndex.value = null
   try {
     const { year, month } = memoryStore.currentMonth
-    const data = await memoryStore.getStats(selectedRange.value, year, month)
+    let week: number | undefined
+    let statsYear = year
+    if (selectedRange.value === 'week') {
+      const isoWeek = getISOWeekNumber()
+      week = isoWeek.week
+      statsYear = isoWeek.year
+    }
+    const data = await memoryStore.getStats(selectedRange.value, statsYear, month, week)
     if (data) {
       stats.value = data
     }
@@ -98,14 +118,14 @@ watch(selectedRange, () => {
             <span class="text-[9px] font-extrabold tracking-[0.2em] uppercase opacity-30">{{ t('nav.stats') }}</span>
           </div>
           <div class="flex items-end justify-between">
-            <h1 class="text-3xl font-serif italic tracking-tight" style="color: var(--text-primary);">Insights</h1>
+            <h1 class="text-3xl font-serif italic tracking-tight" style="color: var(--text-primary);">{{ t('stats.title') }}</h1>
             
             <div class="flex p-1 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] border border-black/5 dark:border-white/10 backdrop-blur-md">
-              <button 
-                v-for="r in ['month', 'year']" 
+              <button
+                v-for="r in ['week', 'month', 'year']"
                 :key="r"
                 @click="selectedRange = r"
-                class="px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-500"
+                class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-500"
                 :class="selectedRange === r ? 'bg-white dark:bg-white/10 shadow-sm opacity-100' : 'opacity-30'"
               >
                 {{ t(`stats.range_${r}`) }}
@@ -157,7 +177,7 @@ watch(selectedRange, () => {
           </div>
           <div v-else-if="trendData.length === 0" class="flex-1 flex flex-col items-center justify-center opacity-20">
             <Zap class="w-10 h-10 mb-2" />
-            <p class="text-[9px] font-black uppercase tracking-widest">No Activity</p>
+            <p class="text-[9px] font-black uppercase tracking-widest">{{ t('stats.no_trend_data') }}</p>
           </div>
           <div v-else class="flex items-end justify-between gap-0.5 relative pb-4 px-1" style="height: 200px;">
             <div v-for="(item, index) in trendData" :key="item.label" 
@@ -214,7 +234,7 @@ watch(selectedRange, () => {
           </div>
           <div v-else-if="moodDistribution.length === 0" class="py-10 flex flex-col items-center justify-center opacity-20">
             <Clock class="w-10 h-10 mb-2" />
-            <p class="text-[9px] font-black uppercase tracking-widest">No Moods</p>
+            <p class="text-[9px] font-black uppercase tracking-widest">{{ t('stats.no_data') }}</p>
           </div>
           <div v-else class="space-y-6">
             <div v-for="(item, index) in moodDistribution" :key="item.mood" 
