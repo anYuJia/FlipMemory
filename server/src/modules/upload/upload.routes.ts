@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { uploadService } from './upload.service.js'
+import { enqueuePhotoProcessing } from './photoQueue.js'
 import { success, error } from '../../shared/utils/response.js'
 import { authMiddleware } from '../../shared/middleware/auth.js'
 import { UploadPresignSchema, UploadCompleteSchema, formatValidationError } from '../../shared/utils/validation.js'
@@ -48,14 +49,26 @@ export async function uploadRoutes(app: FastifyInstance) {
                 return error(reply, 'Unauthorized: file does not belong to this user', 403)
             }
 
-            const result = await uploadService.processUploadedPhoto(key, {
+            // 派生可预测的 keys（与 worker 产出一致）
+            const { optimizedKey, thumbnailKey, mediumKey } = uploadService.derivePhotoKeys(key)
+
+            // 入队后台处理（sharp 生成三个版本），立即返回
+            await enqueuePhotoProcessing(key, {
                 takenAt: takenAt ? new Date(takenAt) : undefined,
                 latitude: latitude ?? undefined,
                 longitude: longitude ?? undefined,
                 width: width ?? undefined,
                 height: height ?? undefined,
             })
-            return success(reply, result)
+
+            return success(reply, {
+                originalKey: optimizedKey,
+                thumbnailKey,
+                mediumKey,
+                width: width ?? null,
+                height: height ?? null,
+                takenAt: takenAt ?? null,
+            })
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Failed to process upload'
             return error(reply, message, 500)

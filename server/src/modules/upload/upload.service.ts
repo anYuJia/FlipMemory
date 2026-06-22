@@ -164,7 +164,20 @@ export class UploadService {
     }
 
     /**
+     * 从上传的原图 key 派生三个版本的 key（确定性，与 memory.service 的 derivePhotoKeys 一致）
+     */
+    derivePhotoKeys(uploadedKey: string) {
+        const optimizedKey = uploadedKey.replace(/\.[^.]+$/, '.webp')
+        return {
+            optimizedKey,
+            thumbnailKey: optimizedKey.replace('/original/', '/thumbnail/'),
+            mediumKey: optimizedKey.replace('/original/', '/medium/'),
+        }
+    }
+
+    /**
      * 上传完成后的处理（图片处理管道）
+     * 由 photo worker 调用，不在请求链路内
      */
     async processUploadedPhoto(key: string, metadata?: PhotoMetadata): Promise<ProcessedPhoto> {
         // 1. 下载原图 (此时原图已经在 MinIO 里了)
@@ -178,15 +191,13 @@ export class UploadService {
             height: imageMetadata.height || 0,
         }
 
-        // 3. 定义各版本的处理路径
-        const thumbnailKey = key.replace('original', 'thumbnail').replace(/\.[^.]+$/, '.webp')
-        const mediumKey = key.replace('original', 'medium').replace(/\.[^.]+$/, '.webp')
-        const optimizedKey = key.replace(/\.[^.]+$/, '.webp')
+        // 3. 派生各版本 key
+        const { optimizedKey, thumbnailKey, mediumKey } = this.derivePhotoKeys(key)
         const uploadedKeys: string[] = []
 
         try {
-            // 4. 并行生成缩略图和中图，串行生成优化原图（共享 pipeline）
-            const [thumbBuf, mediumBuf] = await Promise.all([
+            // 4. 并行生成全部三个版本（缩略图、中图、优化原图）
+            const [thumbBuf, mediumBuf, optimizedBuf] = await Promise.all([
                 pipeline.clone()
                     .resize(this.thumbnailSize, this.thumbnailSize, { fit: 'cover' })
                     .webp({ quality: 80 })
@@ -195,24 +206,22 @@ export class UploadService {
                     .resize(this.mediumSize, this.mediumSize, { fit: 'inside', withoutEnlargement: true })
                     .webp({ quality: 85 })
                     .toBuffer(),
+                pipeline.clone()
+                    .webp({ quality: 90 })
+                    .toBuffer(),
             ])
 
-            // 并行上传缩略图和中图
+            // 5. 并行上传全部三个版本
             await Promise.all([
                 this.uploadProcessedImage(thumbnailKey, thumbBuf, 'image/webp')
                     .then(() => { uploadedKeys.push(thumbnailKey) }),
                 this.uploadProcessedImage(mediumKey, mediumBuf, 'image/webp')
                     .then(() => { uploadedKeys.push(mediumKey) }),
+                this.uploadProcessedImage(optimizedKey, optimizedBuf, 'image/webp')
+                    .then(() => { uploadedKeys.push(optimizedKey) }),
             ])
 
-            // 优化后的原图
-            const optimizedBuf = await pipeline.clone()
-                .webp({ quality: 90 })
-                .toBuffer()
-            await this.uploadProcessedImage(optimizedKey, optimizedBuf, 'image/webp')
-            uploadedKeys.push(optimizedKey)
-
-            // 5. 删除临时上传的原始文件（如果是不同格式）
+            // 6. 删除临时上传的原始文件（如果是不同格式）
             if (optimizedKey !== key) {
                 await this.safeRemove(key)
             }

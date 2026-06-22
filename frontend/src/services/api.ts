@@ -414,8 +414,8 @@ export const api = {
                 originalKey: string
                 thumbnailKey: string
                 mediumKey: string
-                width: number
-                height: number
+                width: number | null
+                height: number | null
                 takenAt?: string | null
             }>('/upload/complete', {
                 method: 'POST',
