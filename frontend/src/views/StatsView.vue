@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onActivated, watch, onBeforeUnmount } from 'vue'
 import {
   ChevronLeft, ChevronRight, Activity, Zap, 
   Clock, Sparkles, TrendingUp
@@ -93,9 +93,16 @@ function toggleBarSelection(index: number) {
   selectedBarIndex.value = selectedBarIndex.value === index ? null : index
 }
 
+let visibilityTimer: ReturnType<typeof setTimeout> | null = null
+onBeforeUnmount(() => { if (visibilityTimer) clearTimeout(visibilityTimer) })
+
 onMounted(() => {
   loadStats()
-  setTimeout(() => { isVisible.value = true }, 100)
+  visibilityTimer = setTimeout(() => { isVisible.value = true }, 100)
+})
+
+onActivated(() => {
+  loadStats()
 })
 
 watch(selectedRange, () => {

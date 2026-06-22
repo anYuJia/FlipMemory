@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMemoryStore } from '@/stores'
 import { ArrowLeft, Camera, Image, X, Check, Sparkles, Edit3, MapPin, Sun, Cloud, CloudRain, Wind, Snowflake, Loader2 } from 'lucide-vue-next'
@@ -28,7 +28,7 @@ const weather = ref('')
 const photoFile = ref<File | null>(null)
 const photoPreview = ref<string | null>(null)
 
-const moods: MoodType[] = ['happy', 'sad', 'angry', 'calm', 'excited', 'tired']
+const moods: MoodType[] = ['happy', 'sad', 'angry', 'calm', 'excited', 'loved', 'thinking', 'tired']
 const weatherOptions = [
   { id: 'sunny', icon: Sun },
   { id: 'cloudy', icon: Cloud },
@@ -55,7 +55,15 @@ const handlePhotoSelect = async (e: Event) => {
   }
 }
 
-const removePhoto = () => { photoFile.value = null; photoPreview.value = null }
+const removePhoto = () => {
+  if (photoPreview.value) URL.revokeObjectURL(photoPreview.value)
+  photoFile.value = null
+  photoPreview.value = null
+}
+
+onBeforeUnmount(() => {
+  if (photoPreview.value) URL.revokeObjectURL(photoPreview.value)
+})
 const selectMood = (m: MoodType) => { mood.value = mood.value === m ? '' : m }
 
 const handleSubmit = async () => {
@@ -220,7 +228,7 @@ const goBack = () => router.back()
             <Sun class="w-3.5 h-3.5" /> <span class="text-[9px] font-black tracking-[0.2em] uppercase">{{ $t('create.weather_label') }}</span>
           </div>
           <div class="flex gap-2">
-            <button v-for="opt in weatherOptions.slice(0, 3)" :key="opt.id" @click="weather = opt.id" class="w-8 h-8 rounded-full flex items-center justify-center transition-all" :style="{ background: weather === opt.id ? 'var(--color-primary)' : 'rgba(0,0,0,0.05)', color: weather === opt.id ? '#fff' : 'var(--text-tertiary)' }"><component :is="opt.icon" class="w-3.5 h-3.5" /></button>
+            <button v-for="opt in weatherOptions" :key="opt.id" @click="weather = opt.id" class="w-8 h-8 rounded-full flex items-center justify-center transition-all" :style="{ background: weather === opt.id ? 'var(--color-primary)' : 'rgba(0,0,0,0.05)', color: weather === opt.id ? '#fff' : 'var(--text-tertiary)' }"><component :is="opt.icon" class="w-3.5 h-3.5" /></button>
           </div>
         </div>
       </section>

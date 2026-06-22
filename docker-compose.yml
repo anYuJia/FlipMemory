@@ -22,6 +22,7 @@ services:
       MINIO_PUBLIC_ENDPOINT: 139.199.55.169
       MINIO_PUBLIC_PORT: 9002
       JWT_SECRET: flipmemory_secret_key_2026
+      RESEND_API_KEY: re_TUUdPpXr_5eH5ugH43kZ9KxvCEiNHXbFo
     depends_on:
       postgres:
         condition: service_healthy

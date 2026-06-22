@@ -17,14 +17,15 @@ if [ ! -f "$SSH_KEY" ]; then
 fi
 chmod 400 "$SSH_KEY"
 
-# 2. 同步代码 (排除冗余，强制覆盖)
-echo "📦 正在全量同步代码..."
-rsync -avz --delete -e "ssh -i $SSH_KEY -o StrictHostKeyChecking=no" \
+# 2. 同步代码 (排除冗余，增量覆盖)
+echo "📦 正在同步代码..."
+rsync -avz -e "ssh -i $SSH_KEY -o StrictHostKeyChecking=no" \
   --exclude 'node_modules' \
   --exclude '.git' \
   --exclude 'dist' \
   --exclude 'frontend/node_modules' \
   --exclude 'server/node_modules' \
+  --exclude '.env' \
   ./ $REMOTE_USER@$REMOTE_IP:$REMOTE_PATH/
 
 # 3. 远程执行构建与启动

@@ -1,14 +1,24 @@
 import { buildApp } from './app.js'
 import { env, prisma, ensureBucket } from './shared/config/index.js'
-import { getRedis } from './shared/config/redis.js'
+import { initRedis, getRedis } from './shared/config/redis.js'
+
+let app: Awaited<ReturnType<typeof buildApp>>
 
 async function main() {
-    const app = await buildApp()
+    app = await buildApp()
 
     try {
         // 测试数据库连接
         await prisma.$connect()
         console.log('✅ Database connected')
+
+        // 初始化 Redis
+        try {
+            initRedis()
+            console.log('✅ Redis initialized')
+        } catch (err) {
+            console.warn('⚠️ Redis init failed (cache/verification may not work):', err)
+        }
 
         // 确保 MinIO bucket 存在
         try {
@@ -46,9 +56,22 @@ async function main() {
 // 优雅关闭
 async function shutdown() {
     console.log('\n👋 Shutting down...')
-    const redis = getRedis()
-    if (redis) await redis.quit().catch(() => {})
-    await prisma.$disconnect()
+    // 兜底：超过 15 秒强制退出
+    const forceExitTimer = setTimeout(() => {
+        console.error('Shutdown timed out, forcing exit')
+        process.exit(1)
+    }, 15000)
+    forceExitTimer.unref()
+
+    try {
+        // 先关闭 HTTP 服务器，停止接收新请求
+        if (app) await app.close()
+        const redis = getRedis()
+        if (redis) await redis.quit().catch(() => {})
+        await prisma.$disconnect()
+    } catch (err) {
+        console.error('Error during shutdown:', err)
+    }
     process.exit(0)
 }
 

@@ -1,26 +1,34 @@
 <script setup lang="ts">
 import { computed, watch, ref, onBeforeUnmount } from 'vue'
-import { useMemoryStore } from '@/stores'
+import { useMemoryStore, useUserStore } from '@/stores'
 import CalendarCell from './CalendarCell.vue'
 import { useI18n } from 'vue-i18n'
 
 const memoryStore = useMemoryStore()
+const userStore = useUserStore()
 const { t } = useI18n()
 
-const weekDays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+const allWeekDays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const isTransitioning = ref(false)
+
+const weekDays = computed(() => {
+  const start = userStore.settings.startOfWeek || 0
+  return [...allWeekDays.slice(start), ...allWeekDays.slice(0, start)]
+})
 
 // 生成日历网格数据
 const getCalendarGrid = computed(() => {
   const { year, month } = memoryStore.currentMonth
+  const startOfWeek = userStore.settings.startOfWeek || 0
   const firstDayOfMonth = new Date(year, month - 1, 1).getDay()
+  const adjustedFirst = (firstDayOfMonth - startOfWeek + 7) % 7
   const daysInMonth = new Date(year, month, 0).getDate()
   
   const grid = []
   
   // 上个月的尾巴
   const prevMonthLastDay = new Date(year, month - 1, 0).getDate()
-  for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+  for (let i = adjustedFirst - 1; i >= 0; i--) {
     const day = prevMonthLastDay - i
     const date = `${month === 1 ? year - 1 : year}-${String(month === 1 ? 12 : month - 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     grid.push({ date, day, isCurrentMonth: false })

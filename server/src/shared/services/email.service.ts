@@ -25,7 +25,7 @@ const FROM_ADDRESS = 'FlipMemory <no-reply@ptype.top>'
 export async function sendVerificationEmail(
     to: string,
     code: string,
-    purpose: 'register' | 'reset_password' | 'change_email'
+    purpose: 'register' | 'reset_password' | 'change_email' | 'change_password'
 ): Promise<boolean> {
     const client = getResendClient()
     if (!client) {
@@ -36,6 +36,7 @@ export async function sendVerificationEmail(
         register: '注册账号',
         reset_password: '重置密码',
         change_email: '更换邮箱',
+        change_password: '修改密码',
     }
 
     const subject = `FlipMemory 验证码 — ${purposeText[purpose] || '身份验证'}`

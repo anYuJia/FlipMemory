@@ -103,7 +103,7 @@ export async function authRoutes(app: FastifyInstance) {
         }
     })
 
-    // ==================== 修改密码（需要登录 + 限流） ====================
+    // ==================== 修改密码（需要登录，支持旧密码或验证码） ====================
     app.post('/change-password', { preHandler: [authMiddleware, createEndpointRateLimit('changePassword')] }, async (request, reply) => {
         try {
             const parsed = changePasswordSchema.safeParse(request.body)
@@ -111,7 +111,22 @@ export async function authRoutes(app: FastifyInstance) {
                 return error(reply, parsed.error.errors[0].message, 400)
             }
 
-            await authService.changePassword(request.userId, parsed.data.oldPassword, parsed.data.newPassword)
+            const { oldPassword, code, newPassword } = parsed.data
+
+            if (code) {
+                // 通过验证码修改密码
+                const user = await authService.getProfile(request.userId)
+                const codeResult = await verifyCode(user.email, 'change_password', code)
+                if (!codeResult.valid) {
+                    return error(reply, codeResult.message, 400)
+                }
+                await authService.changePasswordById(request.userId, newPassword)
+            } else if (oldPassword) {
+                // 通过旧密码修改密码
+                await authService.changePassword(request.userId, oldPassword, newPassword)
+            } else {
+                return error(reply, '请提供旧密码或验证码', 400)
+            }
 
             return success(reply, { message: '密码修改成功' })
         } catch (err) {

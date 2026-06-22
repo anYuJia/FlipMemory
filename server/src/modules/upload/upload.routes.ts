@@ -43,6 +43,11 @@ export async function uploadRoutes(app: FastifyInstance) {
 
             const { key, takenAt, latitude, longitude, width, height } = parsed.data
 
+            // Validate key belongs to authenticated user
+            if (!key.startsWith(`uploads/${request.userId}/`)) {
+                return error(reply, 'Unauthorized: file does not belong to this user', 403)
+            }
+
             const result = await uploadService.processUploadedPhoto(key, {
                 takenAt: takenAt ? new Date(takenAt) : undefined,
                 latitude: latitude ?? undefined,

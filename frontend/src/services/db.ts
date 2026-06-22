@@ -99,6 +99,7 @@ export interface SyncOperation {
     createdAt: number       // 创建时间戳
     retryCount: number      // 重试次数
     lastError?: string      // 最后一次错误信息
+    lastRetryAt?: number    // 上次重试时间戳
     priority?: number       // 优先级（数字越小优先级越高）
 }
 
@@ -215,10 +216,11 @@ export function now(): number {
  * 清除所有数据（谨慎使用）
  */
 export async function clearAllData(): Promise<void> {
-    await db.transaction('rw', [db.memories, db.calendarDays, db.syncQueue, db.user, db.cacheMeta], async () => {
+    await db.transaction('rw', [db.memories, db.calendarDays, db.syncQueue, db.pendingPhotos, db.user, db.cacheMeta], async () => {
         await db.memories.clear()
         await db.calendarDays.clear()
         await db.syncQueue.clear()
+        await db.pendingPhotos.clear()
         await db.user.clear()
         await db.cacheMeta.clear()
     })

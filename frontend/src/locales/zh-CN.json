@@ -134,6 +134,8 @@
     "old_password": "旧密码",
     "old_password_placeholder": "请输入当前密码",
     "change_password_success": "密码修改成功",
+    "via_password": "旧密码验证",
+    "via_code": "验证码验证",
     "back_to_login": "返回登录"
   },
   "settings": {

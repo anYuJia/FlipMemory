@@ -14,7 +14,7 @@ const SEND_INTERVAL = 60      // 同一邮箱 60 秒内不能重发
 const MAX_VERIFY_ATTEMPTS = 5 // 最多验证 5 次
 const MAX_DAILY_SENDS = 10    // 同一邮箱每天最多发送 10 次
 
-type CodePurpose = 'register' | 'reset_password' | 'change_email'
+type CodePurpose = 'register' | 'reset_password' | 'change_email' | 'change_password'
 
 interface StoredCode {
     code: string

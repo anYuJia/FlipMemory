@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { MapPin, Sun, Cloud, CloudRain, Wind, Snowflake, Heart, Calendar, Camera } from 'lucide-vue-next'
+import { computed, ref, watch } from 'vue'
+import { MapPin, Sun, Heart, Calendar, Camera } from 'lucide-vue-next'
 import type { Memory } from '@/types'
 import { MoodEmoji, type MoodType } from '@/types/memory'
 import { useI18n } from 'vue-i18n'
@@ -22,32 +22,57 @@ const formattedYear = computed(() => {
 const isFlipped = ref(false)
 const imageError = ref(false)
 
+watch(() => props.memory, () => {
+  imageError.value = false
+  isFlipped.value = false
+})
+
 // ===== 手势逻辑 =====
 let touchStartX = 0
-let touchEndX = 0
-const swipeThreshold = 50 // 滑动触发翻转的最小距离（像素）
+let touchStartY = 0
+let touchStartTime = 0
+let handledBySwipe = false // swipe 与 click 互斥标记
+
+const swipeThreshold = 80   // 水平滑动触发翻转的最小距离（像素）
 
 const handleTouchStart = (e: TouchEvent) => {
-  touchStartX = e.changedTouches[0].screenX
+  const touch = e.changedTouches[0]
+  touchStartX = touch.screenX
+  touchStartY = touch.screenY
+  touchStartTime = Date.now()
+  handledBySwipe = false
 }
 
 const handleTouchEnd = (e: TouchEvent) => {
-  touchEndX = e.changedTouches[0].screenX
-  handleSwipe()
-}
+  const touch = e.changedTouches[0]
+  const deltaX = Math.abs(touch.screenX - touchStartX)
+  const deltaY = Math.abs(touch.screenY - touchStartY)
 
-const handleSwipe = () => {
-  const swipeDistance = touchEndX - touchStartX
-  
-  // 如果水平滑动距离超过阈值，则触发翻转
-  if (Math.abs(swipeDistance) > swipeThreshold) {
+  // 垂直移动大于水平移动 → 用户在滚动页面，不触发翻转
+  if (deltaY > deltaX) return
+
+  // 水平滑动超过阈值 → 翻转
+  if (deltaX > swipeThreshold) {
     isFlipped.value = !isFlipped.value
+    handledBySwipe = true
   }
 }
 
-const toggleFlip = () => { 
-  // 保留轻点翻转功能
-  isFlipped.value = !isFlipped.value 
+const toggleFlip = () => {
+  // 如果刚被 swipe 处理过，跳过本次 click（移动端 tap 会连续触发 touchend + click）
+  if (handledBySwipe) {
+    handledBySwipe = false
+    return
+  }
+
+  // 仅在移动端，判断 tap 是否为"原地轻点"（排除拖拽后松手产生的 click）
+  if (touchStartTime > 0) {
+    const elapsed = Date.now() - touchStartTime
+    // 超过 300ms 的触摸不视为 tap（长按 / 拖拽）
+    if (elapsed > 300) return
+  }
+
+  isFlipped.value = !isFlipped.value
 }
 
 const handleImageError = () => { imageError.value = true }
@@ -59,6 +84,7 @@ const handleImageError = () => { imageError.value = true }
     role="button"
     tabindex="0"
     :aria-label="`Memory from ${formattedDate} ${formattedYear}`"
+    :aria-expanded="isFlipped"
     @click="toggleFlip"
     @touchstart.passive="handleTouchStart"
     @touchend.passive="handleTouchEnd"
@@ -118,8 +144,8 @@ const handleImageError = () => { imageError.value = true }
           <Heart class="w-4 h-4 opacity-20" :class="{ 'fill-red-500 text-red-500 opacity-100': memory.mood === 'loved' }" />
         </div>
 
-        <!-- 内容区域 -->
-        <div class="flex-1 overflow-y-auto hide-scrollbar">
+        <!-- 内容区域（阻止滚动时冒泡翻转） -->
+        <div class="flex-1 overflow-y-auto hide-scrollbar" @click.stop @touchstart.stop @touchend.stop>
           <p class="text-sm font-medium leading-relaxed opacity-80 first-letter:text-2xl first-letter:font-serif first-letter:italic first-letter:mr-1 first-letter:text-orange-500" style="color: var(--text-primary);">
             {{ memory.content || t('detail.no_entry') }}
           </p>
@@ -154,14 +180,14 @@ const handleImageError = () => { imageError.value = true }
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); /* 使用更平滑的曲线 */
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   transform-style: preserve-3d;
-  will-change: transform; /* 强制开启 GPU 硬件加速 */
 }
 
-/* 翻转状态 */
+/* 仅在翻转时开启 GPU 加速，避免常驻占用显存 */
 .flip-card-inner.is-flipped {
   transform: rotateY(180deg);
+  will-change: transform;
 }
 
 .flip-card-front, .flip-card-back {

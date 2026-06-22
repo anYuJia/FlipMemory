@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores'
 import { useOffline } from '@/composables/useOffline'
@@ -49,9 +49,12 @@ const handleLogout = async () => {
   }
 }
 
+let loadedTimer: ReturnType<typeof setTimeout> | null = null
+onBeforeUnmount(() => { if (loadedTimer) clearTimeout(loadedTimer) })
+
 onMounted(() => {
   refreshCacheStats()
-  setTimeout(() => { isLoaded.value = true }, 100)
+  loadedTimer = setTimeout(() => { isLoaded.value = true }, 100)
 })
 </script>
 

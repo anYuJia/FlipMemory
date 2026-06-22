@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMemoryStore } from '@/stores'
 import { safeBack } from '@/router'
@@ -98,9 +98,18 @@ const handlePhotoSelect = async (e: Event) => {
 
 // 移除新选的照片
 const removeNewPhoto = () => {
+  if (newPhotoPreview.value) {
+    URL.revokeObjectURL(newPhotoPreview.value)
+  }
   newPhotoFile.value = null
   newPhotoPreview.value = null
 }
+
+onBeforeUnmount(() => {
+  if (newPhotoPreview.value) {
+    URL.revokeObjectURL(newPhotoPreview.value)
+  }
+})
 
 // 标记移除现有照片
 const removeExistingPhoto = (id: string) => {
@@ -146,7 +155,10 @@ const handleSubmit = async () => {
       content: content.value,
       mood: mood.value || undefined,
       isPrivate: false,
+      location: location.value || undefined,
+      weather: weather.value || undefined,
       photoKeys: photoKeys.length > 0 ? photoKeys : undefined,
+      removePhotoIds: photoToRemoveIds.value.length > 0 ? photoToRemoveIds.value : undefined,
     })
 
     toast.success(t('common.success'))
@@ -281,7 +293,7 @@ const goBack = () => safeBack()
           </div>
           <div class="flex gap-2">
             <button 
-              v-for="opt in weatherOptions.slice(0, 3)" 
+              v-for="opt in weatherOptions" 
               :key="opt.id" 
               @click="weather = opt.id" 
               class="w-8 h-8 rounded-full flex items-center justify-center transition-all"

@@ -21,17 +21,8 @@ export function detectConflict(
     _localTimestamp: number,
     _remoteTimestamp: number
 ): boolean {
-    // 如果版本号不同，说明有冲突
-    if (localVersion !== remoteVersion) {
-        return true
-    }
-
-    // 如果内容不同，说明有冲突
-    if (JSON.stringify(localVersion) !== JSON.stringify(remoteVersion)) {
-        return true
-    }
-
-    return false
+    // 使用深度比较检测实际内容差异
+    return JSON.stringify(localVersion) !== JSON.stringify(remoteVersion)
 }
 
 /**

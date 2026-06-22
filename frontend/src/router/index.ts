@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { getToken } from '@/services/tokenManager'
 import i18n from '@/i18n'
+import { useToast } from '@/composables/useToast'
 
 /**
  * 带自动重载的动态导入包装器
@@ -231,6 +232,10 @@ export function safeBack() {
 
 // 路由守卫：检查登录状态
 router.beforeEach((to, _from, next) => {
+    // 清除残留 toast 定时器
+    const { clearAll } = useToast()
+    clearAll()
+
     // 设置页面标题
     const titleKey = to.meta.titleKey as string | undefined
     const title = titleKey ? i18n.global.t(titleKey) : 'FlipMemory'

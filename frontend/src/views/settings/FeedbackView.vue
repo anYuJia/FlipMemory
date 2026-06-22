@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, Send, MessageSquare, Sparkles, CheckCircle2, Loader2, Info } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
@@ -20,19 +20,27 @@ const categories = computed(() => [
   { id: 'other', label: t('feedback.types.other'), icon: Info },
 ])
 
+let submitTimer: ReturnType<typeof setTimeout> | null = null
+let backTimer: ReturnType<typeof setTimeout> | null = null
+
 const handleSubmit = async () => {
   if (!content.value.trim() || isSubmitting.value) return
   isSubmitting.value = true
-  
+
   // 模拟提交
-  setTimeout(() => {
+  submitTimer = setTimeout(() => {
     isSubmitting.value = false
     isSuccess.value = true
-    setTimeout(() => {
+    backTimer = setTimeout(() => {
       router.back()
     }, 2500)
   }, 1200)
 }
+
+onBeforeUnmount(() => {
+  if (submitTimer) clearTimeout(submitTimer)
+  if (backTimer) clearTimeout(backTimer)
+})
 
 const goBack = () => router.back()
 

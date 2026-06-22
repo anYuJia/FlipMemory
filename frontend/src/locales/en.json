@@ -128,6 +128,8 @@
     "old_password": "Current Password",
     "old_password_placeholder": "Enter current password",
     "change_password_success": "Password changed successfully",
+    "via_password": "Via Password",
+    "via_code": "Via Code",
     "back_to_login": "Back to Sign In"
   },
   "settings": {

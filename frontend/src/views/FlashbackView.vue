@@ -20,7 +20,8 @@ const timers: ReturnType<typeof setTimeout>[] = []
 
 function trackTimer(fn: () => void, delay: number): void {
   const id = setTimeout(() => {
-    timers.splice(timers.indexOf(id), 1)
+    const idx = timers.indexOf(id)
+    if (idx !== -1) timers.splice(idx, 1)
     fn()
   }, delay)
   timers.push(id)
@@ -74,9 +75,7 @@ onMounted(() => {
 })
 
 onActivated(() => {
-  if (!allFlashbacks.value.length && !isLoading.value) {
-    loadFlashback()
-  }
+  loadFlashback()
 })
 
 onBeforeUnmount(() => {

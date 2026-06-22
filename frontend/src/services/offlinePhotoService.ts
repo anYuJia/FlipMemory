@@ -19,6 +19,9 @@ export interface PhotoUploadResult {
     isLocal: boolean  // 是否为本地临时图片
 }
 
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
+
 /**
  * 离线图片上传服务
  */
@@ -45,6 +48,16 @@ class OfflinePhotoService {
         const tempId = generateTempId()
         const filename = metadata?.filename || (file instanceof File ? file.name : `photo_${Date.now()}.jpg`)
         const mimeType = file.type || 'image/jpeg'
+
+        // 文件类型校验
+        if (!ALLOWED_TYPES.includes(mimeType)) {
+            throw new Error(`不支持的图片格式: ${mimeType}`)
+        }
+
+        // 文件大小校验
+        if (file.size > MAX_FILE_SIZE) {
+            throw new Error(`图片过大，最大支持 ${MAX_FILE_SIZE / 1024 / 1024}MB`)
+        }
 
         // 如果在线且未开启离线模式，尝试直接上传
         if (offlineStore.isOnline && !offlineStore.offlineModeEnabled) {
@@ -78,8 +91,9 @@ class OfflinePhotoService {
 
         await db.pendingPhotos.add(pendingPhoto)
 
-        // 创建本地预览 URL
+        // 创建本地预览 URL 并注册到 registry 以便后续 revoke
         const localUrl = URL.createObjectURL(file)
+        this.blobUrlRegistry.set(tempId, localUrl)
 
         console.log('[OfflinePhotoService] Photo saved locally:', tempId)
 
@@ -170,56 +184,98 @@ class OfflinePhotoService {
                 return { success: 0, failed: 0, total: 0 }
             }
 
-            console.log(`[OfflinePhotoService] Uploading ${pendingPhotos.length} pending photos...`)
+            // 过滤掉还在退避期内的失败项
+            const readyPhotos = pendingPhotos.filter(photo => {
+                if (photo.retryCount === 0) return true
+                const backoffMs = Math.min(1000 * Math.pow(2, photo.retryCount - 1), 60000)
+                const lastAttempt = (photo as any).lastRetryAt || photo.createdAt
+                return (Date.now() - lastAttempt) > backoffMs
+            })
+
+            if (readyPhotos.length === 0) {
+                return { success: 0, failed: 0, total: 0 }
+            }
+
+            console.log(`[OfflinePhotoService] Uploading ${readyPhotos.length} pending photos...`)
 
             let success = 0
             let failed = 0
+            const CONCURRENCY = 3
 
-            for (const photo of pendingPhotos) {
-                try {
-                    // 更新状态为上传中
-                    await db.pendingPhotos.update(photo.id, {
-                        uploadStatus: 'uploading' as UploadStatus,
-                    })
-
-                    // 上传到服务器
-                    const result = await this.uploadToServer(photo.blob, photo.filename, photo.mimeType, {
-                        takenAt: photo.takenAt,
-                        width: photo.width,
-                        height: photo.height,
-                    })
-
-                    // 更新关联的记忆中的图片信息
-                    await this.updateMemoryPhoto(photo.memoryDate, photo.id, result)
-
-                    // 删除待上传记录
-                    await db.pendingPhotos.delete(photo.id)
-                    success++
-
-                    console.log(`[OfflinePhotoService] Photo uploaded: ${photo.id} -> ${result.key}`)
-                } catch (error) {
-                    failed++
-                    const retryCount = photo.retryCount + 1
-                    const errorMessage = error instanceof Error ? error.message : '上传失败'
-
-                    // 更新重试计数和状态
-                    await db.pendingPhotos.update(photo.id, {
-                        uploadStatus: 'failed' as UploadStatus,
-                        retryCount,
-                        lastError: errorMessage,
-                    })
-
-                    console.error(`[OfflinePhotoService] Photo upload failed: ${photo.id}`, error)
+            // 分批上传，每批最多 CONCURRENCY 个
+            for (let i = 0; i < readyPhotos.length; i += CONCURRENCY) {
+                const batch = readyPhotos.slice(i, i + CONCURRENCY)
+                const results = await Promise.allSettled(
+                    batch.map(photo => this.uploadSinglePhoto(photo))
+                )
+                for (const result of results) {
+                    if (result.status === 'fulfilled' && result.value) {
+                        success++
+                    } else {
+                        failed++
+                    }
                 }
             }
 
-            return { success, failed, total: pendingPhotos.length }
+            return { success, failed, total: readyPhotos.length }
         })()
 
         try {
             return await this.uploadPromise
         } finally {
             this.uploadPromise = null
+        }
+    }
+
+    /**
+     * 上传单张图片
+     */
+    private async uploadSinglePhoto(photo: PendingPhoto): Promise<boolean> {
+        try {
+            await db.pendingPhotos.update(photo.id, {
+                uploadStatus: 'uploading' as UploadStatus,
+            })
+
+            const result = await this.uploadToServer(photo.blob, photo.filename, photo.mimeType, {
+                takenAt: photo.takenAt,
+                width: photo.width,
+                height: photo.height,
+            })
+
+            // 先更新记忆中的图片引用，再删除 pending 记录
+            // 如果 updateMemoryPhoto 失败，保留 pending 以避免服务器图片孤立
+            try {
+                await this.updateMemoryPhoto(photo.memoryDate, photo.id, result)
+            } catch (e) {
+                console.warn(`[OfflinePhotoService] updateMemoryPhoto failed for ${photo.id}, keeping pending record`, e)
+                await db.pendingPhotos.update(photo.id, {
+                    uploadStatus: 'uploaded' as UploadStatus,
+                })
+                return true // 上传本身成功了
+            }
+
+            await db.pendingPhotos.delete(photo.id)
+
+            console.log(`[OfflinePhotoService] Photo uploaded: ${photo.id} -> ${result.key}`)
+            return true
+        } catch (error) {
+            const retryCount = photo.retryCount + 1
+            const errorMessage = error instanceof Error ? error.message : '上传失败'
+
+            if (retryCount >= 5) {
+                await db.pendingPhotos.delete(photo.id)
+                this.revokeUrl(photo.id)
+                console.error(`[OfflinePhotoService] Photo abandoned after 5 retries: ${photo.id}`)
+            } else {
+                await db.pendingPhotos.update(photo.id, {
+                    uploadStatus: 'failed' as UploadStatus,
+                    retryCount,
+                    lastError: errorMessage,
+                })
+            }
+
+            console.error(`[OfflinePhotoService] Photo upload failed: ${photo.id}`, error)
+            return false
         }
     }
 

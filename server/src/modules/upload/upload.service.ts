@@ -230,8 +230,10 @@ export class UploadService {
         } catch (error) {
             // 清理已上传的部分文件，防止孤儿对象
             await Promise.all(uploadedKeys.map(k => this.safeRemove(k)))
+            // 同时清理原始上传文件
+            await this.safeRemove(key)
             console.error('Error processing photo:', error)
-            throw new Error(`Failed to process photo: ${error instanceof Error ? error.message : 'Unknown error'}`)
+            throw new Error('Failed to process photo')
         }
     }
 }

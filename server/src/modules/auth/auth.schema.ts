@@ -16,7 +16,7 @@ export const loginSchema = z.object({
 
 export const sendCodeSchema = z.object({
     email: ValidationRules.email,
-    purpose: z.enum(['register', 'reset_password', 'change_email']),
+    purpose: z.enum(['register', 'reset_password', 'change_email', 'change_password']),
 })
 
 export const forgotPasswordSchema = z.object({
@@ -26,8 +26,11 @@ export const forgotPasswordSchema = z.object({
 })
 
 export const changePasswordSchema = z.object({
-    oldPassword: z.string().min(1, '请输入旧密码').max(100),
+    oldPassword: z.string().min(1, '请输入旧密码').max(100).optional(),
+    code: z.string().length(6, '验证码必须是 6 位').optional(),
     newPassword: ValidationRules.password,
+}).refine(data => data.oldPassword || data.code, {
+    message: '请提供旧密码或验证码',
 })
 
 export type RegisterInput = z.infer<typeof registerSchema>

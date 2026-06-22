@@ -40,6 +40,8 @@ export const updateMemorySchema = z.object({
     // 支持添加新照片
     photoKeys: z.array(z.string()).optional(),
     photos: z.array(photoDataSchema).optional(),
+    // 支持删除现有照片
+    removePhotoIds: z.array(z.string()).optional(),
 })
 
 export const calendarQuerySchema = z.object({

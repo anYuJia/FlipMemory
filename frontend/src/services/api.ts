@@ -18,6 +18,9 @@ const RETRY_CONFIG = {
     maxDelay: 10000,
 }
 
+// GET 请求去重：相同 URL 的并发 GET 请求共享同一个 Promise
+const inflightGets = new Map<string, Promise<any>>()
+
 // 清除 token 并跳转到登录页
 let isHandlingUnauthorized = false
 function handleUnauthorized() {
@@ -81,8 +84,30 @@ async function fetchWithTimeout(
     }
 }
 
-// 通用请求函数
+// 通用请求函数（带 GET 去重）
 async function request<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    retryCount: number = 0
+): Promise<T> {
+    const method = (options.method || 'GET').toUpperCase()
+
+    // GET 请求去重：相同 URL 的并发请求共享同一个 Promise
+    if (method === 'GET') {
+        const existing = inflightGets.get(endpoint)
+        if (existing) return existing as Promise<T>
+
+        const promise = requestInternal<T>(endpoint, options, retryCount)
+            .finally(() => inflightGets.delete(endpoint))
+        inflightGets.set(endpoint, promise)
+        return promise
+    }
+
+    return requestInternal<T>(endpoint, options, retryCount)
+}
+
+// 内部请求实现
+async function requestInternal<T>(
     endpoint: string,
     options: RequestInit = {},
     retryCount: number = 0
@@ -134,7 +159,9 @@ async function request<T>(
                 try {
                     const json = await response.json()
                     serverMessage = json.message || serverMessage
-                } catch {}
+                } catch (e) {
+                    logger.warn('Failed to parse auth error response', 'API', e)
+                }
                 throw new AppError(serverMessage, 401, null, false)
             }
 
@@ -164,7 +191,7 @@ async function request<T>(
             const retryDelay = getRetryDelay(retryCount)
             logger.info(`Retrying request to ${endpoint} in ${retryDelay}ms (attempt ${retryCount + 1}/${RETRY_CONFIG.maxRetries})`, 'API')
             await delay(retryDelay)
-            return request<T>(endpoint, options, retryCount + 1)
+            return requestInternal<T>(endpoint, options, retryCount + 1)
         }
 
         if (error instanceof AppError) {
@@ -250,7 +277,7 @@ export const api = {
                 body: JSON.stringify(data),
             }),
 
-        sendCode: (data: { email: string; purpose: 'register' | 'reset_password' | 'change_email' }) =>
+        sendCode: (data: { email: string; purpose: 'register' | 'reset_password' | 'change_email' | 'change_password' }) =>
             request<{ message: string }>('/auth/send-code', {
                 method: 'POST',
                 body: JSON.stringify(data),
@@ -262,7 +289,7 @@ export const api = {
                 body: JSON.stringify(data),
             }),
 
-        changePassword: (data: { oldPassword: string; newPassword: string }) =>
+        changePassword: (data: { oldPassword?: string; code?: string; newPassword: string }) =>
             request<{ message: string }>('/auth/change-password', {
                 method: 'POST',
                 body: JSON.stringify(data),

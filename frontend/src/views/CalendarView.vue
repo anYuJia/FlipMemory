@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onActivated, computed, onBeforeUnmount } from 'vue'
 import { useMemoryStore } from '@/stores'
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Sparkles } from 'lucide-vue-next'
 import CalendarGrid from '@/components/calendar/CalendarGrid.vue'
@@ -30,8 +30,16 @@ const goToToday = () => {
   memoryStore.setCurrentMonth(now.getFullYear(), now.getMonth() + 1)
 }
 
+let loadedTimer: ReturnType<typeof setTimeout> | null = null
+onBeforeUnmount(() => { if (loadedTimer) clearTimeout(loadedTimer) })
+
 onMounted(() => {
-  setTimeout(() => { isLoaded.value = true }, 100)
+  loadedTimer = setTimeout(() => { isLoaded.value = true }, 100)
+})
+
+onActivated(() => {
+  const { year, month } = memoryStore.currentMonth
+  memoryStore.fetchCalendarData(year, month)
 })
 </script>
 
@@ -88,7 +96,7 @@ onMounted(() => {
       <div class="flex flex-col items-center gap-3 opacity-30 mt-8 transition-all duration-1000 delay-500" :style="{ opacity: isLoaded ? 0.3 : 0 }">
         <Sparkles class="w-4 h-4" />
         <p class="text-[8px] font-black uppercase tracking-[0.3em] text-center px-10 leading-relaxed">
-          Recorded in the flow of time.
+          {{ t('calendar.subtitle') }}
         </p>
       </div>
     </div>

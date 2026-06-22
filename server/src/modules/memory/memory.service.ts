@@ -1,5 +1,6 @@
 import { prisma, env, minioClient } from '../../shared/config/index.js'
 import { cacheService, CacheTTL } from '../../shared/config/redis.js'
+import { uploadService } from '../upload/upload.service.js'
 import type { CreateMemoryInput, UpdateMemoryInput } from './memory.schema.js'
 
 export class MemoryService {
@@ -107,6 +108,22 @@ export class MemoryService {
     // 创建或更新记忆 (upsert)
     async createMemory(userId: string, input: CreateMemoryInput) {
         const { date, photoKeys, photos, tags, ...data } = input
+
+        // Validate photo keys belong to this user
+        if (photoKeys) {
+            for (const key of photoKeys) {
+                if (!key.startsWith(`uploads/${userId}/`)) {
+                    throw new Error('Unauthorized: photo does not belong to this user')
+                }
+            }
+        }
+        if (photos) {
+            for (const p of photos) {
+                if (!p.key.startsWith(`uploads/${userId}/`)) {
+                    throw new Error('Unauthorized: photo does not belong to this user')
+                }
+            }
+        }
 
         // 构建照片创建数据
         const derivePhotoKeys = (key: string) => {
@@ -228,7 +245,23 @@ export class MemoryService {
 
     // 更新记忆
     async updateMemory(userId: string, date: string, input: UpdateMemoryInput) {
-        const { tags, photoKeys, photos, ...data } = input
+        const { tags, photoKeys, photos, removePhotoIds, ...data } = input
+
+        // Validate photo keys belong to this user
+        if (photoKeys) {
+            for (const key of photoKeys) {
+                if (!key.startsWith(`uploads/${userId}/`)) {
+                    throw new Error('Unauthorized: photo does not belong to this user')
+                }
+            }
+        }
+        if (photos) {
+            for (const p of photos) {
+                if (!p.key.startsWith(`uploads/${userId}/`)) {
+                    throw new Error('Unauthorized: photo does not belong to this user')
+                }
+            }
+        }
 
         // 构建新照片创建数据
         const derivePhotoKeys = (key: string) => {
@@ -257,6 +290,27 @@ export class MemoryService {
             ...derivePhotoKeys(key),
             order: nextOrder + index,
         }))
+
+        // 删除标记移除的照片
+        if (removePhotoIds && removePhotoIds.length > 0) {
+            const photosToRemove = await prisma.photo.findMany({
+                where: {
+                    id: { in: removePhotoIds },
+                    memory: { userId, date: new Date(date) },
+                },
+            })
+            if (photosToRemove.length > 0) {
+                await prisma.photo.deleteMany({
+                    where: { id: { in: photosToRemove.map(p => p.id) } },
+                })
+                // 异步清理 MinIO 文件
+                for (const p of photosToRemove) {
+                    uploadService.deletePhoto(p.originalKey).catch((err) => {
+                        console.error(`Failed to delete photo ${p.originalKey} from MinIO:`, err)
+                    })
+                }
+            }
+        }
 
         const memory = await prisma.memory.update({
             where: {

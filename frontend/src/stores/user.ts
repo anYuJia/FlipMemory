@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import type { User, UserSettings } from '@/types'
 import api from '@/services/api'
 import { saveToken, getToken, removeToken } from '@/services/tokenManager'
+import { clearAllData } from '@/services/db'
 import router from '@/router'
 
 export interface UserProfile {
@@ -116,7 +117,7 @@ export const useUserStore = defineStore('user', () => {
     async function login(account: string, password: string) {
         const res = await api.auth.login({ account, password })
         setAccessToken(res.accessToken)
-        user.value = res.user as unknown as User
+        user.value = { ...user.value, ...res.user } as User
         localStorage.setItem('userInfo', JSON.stringify(res.user))
         return res.user
     }
@@ -124,7 +125,7 @@ export const useUserStore = defineStore('user', () => {
     async function register(email: string, username: string, password: string, nickname: string, code: string) {
         const res = await api.auth.register({ email, username, password, nickname, code })
         setAccessToken(res.accessToken)
-        user.value = res.user as unknown as User
+        user.value = { ...user.value, ...res.user } as User
         localStorage.setItem('userInfo', JSON.stringify(res.user))
         return res.user
     }
@@ -132,7 +133,7 @@ export const useUserStore = defineStore('user', () => {
     async function fetchProfile() {
         try {
             const data = await api.user.getProfile()
-            profile.value = data as unknown as UserProfile
+            profile.value = data as UserProfile
             localStorage.setItem('userProfile', JSON.stringify(data))
             return data
         } catch (e) {
@@ -142,17 +143,19 @@ export const useUserStore = defineStore('user', () => {
 
     async function updateProfile(data: Partial<UserProfile>) {
         const updated = await api.user.updateProfile(data)
-        profile.value = updated as unknown as UserProfile
+        profile.value = updated as UserProfile
         localStorage.setItem('userProfile', JSON.stringify(updated))
         return updated
     }
 
-    function logout() {
+    async function logout() {
         user.value = null; profile.value = null; accessToken.value = null
         // Selectively remove auth-related keys, preserve theme/language/settings
         const authKeys = ['accessToken', 'refreshToken', 'tokenExpiry', 'userInfo', 'userProfile', 'userSettings', 'flipMemory_lastSyncTime']
         authKeys.forEach(key => localStorage.removeItem(key))
         removeToken()
+        // Clear IndexedDB to prevent cross-user data leakage
+        await clearAllData().catch(() => {})
         router.push({ name: 'auth' })
     }
 

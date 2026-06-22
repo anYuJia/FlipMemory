@@ -128,6 +128,8 @@
     "old_password": "現在のパスワード",
     "old_password_placeholder": "現在のパスワードを入力",
     "change_password_success": "パスワードが変更されました",
+    "via_password": "パスワードで変更",
+    "via_code": "認証コードで変更",
     "back_to_login": "ログインに戻る"
   },
   "settings": {

@@ -74,10 +74,8 @@ export function cacheKey(type: string, ...parts: (string | number)[]): string {
  * 缓存服务
  */
 export class CacheService {
-    private redis: Redis | null
-
-    constructor() {
-        this.redis = getRedis()
+    private get redis(): Redis | null {
+        return getRedis()
     }
 
     /**

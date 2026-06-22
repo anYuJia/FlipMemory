@@ -71,11 +71,6 @@ initSentry(app, router)
 // 初始化性能监控 (Task 1)
 performanceMonitor.init()
 
-// 初始化用户设置
-import { useUserStore } from './stores'
-const userStore = useUserStore(pinia)
-userStore.init()
-
 // Capacitor 原生适配逻辑
 async function initCapacitor() {
     if (!Capacitor.isNativePlatform()) return
@@ -119,3 +114,7 @@ async function initCapacitor() {
 
 app.mount('#app')
 initCapacitor()
+
+// 清理性能监控
+app.config.globalProperties.$onUnmount = () => performanceMonitor.destroy()
+window.addEventListener('beforeunload', () => performanceMonitor.destroy())

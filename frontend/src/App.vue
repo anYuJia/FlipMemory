@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed, ref, watch } from 'vue'
+import { onMounted, onBeforeUnmount, computed, ref, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import AppNav from './components/layout/AppNav.vue'
 import ToastNotification from './components/ui/ToastNotification.vue'
@@ -10,6 +10,7 @@ import GlobalConfirmDialog from './components/GlobalConfirmDialog.vue'
 import GlobalConflictDialog from './components/GlobalConflictDialog.vue'
 import { useUserStore, useOfflineStore } from './stores'
 import { useTimeTheme } from './composables/useTimeTheme'
+import { offlinePhotoService } from './services/offlinePhotoService'
 
 const userStore = useUserStore()
 const offlineStore = useOfflineStore()
@@ -37,6 +38,10 @@ watch(() => route.name, (newName, oldName) => {
 onMounted(async () => {
   userStore.init()
   await offlineStore.init()
+})
+
+onBeforeUnmount(() => {
+  offlinePhotoService.revokeAllUrls()
 })
 </script>
 

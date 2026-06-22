@@ -158,6 +158,22 @@ export class AuthService {
             data: { passwordHash },
         })
     }
+
+    /**
+     * 通过验证码修改密码（已登录用户）
+     */
+    async changePasswordById(userId: string, newPassword: string) {
+        const user = await prisma.user.findUnique({ where: { id: userId } })
+        if (!user) {
+            throw new Error('User not found')
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10)
+        await prisma.user.update({
+            where: { id: userId },
+            data: { passwordHash },
+        })
+    }
 }
 
 export const authService = new AuthService()

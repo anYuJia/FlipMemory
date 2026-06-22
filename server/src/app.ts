@@ -29,18 +29,13 @@ export async function buildApp() {
     // 安全头
     registerSecurityHeaders(app)
 
-    // CORS（终极宽松模式）
+    // CORS — 安卓 App (Capacitor) origin 不可预测，需放行所有来源
     await app.register(cors, {
-        origin: (origin, cb) => {
-            // 直接允许所有 origin，并在响应中反射请求的 origin
-            cb(null, true)
-        },
+        origin: true,
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
         maxAge: 86400,
-        preflightContinue: false,
-        optionsSuccessStatus: 204
     })
 
     // API 速率限制（先于请求体清理，尽早拒绝超限请求）
@@ -65,7 +60,8 @@ export async function buildApp() {
         try {
             await prisma.$queryRaw`SELECT 1`
             checks.database = 'ok'
-        } catch {
+        } catch (err) {
+            app.log.error(err, 'Health check: database error')
             checks.database = 'error'
         }
 
@@ -75,7 +71,8 @@ export async function buildApp() {
             try {
                 await redis.ping()
                 checks.redis = 'ok'
-            } catch {
+            } catch (err) {
+                app.log.error(err, 'Health check: redis error')
                 checks.redis = 'error'
             }
         } else {
@@ -100,9 +97,19 @@ export async function buildApp() {
     app.setErrorHandler((error: unknown, request, reply) => {
         app.log.error(error)
 
-        const err = error as { statusCode?: number; message?: string }
+        const err = error as { statusCode?: number; message?: string; validation?: unknown }
         const statusCode = err.statusCode || 500
-        const message = err.message || 'Internal server error'
+
+        // 客户端错误 (4xx) 且非验证错误：返回原始消息
+        // 服务端错误 (5xx)：使用通用消息，避免泄露内部实现细节
+        let message: string
+        if (statusCode >= 500) {
+            message = 'Internal server error'
+        } else if (err.validation) {
+            message = 'Validation error'
+        } else {
+            message = err.message || 'Request failed'
+        }
 
         reply.status(statusCode).send({
             code: statusCode,

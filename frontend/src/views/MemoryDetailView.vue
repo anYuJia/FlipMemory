@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMemoryStore } from '@/stores'
 import { 
@@ -61,8 +61,25 @@ const handleDelete = async () => {
   }
 }
 
-const handleShare = () => { /* 实现分享逻辑 */ }
+const handleShare = async () => {
+  if (!memory.value) return
+  const text = memory.value.content || t('detail.no_entry')
+  const title = `${formattedDateDay.value} ${formattedMonthYear.value}`
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text })
+    } catch {}
+  } else {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success(t('common.success'))
+    } catch {}
+  }
+}
 const goBack = () => safeBack()
+
+let visibilityTimer: ReturnType<typeof setTimeout> | null = null
+onBeforeUnmount(() => { if (visibilityTimer) clearTimeout(visibilityTimer) })
 
 onMounted(async () => {
   if (!memory.value) {
@@ -73,7 +90,7 @@ onMounted(async () => {
     }
     isLoading.value = false
   }
-  setTimeout(() => { isVisible.value = true }, 100)
+  visibilityTimer = setTimeout(() => { isVisible.value = true }, 100)
 })
 </script>
 
@@ -163,14 +180,14 @@ onMounted(async () => {
           <Edit3 class="w-10 h-10 opacity-10" />
         </div>
         <div class="text-center space-y-2">
-          <h2 class="text-2xl font-serif italic opacity-40">{{ t('detail.no_memory') || 'No memory for this day' }}</h2>
+          <h2 class="text-2xl font-serif italic opacity-40">{{ t('detail.no_memory') }}</h2>
           <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-20">{{ formattedDateDay }} {{ formattedMonthYear }}</p>
         </div>
         <button 
           @click="router.push({ name: 'create-memory', query: { date } })" 
           class="px-10 py-4 rounded-3xl bg-black dark:bg-white text-white dark:text-black font-black uppercase text-[10px] tracking-widest transition-all btn-active shadow-xl"
         >
-          {{ t('common.create') || 'Create Now' }}
+          {{ t('common.create') }}
         </button>
       </div>
     </main>

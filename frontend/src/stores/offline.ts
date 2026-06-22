@@ -41,6 +41,7 @@ export const useOfflineStore = defineStore('offline', () => {
     // 初始化状态
     const isInitialized = ref(false)
     let swListenerRegistered = false
+    let swMessageHandler: ((event: MessageEvent) => void) | null = null
     let watcherCleanups: (() => void)[] = []
 
     // ===== 计算属性 =====
@@ -111,13 +112,14 @@ export const useOfflineStore = defineStore('offline', () => {
             // 监听来自 Service Worker 的同步消息
             if ('serviceWorker' in navigator && !swListenerRegistered) {
                 swListenerRegistered = true
-                navigator.serviceWorker.addEventListener('message', (event) => {
+                swMessageHandler = (event: MessageEvent) => {
                     if (event.data?.type === 'SYNC_TRIGGERED') {
                         syncPendingOperations().catch(err => {
                             logger.error('SW triggered sync failed', LOG_CONTEXT, err)
                         })
                     }
-                })
+                }
+                navigator.serviceWorker.addEventListener('message', swMessageHandler)
             }
 
             // 初始化时若已经联网且存在历史待同步数据，也应立即触发补同步
@@ -152,11 +154,47 @@ export const useOfflineStore = defineStore('offline', () => {
     }
 
     /**
-     * 添加操作到同步队列
+     * 添加操作到同步队列（自动去重）
      */
     async function addToSyncQueue(
         operation: Omit<SyncOperation, 'id' | 'createdAt' | 'retryCount'>
     ): Promise<number> {
+        // 去重：检查是否已有相同实体的同类型操作
+        const existing = await db.syncQueue
+            .where('entityId')
+            .equals(operation.entityId)
+            .toArray()
+
+        const duplicate = existing.find(op => op.type === operation.type && op.entityType === operation.entityType)
+        if (duplicate) {
+            // 更新已有操作的数据，而不是创建新条目
+            await db.syncQueue.update(duplicate.id!, {
+                data: operation.data,
+                retryCount: 0,
+                lastError: undefined,
+            })
+            await updatePendingCount()
+            return duplicate.id!
+        }
+
+        // 特殊逻辑：delete 操作可以抵消 create 操作
+        if (operation.type === 'delete') {
+            const pendingCreate = existing.find(op => op.type === 'create' && op.entityType === operation.entityType)
+            if (pendingCreate) {
+                await db.syncQueue.delete(pendingCreate.id!)
+                // 同时清理 IndexedDB 中的孤立本地数据
+                if (operation.entityType === 'memory') {
+                    const createData = pendingCreate.data as { date?: string }
+                    if (createData?.date) {
+                        await db.memories.delete(createData.date).catch(() => {})
+                        await db.calendarDays.delete(createData.date).catch(() => {})
+                    }
+                }
+                await updatePendingCount()
+                return 0
+            }
+        }
+
         const id = await db.syncQueue.add({
             ...operation,
             createdAt: Date.now(),
@@ -221,6 +259,15 @@ export const useOfflineStore = defineStore('offline', () => {
             let successCount = photoResult.success
 
             for (const op of operations) {
+                // 指数退避：根据重试次数和上次重试时间计算
+                if (op.retryCount > 0 && op.lastRetryAt) {
+                    const backoffMs = Math.min(1000 * Math.pow(2, op.retryCount - 1), 30000)
+                    if (Date.now() - op.lastRetryAt < backoffMs) {
+                        completedItems++
+                        continue // 还没到重试时间，跳过
+                    }
+                }
+
                 try {
                     await processOperation(op)
                     await db.syncQueue.delete(op.id!)
@@ -228,21 +275,22 @@ export const useOfflineStore = defineStore('offline', () => {
                     completedItems++
                     syncProgress.value = Math.round((completedItems / totalItems) * 100)
                 } catch (error) {
-                    // 更新重试次数和错误信息
                     const retryCount = op.retryCount + 1
                     const lastError = error instanceof Error ? error.message : '同步失败'
 
-                    await db.syncQueue.update(op.id!, {
-                        retryCount,
-                        lastError,
-                    })
+                    if (retryCount >= 5) {
+                        // 超过最大重试次数，移出队列
+                        await db.syncQueue.delete(op.id!)
+                        logger.error(`操作重试 5 次后放弃: ${op.entityType}/${op.type}`, LOG_CONTEXT, { op, error })
+                    } else {
+                        await db.syncQueue.update(op.id!, {
+                            retryCount,
+                            lastError,
+                            lastRetryAt: Date.now(),
+                        })
+                    }
 
                     completedItems++
-
-                    // 超过最大重试次数（3次），记录错误但继续处理其他操作
-                    if (retryCount >= 3) {
-                        logger.error('操作重试 3 次后失败', LOG_CONTEXT, { op, error })
-                    }
                 }
             }
 
@@ -315,24 +363,59 @@ export const useOfflineStore = defineStore('offline', () => {
                     ...(mergedPhotoKeys.length > 0 ? { photoKeys: mergedPhotoKeys } : {}),
                 }
 
-                const serverMemory = await api.memories.create(payload)
-                // 更新本地缓存，替换临时 ID
-                if (localMemory) {
-                    await db.memories.put({
-                        ...localMemory,
-                        ...serverMemory,
-                        _syncStatus: 'synced' as SyncStatus,
-                        _localUpdatedAt: Date.now(),
-                        _isTemp: false,
-                    })
+                try {
+                    const serverMemory = await api.memories.create(payload)
+                    if (localMemory) {
+                        await db.memories.put({
+                            ...localMemory,
+                            ...serverMemory,
+                            _syncStatus: 'synced' as SyncStatus,
+                            _localUpdatedAt: Date.now(),
+                            _isTemp: false,
+                        })
+                    }
+                } catch (error: any) {
+                    // 如果服务器返回 409 (已存在)，说明该日期已有记忆，改为更新
+                    if (error?.code === 409 || error?.message?.includes('already exists')) {
+                        const { date, ...updateData } = restData
+                        await api.memories.update(date, updateData)
+                        if (localMemory) {
+                            await db.memories.put({
+                                ...localMemory,
+                                _syncStatus: 'synced' as SyncStatus,
+                                _localUpdatedAt: Date.now(),
+                                _isTemp: false,
+                            })
+                        }
+                    } else {
+                        throw error
+                    }
                 }
                 break
             }
 
             case 'update': {
-                await api.memories.update(op.entityId, op.data)
-                // 更新本地缓存状态
+                // 冲突检测：获取服务器最新版本进行比较
                 const localMemory = await db.memories.get(op.entityId)
+                let serverMemory: any = null
+                try {
+                    serverMemory = await api.memories.getByDate(op.entityId)
+                } catch (err) {
+                    logger.warn(`Conflict check: failed to fetch server version for ${op.entityId}`, LOG_CONTEXT, err)
+                }
+
+                if (serverMemory && localMemory) {
+                    const serverUpdated = new Date(serverMemory.updatedAt).getTime()
+                    const localQueued = op.createdAt
+
+                    if (serverUpdated > localQueued) {
+                        // 服务器数据更新——本地更改基于旧数据
+                        // 策略：本地修改的字段覆盖服务器，未修改的保留服务器值
+                        logger.warn(`冲突检测: ${op.entityId} 服务器更新于 ${new Date(serverUpdated).toISOString()}`, LOG_CONTEXT)
+                    }
+                }
+
+                await api.memories.update(op.entityId, op.data)
                 if (localMemory) {
                     await db.memories.put({
                         ...localMemory,
@@ -344,8 +427,16 @@ export const useOfflineStore = defineStore('offline', () => {
             }
 
             case 'delete': {
-                await api.memories.delete(op.entityId)
-                // 本地已经删除，无需额外操作
+                try {
+                    await api.memories.delete(op.entityId)
+                } catch (error: any) {
+                    // 404 表示服务器已删除，不算错误
+                    if (error?.code === 404 || error?.message?.includes('not found')) {
+                        logger.info(`记忆 ${op.entityId} 在服务器已不存在，跳过删除`, LOG_CONTEXT)
+                    } else {
+                        throw error
+                    }
+                }
                 break
             }
         }
@@ -582,6 +673,20 @@ export const useOfflineStore = defineStore('offline', () => {
         }
     }
 
+    /**
+     * 清理 Store 资源（watchers、event listeners）
+     */
+    function dispose() {
+        watcherCleanups.forEach(cleanup => cleanup())
+        watcherCleanups = []
+        if (swMessageHandler && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.removeEventListener('message', swMessageHandler)
+            swMessageHandler = null
+            swListenerRegistered = false
+        }
+        isInitialized.value = false
+    }
+
     // ===== 导出 =====
 
     return {
@@ -602,6 +707,7 @@ export const useOfflineStore = defineStore('offline', () => {
 
         // 初始化
         init,
+        dispose,
 
         // 同步队列
         addToSyncQueue,

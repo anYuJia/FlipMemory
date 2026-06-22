@@ -225,7 +225,11 @@ export const offlineApi = {
             content: string
             mood: MoodType
             isPrivate: boolean
+            location: string
+            weather: string
             tags: string[]
+            photoKeys: string[]
+            removePhotoIds: string[]
         }>): Promise<Memory | null> {
             const offlineStore = useOfflineStore()
 

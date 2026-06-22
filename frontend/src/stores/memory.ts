@@ -10,6 +10,10 @@ import { logger } from '@/services/logger'
 
 const LOG_CONTEXT = 'MemoryStore'
 
+// 缓存大小限制
+const MAX_MEMORIES_CACHE = 100
+const MAX_CALENDAR_DAYS_CACHE = 400 // ~13 个月
+
 export const useMemoryStore = defineStore('memory', () => {
     // ===== State =====
     const memories = ref<Map<string, Memory>>(new Map())
@@ -23,6 +27,27 @@ export const useMemoryStore = defineStore('memory', () => {
     const error = ref<string | null>(null)
     const recentMemories = ref<Memory[]>([])
     const searchResults = ref<Memory[]>([])
+
+    // ===== Helpers =====
+    /** 当 Map 超出限制时删除最早插入的条目 */
+    function evictOldest<K, V>(map: Map<K, V>, max: number) {
+        while (map.size > max) {
+            const firstKey = map.keys().next().value
+            if (firstKey !== undefined) map.delete(firstKey)
+            else break
+        }
+    }
+
+    /** 清除指定月份的日历缓存 */
+    function invalidateCalendarMonth(date: string) {
+        const [y, m] = date.split('-')
+        const prefix = `${y}-${m}-`
+        for (const key of calendarDays.value.keys()) {
+            if (key.startsWith(prefix)) {
+                calendarDays.value.delete(key)
+            }
+        }
+    }
 
     // ===== Getters =====
     const currentMemory = computed(() => {
@@ -92,6 +117,7 @@ export const useMemoryStore = defineStore('memory', () => {
             response.days.forEach((day: CalendarDay) => {
                 calendarDays.value.set(day.date, day)
             })
+            evictOldest(calendarDays.value, MAX_CALENDAR_DAYS_CACHE)
             logger.debug(`获取日历数据成功: ${year}-${month}`, LOG_CONTEXT)
         } catch (e) {
             error.value = e instanceof Error ? e.message : '加载失败'
@@ -113,6 +139,7 @@ export const useMemoryStore = defineStore('memory', () => {
             const memory = await offlineApi.memories.getByDate(date)
             if (memory) {
                 memories.value.set(date, memory)
+                evictOldest(memories.value, MAX_MEMORIES_CACHE)
             }
             return memory
         } catch (e) {
@@ -135,6 +162,8 @@ export const useMemoryStore = defineStore('memory', () => {
             // 使用离线优先 API - 会自动处理离线情况
             const memory = await offlineApi.memories.create(input)
             memories.value.set(input.date, memory)
+            // 立即刷新对应月份的日历缓存
+            invalidateCalendarMonth(input.date)
             calendarDays.value.set(input.date, {
                 date: input.date,
                 hasMemory: true,
@@ -155,7 +184,7 @@ export const useMemoryStore = defineStore('memory', () => {
     /**
      * 更新记忆（支持离线）
      */
-    async function updateMemory(date: string, input: { content?: string; mood?: MoodType; isPrivate?: boolean; photoKeys?: string[] }) {
+    async function updateMemory(date: string, input: { content?: string; mood?: MoodType; isPrivate?: boolean; location?: string; weather?: string; photoKeys?: string[]; removePhotoIds?: string[] }) {
         isLoading.value = true
         error.value = null
 

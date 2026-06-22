@@ -71,8 +71,12 @@ export async function encryptText(text: string, password: string): Promise<strin
     combined.set(iv, salt.length)
     combined.set(new Uint8Array(encrypted), salt.length + iv.length)
 
-    // 转换为 Base64
-    return btoa(String.fromCharCode(...combined))
+    // 转换为 Base64（分块处理避免栈溢出）
+    const chunks: string[] = []
+    for (let i = 0; i < combined.length; i += 8192) {
+        chunks.push(String.fromCharCode(...combined.subarray(i, i + 8192)))
+    }
+    return btoa(chunks.join(''))
 }
 
 /**

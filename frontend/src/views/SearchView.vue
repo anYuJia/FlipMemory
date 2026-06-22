@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { safeBack } from '@/router'
 import { Search, X, ArrowLeft, TrendingUp, History, Sparkles } from 'lucide-vue-next'
@@ -44,25 +44,23 @@ const hotTags = computed(() => [
   t('search.hot_tags.friends')
 ])
 
+// 使用 store 的搜索结果（调用后端 API 或 IndexedDB）
 const searchResults = computed(() => {
-  const query = debouncedSearchQuery.value.trim().toLowerCase()
+  const query = debouncedSearchQuery.value.trim()
   if (!query) return []
-  const results: any[] = []
+  return memoryStore.searchResults.map(m => ({
+    date: m.date,
+    content: m.content,
+    mood: m.mood,
+    photoUrl: m.photos?.[0]?.thumbnailUrl || m.photos?.[0]?.originalUrl
+  }))
+})
 
-  const memoriesMap = (memoryStore.memories as unknown) as Map<string, any>
-
-  for (const [date, memory] of memoriesMap) {
-    if (date.includes(query) || memory.content?.toLowerCase().includes(query)) {
-      results.push({
-        date,
-        content: memory.content,
-        mood: memory.mood,
-        photoUrl: memory.photos?.[0]?.thumbnailUrl || memory.photos?.[0]?.originalUrl
-      })
-      if (results.length >= 50) break
-    }
+// 监听搜索词变化，触发后端搜索
+watch(debouncedSearchQuery, async (query) => {
+  if (query.trim()) {
+    await memoryStore.searchMemories({ q: query.trim() })
   }
-  return results
 })
 
 const doSearch = () => {
@@ -115,9 +113,12 @@ const truncateText = (text: string, length = 80) => {
   return text.substring(0, length) + '...'
 }
 
+let loadedTimer: ReturnType<typeof setTimeout> | null = null
+onBeforeUnmount(() => { if (loadedTimer) clearTimeout(loadedTimer) })
+
 onMounted(() => {
-  setTimeout(() => { 
-    isLoaded.value = true 
+  loadedTimer = setTimeout(() => {
+    isLoaded.value = true
     searchInputRef.value?.focus()
   }, 100)
 })

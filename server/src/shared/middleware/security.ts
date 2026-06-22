@@ -3,6 +3,7 @@
  */
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import he from 'he'
 
 /**
  * 安全头配置
@@ -22,6 +23,9 @@ export const securityHeaders = {
 
     // 权限策略
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self)',
+
+    // 内容安全策略
+    'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; connect-src 'self' https:; font-src 'self'; frame-ancestors 'none'",
 }
 
 /**
@@ -77,23 +81,11 @@ export function getCorsConfig(frontendUrls: string | string[]) {
 }
 
 /**
- * 输入清理函数
+ * 输入清理函数 — HTML 实体编码，防止 XSS
  */
 export function sanitizeInput(input: string): string {
     if (typeof input !== 'string') return input
-
-    return input
-        // 移除 HTML 标签
-        .replace(/<[^>]*>/g, '')
-        // 转义特殊字符
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;')
-        // 移除潜在的脚本注入
-        .replace(/javascript:/gi, '')
-        .replace(/on\w+=/gi, '')
+    return he.encode(input, { useNamedReferences: false })
 }
 
 /**
