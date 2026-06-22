@@ -24,10 +24,13 @@ ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
 # 生成 Prisma 客户端
 RUN npx prisma generate
 
+# 编译为单文件 JS（生产用 node 直跑，去掉 tsx 运行时开销）
+RUN pnpm build
+
 # 设置环境变量
 ENV NODE_ENV=production
 
 EXPOSE 4000
 
 # 生产环境启动脚本：使用 db push 强制同步架构（忽略缺失的迁移文件）
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npx tsx src/server.ts"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/server.js"]
