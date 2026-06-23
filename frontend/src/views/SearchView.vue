@@ -215,11 +215,11 @@ onMounted(() => {
         </div>
         
         <div class="space-y-4 pb-20">
-          <div 
-            v-for="(result, index) in searchResults" :key="result.date" 
+          <div
+            v-for="(result, index) in searchResults" :key="result.date"
             @click="viewMemory(result.date)"
             class="group relative p-5 rounded-[2rem] card-static grainy-overlay overflow-hidden transition-all duration-500 hover:scale-[1.01] active:scale-[0.98]"
-            :style="{ animationDelay: `${index * 40}ms` }"
+            :style="{ animationDelay: `${index * 40}ms`, contentVisibility: 'auto', containIntrinsicSize: '120px' }"
           >
             <div class="relative flex gap-5 items-center">
               <div class="flex-shrink-0">

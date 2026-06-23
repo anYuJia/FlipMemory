@@ -13,6 +13,17 @@ async function main() {
         await prisma.$connect()
         console.log('✅ Database connected')
 
+        // 确保 pg_trgm 扩展和搜索索引存在（加速 ILIKE '%query%'）
+        try {
+            await prisma.$executeRawUnsafe('CREATE EXTENSION IF NOT EXISTS pg_trgm')
+            await prisma.$executeRawUnsafe(
+                'CREATE INDEX IF NOT EXISTS memories_content_trgm_idx ON memories USING GIN (content gin_trgm_ops)'
+            )
+            console.log('✅ pg_trgm search index ready')
+        } catch (err) {
+            console.warn('⚠️ pg_trgm index setup skipped (search will use seq scan):', err)
+        }
+
         // 初始化 Redis
         try {
             initRedis()
