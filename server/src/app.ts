@@ -1,6 +1,7 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
+import compress from '@fastify/compress'
 import { env } from './shared/config/index.js'
 import { authRoutes } from './modules/auth/auth.routes.js'
 import { memoryRoutes } from './modules/memory/memory.routes.js'
@@ -37,6 +38,9 @@ export async function buildApp() {
         allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
         maxAge: 86400,
     })
+
+    // 响应压缩（brotli 优先，gzip 兜底，阈值 1KB）
+    await app.register(compress, { threshold: 1024 })
 
     // API 速率限制（先于请求体清理，尽早拒绝超限请求）
     await registerRateLimit(app)

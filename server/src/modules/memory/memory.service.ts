@@ -423,15 +423,19 @@ export class MemoryService {
             include: { photos: true },
         })
 
-        // 随机记忆 - 使用安全参数化查询
-        const randomMemories = await prisma.$queryRaw<any[]>`
-            SELECT m.*, 
-                   (SELECT json_agg(p.*) FROM photos p WHERE p."memoryId" = m.id) as photos
-            FROM memories m
-            WHERE m."userId" = ${userId}
+        // 随机记忆 — 先取 ID（避免 correlated subquery N+1），再 include photos
+        const randomIds = await prisma.$queryRaw<{ id: string }[]>`
+            SELECT id FROM memories
+            WHERE "userId" = ${userId}
             ORDER BY RANDOM()
             LIMIT 5
         `
+        const randomMemories = randomIds.length > 0
+            ? await prisma.memory.findMany({
+                where: { id: { in: randomIds.map(r => r.id) } },
+                include: { photos: true },
+              })
+            : []
 
         return {
             yearAgo: yearAgoMemory
@@ -724,19 +728,23 @@ export class MemoryService {
         const month = today.getMonth() + 1
         const day = today.getDate()
 
-        // 优化：使用 Raw SQL 直接在数据库中过滤月和日
-        // 这样可以避免从数据库中取出所有记忆并在 JS 中过滤
-        const memories = await prisma.$queryRaw<any[]>`
-            SELECT m.*,
-                   (SELECT json_agg(p.*) FROM photos p WHERE p."memoryId" = m.id LIMIT 1) as photos
-            FROM memories m
-            WHERE m."userId" = ${userId}
-              AND EXTRACT(MONTH FROM m.date) = ${month}
-              AND EXTRACT(DAY FROM m.date) = ${day}
-              AND EXTRACT(YEAR FROM m.date) < ${today.getFullYear()}
-            ORDER BY m.date DESC
+        // 先用 raw SQL 取 ID（EXTRACT 过滤月日），再 include photos（避免 N+1）
+        const anniversaryIds = await prisma.$queryRaw<{ id: string }[]>`
+            SELECT id FROM memories
+            WHERE "userId" = ${userId}
+              AND EXTRACT(MONTH FROM date) = ${month}
+              AND EXTRACT(DAY FROM date) = ${day}
+              AND EXTRACT(YEAR FROM date) < ${today.getFullYear()}
+            ORDER BY date DESC
             LIMIT 20
         `
+        const memories = anniversaryIds.length > 0
+            ? await prisma.memory.findMany({
+                where: { id: { in: anniversaryIds.map(r => r.id) } },
+                include: { photos: { take: 1 } },
+                orderBy: { date: 'desc' },
+              })
+            : []
 
         return memories.map((m) => ({
             ...m,
