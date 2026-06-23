@@ -3,16 +3,40 @@
  * 使用 Web Crypto API 进行端到端加密
  */
 
+// 派生密钥缓存：同密码+salt 复用，避免每次加解密都跑 100K PBKDF2 迭代
+let _keyCache: { password: string; salt: Uint8Array; key: CryptoKey } | null = null
+
+function saltsEqual(a: Uint8Array, b: Uint8Array): boolean {
+    if (a.length !== b.length) return false
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false
+    return true
+}
+
 /**
- * 生成加密密钥
+ * 生成加密密钥（带缓存）
  * @param password 用户密码
- * @param salt 可选的 salt，如果不提供则生成新的
+ * @param salt 可选的 salt，如果不提供则生成新的（加密时）或复用缓存的
  * @returns 密钥和使用的 salt
  */
 export async function generateEncryptionKey(
     password: string,
     salt?: Uint8Array
 ): Promise<{ key: CryptoKey; salt: Uint8Array }> {
+    // 缓存命中检查
+    if (_keyCache) {
+        if (salt) {
+            // 解密：同密码 + 同 salt → 复用
+            if (_keyCache.password === password && saltsEqual(_keyCache.salt, salt)) {
+                return { key: _keyCache.key, salt }
+            }
+        } else {
+            // 加密：同密码 → 复用缓存的 salt 和 key（避免重复 PBKDF2）
+            if (_keyCache.password === password) {
+                return { key: _keyCache.key, salt: _keyCache.salt }
+            }
+        }
+    }
+
     const encoder = new TextEncoder()
     const data = encoder.encode(password)
 
@@ -41,7 +65,17 @@ export async function generateEncryptionKey(
         ['encrypt', 'decrypt']
     )
 
+    // 写入缓存
+    _keyCache = { password, salt: usedSalt, key }
+
     return { key, salt: usedSalt }
+}
+
+/**
+ * 清除密钥缓存（密码变更 / 登出时调用）
+ */
+export function clearKeyCache() {
+    _keyCache = null
 }
 
 /**
@@ -74,7 +108,10 @@ export async function encryptText(text: string, password: string): Promise<strin
     // 转换为 Base64（分块处理避免栈溢出）
     const chunks: string[] = []
     for (let i = 0; i < combined.length; i += 8192) {
-        chunks.push(String.fromCharCode(...combined.subarray(i, i + 8192)))
+        const sub = combined.subarray(i, i + 8192)
+        let s = ''
+        for (let j = 0; j < sub.length; j++) s += String.fromCharCode(sub[j])
+        chunks.push(s)
     }
     return btoa(chunks.join(''))
 }
@@ -85,12 +122,10 @@ export async function encryptText(text: string, password: string): Promise<strin
  */
 export async function decryptText(encryptedText: string, password: string): Promise<string> {
     try {
-        // 从 Base64 解码
-        const combined = new Uint8Array(
-            atob(encryptedText)
-                .split('')
-                .map(c => c.charCodeAt(0))
-        )
+        // 从 Base64 解码（避免 split+map 的 3x 内存开销）
+        const raw = atob(encryptedText)
+        const combined = new Uint8Array(raw.length)
+        for (let i = 0; i < raw.length; i++) combined[i] = raw.charCodeAt(i)
 
         // 提取 salt、IV 和加密数据
         const salt = combined.slice(0, 16)

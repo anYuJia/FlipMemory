@@ -153,6 +153,16 @@ export const useOfflineStore = defineStore('offline', () => {
         }
     }
 
+    // debounce 版本：批量添加操作时避免每条都查 DB count
+    let _pendingCountTimer: ReturnType<typeof setTimeout> | null = null
+    function updatePendingCountDebounced() {
+        if (_pendingCountTimer) clearTimeout(_pendingCountTimer)
+        _pendingCountTimer = setTimeout(() => {
+            updatePendingCount()
+            _pendingCountTimer = null
+        }, 200)
+    }
+
     /**
      * 添加操作到同步队列（自动去重）
      */
@@ -173,7 +183,7 @@ export const useOfflineStore = defineStore('offline', () => {
                 retryCount: 0,
                 lastError: undefined,
             })
-            await updatePendingCount()
+            updatePendingCountDebounced()
             return duplicate.id!
         }
 
@@ -190,7 +200,7 @@ export const useOfflineStore = defineStore('offline', () => {
                         await db.calendarDays.delete(createData.date).catch(() => {})
                     }
                 }
-                await updatePendingCount()
+                updatePendingCountDebounced()
                 return 0
             }
         }
@@ -201,7 +211,7 @@ export const useOfflineStore = defineStore('offline', () => {
             retryCount: 0,
             priority: operation.priority ?? 10,
         })
-        await updatePendingCount()
+        updatePendingCountDebounced()
 
         // 如果在线且未开启离线模式，尝试立即同步
         if (isOnline.value && !offlineModeEnabled.value) {

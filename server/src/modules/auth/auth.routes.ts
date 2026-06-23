@@ -147,7 +147,7 @@ export async function authRoutes(app: FastifyInstance) {
     })
 
     // ==================== 检查用户名可用性 ====================
-    app.get('/check-username', { preHandler: [createEndpointRateLimit('login')] }, async (request, reply) => {
+    app.get('/check-username', { preHandler: [createEndpointRateLimit('checkUsername')] }, async (request, reply) => {
         try {
             const { username } = request.query as { username: string }
             if (!username) {

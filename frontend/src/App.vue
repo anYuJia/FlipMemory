@@ -35,9 +35,10 @@ watch(() => route.name, (newName, oldName) => {
   }
 })
 
-onMounted(async () => {
+onMounted(() => {
   userStore.init()
-  await offlineStore.init()
+  // 离线初始化包含网络同步，不阻塞首屏渲染
+  offlineStore.init().catch(() => {})
 })
 
 onBeforeUnmount(() => {

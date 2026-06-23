@@ -133,8 +133,9 @@ export async function rateLimitMiddleware(
  * 注册速率限制插件
  */
 export async function registerRateLimit(app: FastifyInstance): Promise<void> {
-    // 全局速率限制
+    // 全局速率限制（auth 路由有自己的端点级限流，跳过以避免双重 Redis 开销）
     app.addHook('preHandler', async (req, reply) => {
+        if (req.url.startsWith('/api/auth/')) return
         await rateLimitMiddleware(req, reply, {
             max: 100,
             timeWindow: 60 * 1000,
@@ -193,6 +194,12 @@ export const endpointRateLimits = {
         max: 5,
         timeWindow: 60 * 1000,
         errorMessage: '修改密码请求过于频繁，请稍后再试',
+    },
+    // 检查用户名：20 次/分钟
+    checkUsername: {
+        max: 20,
+        timeWindow: 60 * 1000,
+        errorMessage: '查询过于频繁，请稍后再试',
     },
 }
 

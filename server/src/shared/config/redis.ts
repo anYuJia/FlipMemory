@@ -293,10 +293,12 @@ export class CacheService {
      */
     async clearUserCache(userId: string): Promise<boolean> {
         try {
-            await this.clearCalendarCache(userId)
-            await this.clearMemoryCache(userId)
-            await this.clearStatsCache(userId)
-            await this.clearUserSettingsCache(userId)
+            await Promise.all([
+                this.clearCalendarCache(userId),
+                this.clearMemoryCache(userId),
+                this.clearStatsCache(userId),
+                this.clearUserSettingsCache(userId),
+            ])
             return true
         } catch (error) {
             console.error('Clear user cache error:', error)

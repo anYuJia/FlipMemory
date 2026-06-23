@@ -16,4 +16,5 @@ export const prisma =
         },
     })
 
-if (env.isDev) globalForPrisma.prisma = prisma
+// 全局缓存 PrismaClient（生产环境也缓存，防止 hot-reload 或 worker 创建多实例耗尽连接池）
+globalForPrisma.prisma = prisma
