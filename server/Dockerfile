@@ -1,36 +1,43 @@
-# 使用 Node.js 20 镜像
-FROM node:20-alpine
+# === Builder 阶段：全量依赖 + 编译 ===
+FROM node:20-alpine AS builder
 
-# 安装运行时必需的系统库 (解决 Prisma 在 Alpine 下的崩溃)
 RUN apk add --no-cache openssl libc6-compat
+RUN npm install -g pnpm
 
 WORKDIR /app
 
-# 安装 pnpm
-RUN npm install -g pnpm
-
-# 复制配置文件
 COPY package*.json pnpm-lock.yaml* ./
-
-# 安装全量依赖
 RUN pnpm install
 
-# 复制源代码和 Prisma
 COPY . .
 
-# 关键：告诉 Prisma 我们在 Alpine 环境
 ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
-
-# 生成 Prisma 客户端
 RUN npx prisma generate
-
-# 编译为单文件 JS（生产用 node 直跑，去掉 tsx 运行时开销）
 RUN pnpm build
 
-# 设置环境变量
+# === Runtime 阶段：只保留 production 依赖 ===
+FROM node:20-alpine AS runtime
+
+RUN apk add --no-cache openssl libc6-compat
+RUN npm install -g pnpm
+
+WORKDIR /app
+
+# 只安装 production 依赖（排除 tsx/typescript/vitest/esbuild/pino-pretty）
+COPY package*.json pnpm-lock.yaml* ./
+RUN pnpm install --prod
+
+# Prisma schema + 重新生成 client
+COPY prisma ./prisma
+ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
+RUN npx prisma generate
+
+# 从 builder 复制编译产物
+COPY --from=builder /app/dist ./dist
+
 ENV NODE_ENV=production
 
 EXPOSE 4000
 
-# 生产环境启动脚本：使用 db push 强制同步架构（忽略缺失的迁移文件）
+# 生产环境启动：db push 同步 schema + node 运行编译产物
 CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/server.js"]

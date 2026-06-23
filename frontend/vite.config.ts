@@ -56,7 +56,10 @@ export default defineConfig({
         manualChunks: {
           'vue-vendor': ['vue', 'vue-router', 'pinia'],
           'icons': ['lucide-vue-next'],
-          'utils': ['date-fns', 'axios']
+          'utils': ['date-fns', 'axios'],
+          'sentry': ['@sentry/vue'],
+          'db': ['dexie'],
+          'i18n': ['vue-i18n'],
         },
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',

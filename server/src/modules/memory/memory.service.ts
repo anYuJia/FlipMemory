@@ -1,5 +1,5 @@
 import { prisma, env, minioClient } from '../../shared/config/index.js'
-import { cacheService, CacheTTL } from '../../shared/config/redis.js'
+import { cacheService, cacheKey, CacheTTL } from '../../shared/config/redis.js'
 import { uploadService } from '../upload/upload.service.js'
 import type { CreateMemoryInput, UpdateMemoryInput } from './memory.schema.js'
 
@@ -12,11 +12,6 @@ export class MemoryService {
         this.photoUrlPrefix = `${proto}://${env.minio.publicEndpoint}:${env.minio.publicPort}/${env.minio.bucket}/`
     }
 
-    // 缓存 key 生成
-    private getCacheKey(type: string, userId: string, ...args: (string | number)[]) {
-        return `memory:${type}:${userId}:${args.join(':')}`
-    }
-
     // 清除用户相关缓存（含 stats、calendar 等）
     private async invalidateUserCache(userId: string) {
         await cacheService.clearUserCache(userId)
@@ -24,10 +19,10 @@ export class MemoryService {
 
     // 获取月度日历数据
     async getCalendarData(userId: string, year: number, month: number) {
-        const cacheKey = this.getCacheKey('calendar', userId, year, month)
+        const key = cacheKey('calendar', userId, year, month)
 
         // 尝试从缓存获取
-        const cached = await cacheService.get<any[]>(cacheKey)
+        const cached = await cacheService.get<any[]>(key)
         if (cached) return cached
 
         const startDate = new Date(year, month - 1, 1)
@@ -63,12 +58,17 @@ export class MemoryService {
         }))
 
         // 缓存结果（1小时，写入时自动清除）
-        await cacheService.set(cacheKey, result, CacheTTL.CALENDAR)
+        await cacheService.set(key, result, CacheTTL.CALENDAR)
         return result
     }
 
     // 获取指定日期的记忆
     async getMemoryByDate(userId: string, date: string) {
+        const key = cacheKey('memory', userId, date)
+
+        const cached = await cacheService.get<any>(key)
+        if (cached) return cached
+
         const memory = await prisma.memory.findUnique({
             where: {
                 userId_date: {
@@ -88,7 +88,7 @@ export class MemoryService {
 
         if (!memory) return null
 
-        return {
+        const result = {
             ...memory,
             date: memory.date.toISOString().split('T')[0],
             photos: memory.photos.map((p) => ({
@@ -103,6 +103,9 @@ export class MemoryService {
             })),
             tags: memory.tags.map((t) => t.tag),
         }
+
+        await cacheService.set(key, result, CacheTTL.MEMORY)
+        return result
     }
 
     // 创建或更新记忆 (upsert)
@@ -458,25 +461,16 @@ export class MemoryService {
 
     // 获取统计数据
     async getStats(userId: string, range: string = 'all', year?: number, month?: number, week?: number) {
+        // 缓存：key 含全部参数
+        const key = cacheKey('stats', userId, range, year || '', month || '', week || '')
+        const cached = await cacheService.get<any>(key)
+        if (cached) return cached
+
         const now = new Date()
         const targetYear = year || now.getFullYear()
         const targetMonth = month || (now.getMonth() + 1)
 
-        // 基础统计 - 优化：并行执行
-        const [totalMemories, totalPhotos, moodCounts, consecutiveDays] = await Promise.all([
-            prisma.memory.count({ where: { userId } }),
-            prisma.photo.count({
-                where: { memory: { userId } },
-            }),
-            prisma.memory.groupBy({
-                by: ['mood'],
-                where: { userId, mood: { not: null } },
-                _count: { mood: true },
-            }),
-            this.calculateStreak(userId)
-        ])
-
-        // 本期统计 (periodCount)
+        // 本期统计日期范围（同步计算，提前到 Promise.all 之前）
         let periodStartDate: Date
         let periodEndDate: Date
 
@@ -504,15 +498,28 @@ export class MemoryService {
             periodEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
         }
 
-        const periodCount = await prisma.memory.count({
-            where: {
-                userId,
-                date: {
-                    gte: periodStartDate,
-                    lte: periodEndDate,
+        // 基础统计 + 本期统计 - 全部并行执行
+        const [totalMemories, totalPhotos, moodCounts, consecutiveDays, periodCount] = await Promise.all([
+            prisma.memory.count({ where: { userId } }),
+            prisma.photo.count({
+                where: { memory: { userId } },
+            }),
+            prisma.memory.groupBy({
+                by: ['mood'],
+                where: { userId, mood: { not: null } },
+                _count: { mood: true },
+            }),
+            this.calculateStreak(userId),
+            prisma.memory.count({
+                where: {
+                    userId,
+                    date: {
+                        gte: periodStartDate,
+                        lte: periodEndDate,
+                    }
                 }
-            }
-        })
+            })
+        ])
 
         // 趋势数据 - 优化：使用安全参数化查询
         let trend: { label: string, count: number }[] = []
@@ -596,7 +603,7 @@ export class MemoryService {
             })
         }
 
-        return {
+        const result = {
             totalMemories,
             totalPhotos,
             consecutiveDays,
@@ -607,6 +614,9 @@ export class MemoryService {
             })),
             trend
         }
+
+        await cacheService.set(key, result, CacheTTL.STATS)
+        return result
     }
 
     private async calculateStreak(userId: string): Promise<number> {
